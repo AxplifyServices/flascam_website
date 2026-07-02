@@ -23,7 +23,7 @@ Mot de passe : flascam_minio_local_password_2026
 
 ** Execution d'un script 
 
-psql -U postgres -d flascam_db -f "database\migrations\002_media_storage.sql
+psql -U postgres -d flascam_db -f "database\migrations\003_auth_permissions_and_super_admin.sql
 
 
 cd /opt/apps/hire/repo
@@ -36,9 +36,9 @@ sudo -u postgres psql -d hire_db  -f database/schema/040_add_client_password_res
 npm install  
 c
 
-** Lancer l'appli
+** Build l'appli
 
-npm run dev
+npm run build
 
 ** Lancer serveur backend Nest
 
@@ -63,3 +63,9 @@ git commit --allow-empty -m "trigger deploy"
 MDP PostgreSQL serveur :
 
 22072001Zak
+
+** Utilisateur : 
+
+Email : admin@flascam.ma
+Mot de passe : admin123
+Rôle : SUPER_ADMIN
