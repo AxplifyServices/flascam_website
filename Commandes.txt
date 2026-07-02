@@ -1,0 +1,65 @@
+serv :ssh ubuntu@51.75.252.139
+Code serveur : zitanezac
+
+cd OneDrive\Bureau\Projet Dev\Flascam\webapp
+
+** Lancer le code 
+
+Code .
+
+** PostgreSQL
+   // Utiliser une base de données
+
+psql -U postgres
+\c hire_db  
+\q
+
+Mot de passe : flascam_local_password
+
+** MinIO
+
+Utilisateur : flascam_minio_admin
+Mot de passe : flascam_minio_local_password_2026
+
+** Execution d'un script 
+
+psql -U postgres -d flascam_db -f "database\migrations\002_media_storage.sql
+
+
+cd /opt/apps/hire/repo
+
+sudo -u postgres psql -d hire_db  -f database/schema/040_add_client_password_resets.sql
+
+
+** Installer un env
+
+npm install  
+c
+
+** Lancer l'appli
+
+npm run dev
+
+** Lancer serveur backend Nest
+
+cd OneDrive\Bureau\Projet Dev\Flascam\webapp\backend
+npm run start:dev
+
+** Lancer serveur frontend Next
+
+cd OneDrive\Bureau\Projet Dev\Flascam\webapp\frontend
+npm run dev
+
+Pour Git :
+
+git status
+
+git add .
+git commit -m "message clair"
+git push origin main
+
+git commit --allow-empty -m "trigger deploy"
+
+MDP PostgreSQL serveur :
+
+22072001Zak

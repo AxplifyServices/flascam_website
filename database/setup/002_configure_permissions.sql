@@ -1,0 +1,33 @@
+\set ON_ERROR_STOP on
+
+ALTER DATABASE flascam_db
+OWNER TO flascam_user;
+
+ALTER SCHEMA public
+OWNER TO flascam_user;
+
+GRANT ALL PRIVILEGES
+ON DATABASE flascam_db
+TO flascam_user;
+
+GRANT ALL
+ON SCHEMA public
+TO flascam_user;
+
+ALTER DEFAULT PRIVILEGES
+IN SCHEMA public
+GRANT ALL
+ON TABLES
+TO flascam_user;
+
+ALTER DEFAULT PRIVILEGES
+IN SCHEMA public
+GRANT ALL
+ON SEQUENCES
+TO flascam_user;
+
+ALTER DEFAULT PRIVILEGES
+IN SCHEMA public
+GRANT ALL
+ON FUNCTIONS
+TO flascam_user;
