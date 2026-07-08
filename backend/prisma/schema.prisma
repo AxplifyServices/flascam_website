@@ -74,24 +74,25 @@ model roles {
 }
 
 model users {
-  id                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  role_id             String           @db.Uuid
-  email               String           @unique(map: "users_email_unique") @db.VarChar(255)
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role_id             String             @db.Uuid
+  email               String             @unique(map: "users_email_unique") @db.VarChar(255)
   password_hash       String
-  first_name          String?          @db.VarChar(100)
-  last_name           String?          @db.VarChar(100)
-  phone               String?          @db.VarChar(30)
-  is_active           Boolean          @default(true)
-  is_email_verified   Boolean          @default(false)
-  last_login_at       DateTime?        @db.Timestamptz(6)
-  password_changed_at DateTime?        @db.Timestamptz(6)
-  created_at          DateTime         @default(now()) @db.Timestamptz(6)
-  updated_at          DateTime         @default(now()) @db.Timestamptz(6)
-  deleted_at          DateTime?        @db.Timestamptz(6)
+  first_name          String?            @db.VarChar(100)
+  last_name           String?            @db.VarChar(100)
+  phone               String?            @db.VarChar(30)
+  is_active           Boolean            @default(true)
+  is_email_verified   Boolean            @default(false)
+  last_login_at       DateTime?          @db.Timestamptz(6)
+  password_changed_at DateTime?          @db.Timestamptz(6)
+  created_at          DateTime           @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime           @default(now()) @db.Timestamptz(6)
+  deleted_at          DateTime?          @db.Timestamptz(6)
   audit_logs          audit_logs[]
+  contact_messages    contact_messages[]
   media_assets        media_assets[]
   refresh_tokens      refresh_tokens[]
-  roles               roles            @relation(fields: [role_id], references: [id], onUpdate: NoAction)
+  roles               roles              @relation(fields: [role_id], references: [id], onUpdate: NoAction)
 
   @@index([deleted_at])
   @@index([is_active])
@@ -137,4 +138,134 @@ model media_assets {
   @@index([status])
   @@index([uploaded_by_user_id])
   @@index([visibility])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model contact_messages {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  full_name            String    @db.VarChar(180)
+  email                String    @db.VarChar(255)
+  phone                String?   @db.VarChar(50)
+  subject              String    @db.VarChar(255)
+  message              String
+  status               String    @default("NEW") @db.VarChar(30)
+  processed_by_user_id String?   @db.Uuid
+  processed_at         DateTime? @db.Timestamptz(6)
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime  @default(now()) @db.Timestamptz(6)
+  users                users?    @relation(fields: [processed_by_user_id], references: [id], onUpdate: NoAction)
+
+  @@index([created_at(sort: Desc)])
+  @@index([status])
+}
+
+model executive_members {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  full_name     String   @db.VarChar(180)
+  position      String   @db.VarChar(180)
+  biography     String?
+  image_url     String?
+  linkedin_url  String?
+  display_order Int      @default(0)
+  is_published  Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([display_order], map: "executive_members_order_idx")
+}
+
+model institutional_contents {
+  id                       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug                     String   @unique @default("home") @db.VarChar(100)
+  hero_eyebrow             String?  @db.VarChar(180)
+  hero_title               String   @db.VarChar(255)
+  hero_subtitle            String?
+  hero_primary_cta_label   String?  @db.VarChar(120)
+  hero_primary_cta_url     String?  @db.VarChar(255)
+  hero_secondary_cta_label String?  @db.VarChar(120)
+  hero_secondary_cta_url   String?  @db.VarChar(255)
+  federation_eyebrow       String?  @db.VarChar(180)
+  federation_title         String?  @db.VarChar(255)
+  federation_body          String?
+  missions_eyebrow         String?  @db.VarChar(180)
+  missions_title           String?  @db.VarChar(255)
+  missions_body            String?
+  governance_eyebrow       String?  @db.VarChar(180)
+  governance_title         String?  @db.VarChar(255)
+  governance_body          String?
+  executive_office_eyebrow String?  @db.VarChar(180)
+  executive_office_title   String?  @db.VarChar(255)
+  executive_office_body    String?
+  partners_eyebrow         String?  @db.VarChar(180)
+  partners_title           String?  @db.VarChar(255)
+  partners_body            String?
+  documents_eyebrow        String?  @db.VarChar(180)
+  documents_title          String?  @db.VarChar(255)
+  documents_body           String?
+  contact_eyebrow          String?  @db.VarChar(180)
+  contact_title            String?  @db.VarChar(255)
+  contact_body             String?
+  contact_email            String?  @db.VarChar(255)
+  contact_phone            String?  @db.VarChar(50)
+  contact_address          String?
+  seo_title                String?  @db.VarChar(255)
+  seo_description          String?  @db.VarChar(320)
+  is_published             Boolean  @default(true)
+  created_at               DateTime @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model institutional_documents {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title            String    @db.VarChar(255)
+  description      String?
+  document_type    String?   @db.VarChar(80)
+  file_url         String
+  file_size_label  String?   @db.VarChar(50)
+  publication_date DateTime? @db.Date
+  display_order    Int       @default(0)
+  is_published     Boolean   @default(true)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([display_order], map: "institutional_documents_order_idx")
+}
+
+model institutional_key_figures {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  value         String   @db.VarChar(80)
+  label         String   @db.VarChar(180)
+  description   String?
+  display_order Int      @default(0)
+  is_published  Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([display_order], map: "institutional_key_figures_order_idx")
+}
+
+model institutional_missions {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title         String   @db.VarChar(180)
+  description   String
+  display_order Int      @default(0)
+  is_published  Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([display_order], map: "institutional_missions_order_idx")
+}
+
+model institutional_partners {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String   @db.VarChar(180)
+  description   String?
+  logo_url      String?
+  website_url   String?
+  display_order Int      @default(0)
+  is_published  Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([display_order], map: "institutional_partners_order_idx")
 }

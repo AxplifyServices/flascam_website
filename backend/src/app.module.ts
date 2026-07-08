@@ -57,6 +57,10 @@ import {
   UsersModule,
 } from './users/users.module';
 
+import {
+  InstitutionalModule,
+} from './institutional/institutional.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -77,6 +81,7 @@ import {
     UsersModule,
     RolesModule,
     PermissionsModule,
+    InstitutionalModule,
   ],
   controllers: [
     AppController,

@@ -12,6 +12,7 @@ import {
 import {
   apiFetch,
 } from '@/lib/api';
+import Link from 'next/link';
 
 type SessionUser = {
   email: string;
@@ -230,6 +231,110 @@ export default function AdminPage() {
             {user?.email}
           </strong>.
         </div>
+
+        <div
+  className="
+    mt-6
+    grid
+    gap-4
+    sm:grid-cols-2
+  "
+>
+  <Link
+    href="/admin/institutional"
+    className="
+      rounded-2xl
+      border
+      border-slate-200
+      p-6
+      transition
+      hover:border-red-300
+      hover:shadow-sm
+    "
+  >
+    <p
+      className="
+        text-sm
+        font-semibold
+        text-red-700
+      "
+    >
+      Portail public
+    </p>
+
+    <h2
+      className="
+        mt-2
+        text-xl
+        font-bold
+        text-slate-950
+      "
+    >
+      Contenus institutionnels
+    </h2>
+
+    <p
+      className="
+        mt-2
+        text-sm
+        leading-6
+        text-slate-600
+      "
+    >
+      Modifier la page d’accueil,
+      les missions, les chiffres
+      clés, le bureau, les partenaires
+      et les documents.
+    </p>
+  </Link>
+
+  <Link
+    href="/admin/contact-messages"
+    className="
+      rounded-2xl
+      border
+      border-slate-200
+      p-6
+      transition
+      hover:border-red-300
+      hover:shadow-sm
+    "
+  >
+    <p
+      className="
+        text-sm
+        font-semibold
+        text-red-700
+      "
+    >
+      Contact
+    </p>
+
+    <h2
+      className="
+        mt-2
+        text-xl
+        font-bold
+        text-slate-950
+      "
+    >
+      Messages reçus
+    </h2>
+
+    <p
+      className="
+        mt-2
+        text-sm
+        leading-6
+        text-slate-600
+      "
+    >
+      Consulter et traiter les
+      demandes envoyées depuis le
+      portail public.
+    </p>
+  </Link>
+</div>
       </section>
     </main>
   );

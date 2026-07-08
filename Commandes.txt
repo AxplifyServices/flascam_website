@@ -23,7 +23,7 @@ Mot de passe : flascam_minio_local_password_2026
 
 ** Execution d'un script 
 
-psql -U postgres -d flascam_db -f "database\migrations\003_auth_permissions_and_super_admin.sql
+psql -U postgres -d flascam_db -f "database\migrations\004_institutional_portal.sql
 
 
 cd /opt/apps/hire/repo
