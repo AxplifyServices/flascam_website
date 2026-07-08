@@ -1,18 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --navy: #061b31;
-  --navy-light: #0c2c4b;
+  --flascam-blue: #0f5f9f;
+  --flascam-blue-dark: #07355d;
+  --flascam-blue-light: #eaf5ff;
 
-  --ivory: #f5f0e5;
-  --ivory-light: #fbf8f1;
+  --flascam-black: #05070a;
+  --flascam-slate: #4b5b6b;
+  --flascam-border: #dbe5ef;
 
-  --gold: #c6a45b;
-  --gold-light: #dcc283;
-  --gold-dark: #927336;
-
-  --foreground: #102033;
+  --foreground: #111827;
   --background: #ffffff;
+
+  --navy: var(--flascam-blue-dark);
+  --navy-light: #0d4779;
+
+  --ivory: #f5f9fc;
+  --ivory-light: #fbfdff;
+
+  --gold: var(--flascam-blue);
+  --gold-light: #3d8dcc;
+  --gold-dark: var(--flascam-blue-dark);
 }
 
 * {
@@ -66,52 +74,44 @@ summary::-webkit-details-marker {
 }
 
 .section-eyebrow {
-  color: var(--gold-dark);
+  color: var(--flascam-blue);
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.19em;
+  font-weight: 800;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
 .section-title {
   margin-top: 1rem;
   max-width: 48rem;
-  color: var(--navy);
-  font-family:
-    Georgia,
-    "Times New Roman",
-    serif;
+  color: var(--flascam-black);
   font-size: clamp(
-    2.15rem,
+    2.05rem,
     5vw,
-    3.7rem
+    3.6rem
   );
-  font-weight: 600;
+  font-weight: 800;
   line-height: 1.08;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.045em;
 }
 
 .section-body {
   margin-top: 1.5rem;
   max-width: 45rem;
-  color: #617083;
+  color: var(--flascam-slate);
   font-size: 1rem;
   line-height: 1.85;
 }
 
 .nav-link {
-  color: rgba(
-    255,
-    255,
-    255,
-    0.7
-  );
+  color: rgba(17, 24, 39, 0.72);
   transition:
-    color 160ms ease;
+    color 160ms ease,
+    background 160ms ease;
 }
 
 .nav-link:hover {
-  color: var(--gold);
+  color: var(--flascam-blue);
 }
 
 .editorial-card {
@@ -264,4 +264,31 @@ summary::-webkit-details-marker {
   .admin-section {
     padding: 2rem;
   }
+}
+
+.logo-card {
+  border: 1px solid rgba(15, 95, 159, 0.14);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.98),
+      rgba(234, 245, 255, 0.92)
+    );
+  box-shadow:
+    0 24px 80px rgba(7, 53, 93, 0.14);
+}
+
+.blue-gradient-bg {
+  background:
+    radial-gradient(
+      circle at 78% 16%,
+      rgba(15, 95, 159, 0.22),
+      transparent 28%
+    ),
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #f3f9ff 46%,
+      #e7f3ff 100%
+    );
 }

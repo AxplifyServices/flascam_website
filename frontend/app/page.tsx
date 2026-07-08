@@ -2,6 +2,8 @@ import type {
   Metadata,
 } from 'next';
 
+import Image from 'next/image';
+
 import {
   ArrowDownToLine,
   ArrowRight,
@@ -103,279 +105,209 @@ export default async function Home() {
 
   return (
     <>
-      <header
+<header
+  className="
+    sticky
+    top-0
+    z-50
+    border-b
+    border-slate-200/80
+    bg-white/92
+    text-[var(--flascam-black)]
+    shadow-[0_8px_30px_rgba(15,23,42,0.04)]
+    backdrop-blur-xl
+  "
+>
+  <div
+    className="
+      site-container
+      flex
+      min-h-20
+      items-center
+      justify-between
+      gap-6
+    "
+  >
+    <a
+      href="#accueil"
+      className="
+        flex
+        items-center
+        gap-3
+      "
+      aria-label="Accueil FLASCAM"
+    >
+      <Image
+        src="/logo-flascam.png"
+        alt="Logo FLASCAM"
+        width={190}
+        height={80}
+        priority
         className="
-          sticky
-          top-0
-          z-50
-          border-b
-          border-white/10
-          bg-[rgba(5,24,44,0.94)]
+          h-13
+          w-auto
+          object-contain
+          sm:h-14
+        "
+      />
+    </a>
+
+    <nav
+      className="
+        hidden
+        items-center
+        gap-7
+        text-sm
+        font-semibold
+        lg:flex
+      "
+      aria-label="Navigation principale"
+    >
+      <a href="#federation" className="nav-link">
+        Fédération
+      </a>
+
+      <a href="#missions" className="nav-link">
+        Missions
+      </a>
+
+      <a href="#gouvernance" className="nav-link">
+        Gouvernance
+      </a>
+
+      <a href="#partenaires" className="nav-link">
+        Partenaires
+      </a>
+
+      <a href="#documents" className="nav-link">
+        Documents
+      </a>
+
+      <a
+        href="#contact"
+        className="
+          rounded-full
+          bg-[var(--flascam-blue)]
+          px-5
+          py-2.5
           text-white
-          backdrop-blur-xl
+          shadow-[0_10px_25px_rgba(15,95,159,0.22)]
+          transition
+          hover:bg-[var(--flascam-blue-dark)]
         "
       >
-        <div
-          className="
-            site-container
-            flex
-            min-h-20
-            items-center
-            justify-between
-            gap-6
-          "
-        >
+        Contact
+      </a>
+    </nav>
+
+    <details
+      className="
+        relative
+        lg:hidden
+      "
+    >
+      <summary
+        className="
+          grid
+          size-11
+          cursor-pointer
+          list-none
+          place-items-center
+          rounded-full
+          border
+          border-slate-200
+          bg-white
+          text-[var(--flascam-black)]
+          shadow-sm
+        "
+        aria-label="Ouvrir le menu"
+      >
+        <Menu size={20} />
+      </summary>
+
+      <nav
+        className="
+          absolute
+          right-0
+          top-14
+          flex
+          w-64
+          flex-col
+          rounded-2xl
+          border
+          border-slate-200
+          bg-white
+          p-3
+          text-[var(--flascam-black)]
+          shadow-2xl
+        "
+      >
+        {[
+          ['#federation', 'Fédération'],
+          ['#missions', 'Missions'],
+          ['#gouvernance', 'Gouvernance'],
+          ['#partenaires', 'Partenaires'],
+          ['#documents', 'Documents'],
+          ['#contact', 'Contact'],
+        ].map(([href, label]) => (
           <a
-            href="#accueil"
+            key={href}
+            href={href}
             className="
-              flex
-              items-center
-              gap-3
-            "
-            aria-label=
-              "Accueil FLASCAM"
-          >
-            <span
-              className="
-                grid
-                size-11
-                place-items-center
-                rounded-full
-                border
-                border-[var(--gold)]
-                font-serif
-                text-lg
-                font-bold
-                text-[var(--gold)]
-              "
-            >
-              F
-            </span>
-
-            <span>
-              <strong
-                className="
-                  block
-                  text-lg
-                  tracking-[0.18em]
-                "
-              >
-                FLASCAM
-              </strong>
-
-              <span
-                className="
-                  hidden
-                  text-[0.65rem]
-                  uppercase
-                  tracking-[0.14em]
-                  text-white/55
-                  sm:block
-                "
-              >
-                Fédération nationale
-              </span>
-            </span>
-          </a>
-
-          <nav
-            className="
-              hidden
-              items-center
-              gap-7
+              rounded-xl
+              px-4
+              py-3
               text-sm
-              font-medium
-              lg:flex
-            "
-            aria-label=
-              "Navigation principale"
-          >
-            <a
-              href="#federation"
-              className="nav-link"
-            >
-              Fédération
-            </a>
-
-            <a
-              href="#missions"
-              className="nav-link"
-            >
-              Missions
-            </a>
-
-            <a
-              href="#gouvernance"
-              className="nav-link"
-            >
-              Gouvernance
-            </a>
-
-            <a
-              href="#partenaires"
-              className="nav-link"
-            >
-              Partenaires
-            </a>
-
-            <a
-              href="#documents"
-              className="nav-link"
-            >
-              Documents
-            </a>
-
-            <a
-              href="#contact"
-              className="
-                rounded-full
-                border
-                border-[var(--gold)]
-                px-5
-                py-2.5
-                text-[var(--gold)]
-                transition
-                hover:bg-[var(--gold)]
-                hover:text-[var(--navy)]
-              "
-            >
-              Contact
-            </a>
-          </nav>
-
-          <details
-            className="
-              relative
-              lg:hidden
+              font-semibold
+              text-slate-700
+              hover:bg-[var(--flascam-blue-light)]
+              hover:text-[var(--flascam-blue)]
             "
           >
-            <summary
-              className="
-                grid
-                size-11
-                cursor-pointer
-                list-none
-                place-items-center
-                rounded-full
-                border
-                border-white/20
-              "
-              aria-label=
-                "Ouvrir le menu"
-            >
-              <Menu size={20} />
-            </summary>
-
-            <nav
-              className="
-                absolute
-                right-0
-                top-14
-                flex
-                w-64
-                flex-col
-                rounded-2xl
-                border
-                border-white/10
-                bg-[var(--navy)]
-                p-3
-                shadow-2xl
-              "
-            >
-              {[
-                [
-                  '#federation',
-                  'Fédération',
-                ],
-                [
-                  '#missions',
-                  'Missions',
-                ],
-                [
-                  '#gouvernance',
-                  'Gouvernance',
-                ],
-                [
-                  '#partenaires',
-                  'Partenaires',
-                ],
-                [
-                  '#documents',
-                  'Documents',
-                ],
-                [
-                  '#contact',
-                  'Contact',
-                ],
-              ].map(
-                ([href, label]) => (
-                  <a
-                    key={href}
-                    href={href}
-                    className="
-                      rounded-xl
-                      px-4
-                      py-3
-                      text-sm
-                      text-white/80
-                      hover:bg-white/10
-                      hover:text-white
-                    "
-                  >
-                    {label}
-                  </a>
-                ),
-              )}
-            </nav>
-          </details>
-        </div>
-      </header>
+            {label}
+          </a>
+        ))}
+      </nav>
+    </details>
+  </div>
+</header>
 
       <main>
         <section
           id="accueil"
-          className="
-            relative
-            isolate
-            overflow-hidden
-            bg-[var(--navy)]
-            text-white
-          "
+className="
+  blue-gradient-bg
+  relative
+  isolate
+  overflow-hidden
+  text-[var(--flascam-black)]
+"
         >
-          <div
-            className="
-              absolute
-              inset-0
-              -z-20
-              bg-[radial-gradient(circle_at_78%_20%,rgba(198,164,91,0.21),transparent_28%),radial-gradient(circle_at_15%_85%,rgba(255,255,255,0.08),transparent_35%)]
-            "
-          />
+<div
+  className="
+    absolute
+    right-[-14rem]
+    top-16
+    -z-10
+    size-[38rem]
+    rounded-full
+    border
+    border-[var(--flascam-blue)]/15
+  "
+/>
 
-          <div
-            className="
-              absolute
-              right-[-12rem]
-              top-20
-              -z-10
-              size-[34rem]
-              rounded-full
-              border
-              border-white/10
-            "
-          />
-
-          <div
-            className="
-              absolute
-              right-[-5rem]
-              top-48
-              -z-10
-              size-[22rem]
-              rounded-full
-              border
-              border-[var(--gold)]/30
-            "
-          />
+<div
+  className="
+    absolute
+    right-[-6rem]
+    top-44
+    -z-10
+    size-[24rem]
+    rounded-full
+    bg-[var(--flascam-blue)]/8
+    blur-3xl
+  "
+/>
 
           <div
             className="
@@ -395,30 +327,30 @@ export default async function Home() {
               </Eyebrow>
 
               <h1
-                className="
-                  mt-6
-                  max-w-5xl
-                  font-serif
-                  text-4xl
-                  font-semibold
-                  leading-[1.08]
-                  tracking-[-0.035em]
-                  sm:text-6xl
-                  lg:text-7xl
-                "
+className="
+  mt-6
+  max-w-5xl
+  text-4xl
+  font-extrabold
+  leading-[1.08]
+  tracking-[-0.055em]
+  text-[var(--flascam-black)]
+  sm:text-6xl
+  lg:text-7xl
+"
               >
                 {content.heroTitle}
               </h1>
 
               <p
-                className="
-                  mt-7
-                  max-w-2xl
-                  text-base
-                  leading-8
-                  text-white/68
-                  sm:text-lg
-                "
+className="
+  mt-7
+  max-w-2xl
+  text-base
+  leading-8
+  text-[var(--flascam-slate)]
+  sm:text-lg
+"
               >
                 {content.heroSubtitle}
               </p>
@@ -441,20 +373,21 @@ export default async function Home() {
                         content
                           .heroPrimaryCtaUrl
                       }
-                      className="
-                        inline-flex
-                        h-13
-                        items-center
-                        justify-center
-                        gap-2
-                        rounded-full
-                        bg-[var(--gold)]
-                        px-7
-                        font-semibold
-                        text-[var(--navy)]
-                        transition
-                        hover:bg-[var(--gold-light)]
-                      "
+className="
+  inline-flex
+  h-13
+  items-center
+  justify-center
+  gap-2
+  rounded-full
+  bg-[var(--flascam-blue)]
+  px-7
+  font-semibold
+  text-white
+  shadow-[0_18px_40px_rgba(15,95,159,0.25)]
+  transition
+  hover:bg-[var(--flascam-blue-dark)]
+"
                     >
                       {
                         content
@@ -476,20 +409,22 @@ export default async function Home() {
                         content
                           .heroSecondaryCtaUrl
                       }
-                      className="
-                        inline-flex
-                        h-13
-                        items-center
-                        justify-center
-                        rounded-full
-                        border
-                        border-white/25
-                        px-7
-                        font-semibold
-                        text-white
-                        transition
-                        hover:bg-white/10
-                      "
+className="
+  inline-flex
+  h-13
+  items-center
+  justify-center
+  rounded-full
+  border
+  border-slate-300
+  bg-white/80
+  px-7
+  font-semibold
+  text-[var(--flascam-black)]
+  transition
+  hover:border-[var(--flascam-blue)]
+  hover:text-[var(--flascam-blue)]
+"
                     >
                       {
                         content
@@ -500,67 +435,99 @@ export default async function Home() {
               </div>
             </div>
 
-            <div
+<div
+  className="
+    logo-card
+    rounded-[2rem]
+    p-5
+    sm:p-7
+  "
+>
+  <div
+    className="
+      rounded-[1.5rem]
+      bg-white
+      p-6
+      shadow-[inset_0_0_0_1px_rgba(15,95,159,0.08)]
+    "
+  >
+    <Image
+      src="/logo-flascam.png"
+      alt="Logo FLASCAM"
+      width={420}
+      height={180}
+      priority
+      className="
+        mx-auto
+        h-auto
+        w-full
+        max-w-sm
+        object-contain
+      "
+    />
+  </div>
+
+  <div
+    className="
+      mt-5
+      grid
+      gap-3
+    "
+  >
+    {content.keyFigures
+      .slice(0, 3)
+      .map((figure) => (
+        <article
+          key={
+            figure.id ??
+            figure.label
+          }
+          className="
+            rounded-2xl
+            border
+            border-[var(--flascam-border)]
+            bg-white
+            p-5
+          "
+        >
+          <strong
+            className="
+              text-3xl
+              font-extrabold
+              text-[var(--flascam-blue)]
+            "
+          >
+            {figure.value}
+          </strong>
+
+          <p
+            className="
+              mt-1
+              font-bold
+              text-[var(--flascam-black)]
+            "
+          >
+            {figure.label}
+          </p>
+
+          {figure.description && (
+            <p
               className="
-                grid
-                gap-4
-                sm:grid-cols-3
-                lg:grid-cols-1
+                mt-2
+                text-sm
+                leading-6
+                text-[var(--flascam-slate)]
               "
             >
-              {content.keyFigures
-                .slice(0, 3)
-                .map((figure) => (
-                  <article
-                    key={
-                      figure.id ??
-                      figure.label
-                    }
-                    className="
-                      rounded-[1.75rem]
-                      border
-                      border-white/10
-                      bg-white/[0.06]
-                      p-6
-                      backdrop-blur-sm
-                    "
-                  >
-                    <strong
-                      className="
-                        font-serif
-                        text-4xl
-                        text-[var(--gold)]
-                      "
-                    >
-                      {figure.value}
-                    </strong>
-
-                    <p
-                      className="
-                        mt-2
-                        font-semibold
-                      "
-                    >
-                      {figure.label}
-                    </p>
-
-                    {figure.description && (
-                      <p
-                        className="
-                          mt-2
-                          text-sm
-                          leading-6
-                          text-white/55
-                        "
-                      >
-                        {
-                          figure.description
-                        }
-                      </p>
-                    )}
-                  </article>
-                ))}
-            </div>
+              {
+                figure.description
+              }
+            </p>
+          )}
+        </article>
+      ))}
+  </div>
+</div>
           </div>
         </section>
 
@@ -1452,27 +1419,35 @@ export default async function Home() {
             sm:justify-between
           "
         >
-          <div>
-            <strong
-              className="
-                tracking-[0.18em]
-              "
-            >
-              FLASCAM
-            </strong>
+<div>
+  <Image
+    src="/logo-flascam.png"
+    alt="Logo FLASCAM"
+    width={170}
+    height={72}
+    className="
+      h-12
+      w-auto
+      rounded-md
+      bg-white
+      object-contain
+      px-2
+      py-1
+    "
+  />
 
-            <p
-              className="
-                mt-2
-                text-sm
-                text-white/50
-              "
-            >
-              Fédération des loueurs
-              automobiles sans
-              chauffeur au Maroc.
-            </p>
-          </div>
+  <p
+    className="
+      mt-3
+      text-sm
+      text-white/60
+    "
+  >
+    Fédération des loueurs
+    automobiles sans
+    chauffeur au Maroc.
+  </p>
+</div>
 
           <p
             className="

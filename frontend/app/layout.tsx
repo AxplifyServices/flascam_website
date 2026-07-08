@@ -2,17 +2,42 @@ import type {
   Metadata,
 } from 'next';
 
+import {
+  AgentationProvider,
+} from '@/components/dev/agentation-provider';
+
 import './globals.css';
 
 export const metadata:
   Metadata = {
     title: {
-      default: 'FLASCAM',
+      default:
+        'FLASCAM - Fédération des loueurs automobiles sans chauffeur au Maroc',
       template:
         '%s | FLASCAM',
     },
     description:
-      'Fédération des loueurs automobiles sans chauffeur au Maroc.',
+      'FLASCAM représente les loueurs automobiles sans chauffeur au Maroc et accompagne la structuration de la profession.',
+    icons: {
+      icon: '/logo-flascam.png',
+      apple: '/logo-flascam.png',
+    },
+    openGraph: {
+      title:
+        'FLASCAM - Fédération des loueurs automobiles sans chauffeur au Maroc',
+      description:
+        'Fédération des loueurs automobiles sans chauffeur au Maroc.',
+      type: 'website',
+      locale: 'fr_MA',
+      images: [
+        {
+          url: '/logo-flascam.png',
+          width: 512,
+          height: 512,
+          alt: 'Logo FLASCAM',
+        },
+      ],
+    },
     robots: {
       index: true,
       follow: true,
@@ -30,14 +55,16 @@ export default function RootLayout({
       lang="fr"
       className="h-full"
     >
-      <body
-        className="
-          min-h-full
-          antialiased
-        "
-      >
-        {children}
-      </body>
+<body
+  className="
+    min-h-full
+    antialiased
+  "
+>
+  {children}
+
+  <AgentationProvider />
+</body>
     </html>
   );
 }
