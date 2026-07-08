@@ -11,12 +11,9 @@ import {
 } from 'next/navigation';
 
 import {
-  ArrowLeft,
   Loader2,
   Save,
 } from 'lucide-react';
-
-import Link from 'next/link';
 
 import {
   apiFetch,
@@ -344,14 +341,7 @@ export default function InstitutionalAdminPage() {
   }
 
   return (
-    <main
-      className="
-        min-h-screen
-        bg-slate-100
-        p-4
-        sm:p-8
-      "
-    >
+<main>
       <form
         onSubmit={submit}
         className="
@@ -377,51 +367,37 @@ export default function InstitutionalAdminPage() {
           "
         >
           <div>
-            <Link
-              href="/admin"
-              className="
-                inline-flex
-                items-center
-                gap-2
-                text-sm
-                text-slate-600
-              "
-            >
-              <ArrowLeft
-                size={16}
-              />
 
-              Tableau de bord
-            </Link>
 
-            <h1
-              className="
-                mt-2
-                text-2xl
-                font-bold
-                text-slate-950
-              "
-            >
-              Contenus institutionnels
-            </h1>
+<h1
+  className="
+    text-2xl
+    font-extrabold
+    text-slate-950
+  "
+>
+  Portail public
+</h1>
           </div>
 
           <button
             type="submit"
             disabled={saving}
-            className="
-              inline-flex
-              h-11
-              items-center
-              justify-center
-              gap-2
-              rounded-xl
-              bg-red-700
-              px-5
-              font-semibold
-              text-white
-              disabled:opacity-60
-            "
+className="
+  inline-flex
+  h-11
+  items-center
+  justify-center
+  gap-2
+  rounded-xl
+  bg-[var(--flascam-blue)]
+  px-5
+  font-semibold
+  text-white
+  transition
+  hover:bg-[var(--flascam-blue-dark)]
+  disabled:opacity-60
+"
           >
             {saving ? (
               <Loader2

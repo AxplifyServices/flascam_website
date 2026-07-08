@@ -112,7 +112,7 @@ export default function AdminLoginPage() {
               font-semibold
               uppercase
               tracking-[0.2em]
-              text-red-700
+              text-[var(--flascam-blue)]
             "
           >
             FLASCAM
@@ -170,9 +170,9 @@ export default function AdminLoginPage() {
                   px-4
                   outline-none
                   transition
-                  focus:border-red-700
+                  focus:border-[var(--flascam-blue)]
                   focus:ring-2
-                  focus:ring-red-100
+                  focus:ring-[#eaf5ff]
                 "
                 type="email"
                 autoComplete="username"
@@ -207,9 +207,9 @@ export default function AdminLoginPage() {
                   px-4
                   outline-none
                   transition
-                  focus:border-red-700
+                  focus:border-[var(--flascam-blue)]
                   focus:ring-2
-                  focus:ring-red-100
+                  focus:ring-[#eaf5ff]
                 "
                 type="password"
                 autoComplete=
@@ -246,12 +246,12 @@ export default function AdminLoginPage() {
                 h-12
                 w-full
                 rounded-xl
-                bg-red-700
+                bg-[var(--flascam-blue)]
                 px-4
                 font-semibold
                 text-white
                 transition
-                hover:bg-red-800
+                hover:bg-[var(--flascam-blue-dark)]
                 disabled:cursor-not-allowed
                 disabled:opacity-60
               "

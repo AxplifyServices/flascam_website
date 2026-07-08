@@ -5,8 +5,6 @@ import {
   useState,
 } from 'react';
 
-import Link from 'next/link';
-
 import {
   ArrowLeft,
   Loader2,
@@ -148,14 +146,7 @@ export default function ContactMessagesPage() {
   }
 
   return (
-    <main
-      className="
-        min-h-screen
-        bg-slate-100
-        p-4
-        sm:p-8
-      "
-    >
+<main>
       <div
         className="
           mx-auto
@@ -170,33 +161,17 @@ export default function ContactMessagesPage() {
             shadow-sm
           "
         >
-          <Link
-            href="/admin"
-            className="
-              inline-flex
-              items-center
-              gap-2
-              text-sm
-              text-slate-600
-            "
-          >
-            <ArrowLeft
-              size={16}
-            />
 
-            Tableau de bord
-          </Link>
 
-          <h1
-            className="
-              mt-3
-              text-2xl
-              font-bold
-              text-slate-950
-            "
-          >
-            Messages de contact
-          </h1>
+<h1
+  className="
+    text-2xl
+    font-extrabold
+    text-slate-950
+  "
+>
+  Messages reçus
+</h1>
         </header>
 
         {error && (

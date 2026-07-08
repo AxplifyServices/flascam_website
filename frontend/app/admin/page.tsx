@@ -1,341 +1,228 @@
-'use client';
-
 import {
-  useEffect,
-  useState,
-} from 'react';
+  FileText,
+  Inbox,
+  LayoutDashboard,
+  ShieldCheck,
+} from 'lucide-react';
 
-import {
-  useRouter,
-} from 'next/navigation';
-
-import {
-  apiFetch,
-} from '@/lib/api';
-import Link from 'next/link';
-
-type SessionUser = {
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-
-  role: {
-    code: string;
-    name: string;
-  };
-
-  permissions: string[];
-};
+const dashboardCards = [
+  {
+    title: 'Portail public',
+    description:
+      'Module disponible pour gérer les contenus institutionnels du site FLASCAM.',
+    status: 'Actif',
+    icon: FileText,
+  },
+  {
+    title: 'Messages reçus',
+    description:
+      'Module disponible pour consulter et traiter les demandes envoyées depuis le formulaire de contact.',
+    status: 'Actif',
+    icon: Inbox,
+  },
+  {
+    title: 'Utilisateurs & rôles',
+    description:
+      'Module prévu pour gérer les comptes, les rôles et les permissions.',
+    status: 'Bientôt',
+    icon: ShieldCheck,
+  },
+];
 
 export default function AdminPage() {
-  const router = useRouter();
-
-  const [
-    user,
-    setUser,
-  ] = useState<
-    SessionUser | null
-  >(null);
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadSession() {
-      let response =
-        await apiFetch(
-          '/auth/me',
-          {
-            cache: 'no-store',
-          },
-        );
-
-      if (
-        response.status === 401
-      ) {
-        await apiFetch(
-          '/auth/refresh',
-          {
-            method: 'POST',
-          },
-        );
-
-        response =
-          await apiFetch(
-            '/auth/me',
-            {
-              cache: 'no-store',
-            },
-          );
-      }
-
-      if (!response.ok) {
-        router.replace(
-          '/admin/login',
-        );
-
-        return;
-      }
-
-      const data =
-        await response.json() as {
-          user: SessionUser;
-        };
-
-      if (active) {
-        setUser(data.user);
-        setLoading(false);
-      }
-    }
-
-    void loadSession();
-
-    return () => {
-      active = false;
-    };
-  }, [router]);
-
-  async function logout() {
-    await apiFetch(
-      '/auth/logout',
-      {
-        method: 'POST',
-      },
-    );
-
-    router.replace(
-      '/admin/login',
-    );
-
-    router.refresh();
-  }
-
-  if (loading) {
-    return (
-      <main
-        className="
-          grid
-          min-h-screen
-          place-items-center
-          bg-slate-100
-        "
-      >
-        Chargement…
-      </main>
-    );
-  }
-
   return (
-    <main
+    <section
       className="
-        min-h-screen
-        bg-slate-100
-        p-4
-        sm:p-8
+        mx-auto
+        max-w-7xl
       "
     >
-      <section
+      <div
         className="
-          mx-auto
-          max-w-6xl
-          rounded-3xl
-          bg-white
-          p-6
-          shadow-sm
-          sm:p-10
+          blue-gradient-bg
+          rounded-[2rem]
+          border
+          border-[var(--flascam-border)]
+          p-5
+          shadow-[0_24px_70px_rgba(7,53,93,0.08)]
+          sm:p-7
+          lg:p-8
         "
       >
-        <div
+        <p
           className="
             flex
-            flex-col
-            gap-5
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
+            items-center
+            gap-2
+            text-xs
+            font-extrabold
+            uppercase
+            tracking-[0.18em]
+            text-[var(--flascam-blue)]
           "
         >
-          <div>
-            <p
-              className="
-                text-sm
-                font-semibold
-                uppercase
-                tracking-[0.2em]
-                text-red-700
-              "
-            >
-              FLASCAM
-            </p>
+          <LayoutDashboard
+            size={16}
+          />
+          Tableau de bord
+        </p>
 
-            <h1
-              className="
-                mt-2
-                text-3xl
-                font-bold
-                text-slate-950
-              "
-            >
-              Tableau de bord
-            </h1>
-
-            <p
-              className="
-                mt-2
-                text-slate-600
-              "
-            >
-              {user?.firstName}{' '}
-              {user?.lastName}
-              {' · '}
-              {user?.role.name}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={logout}
-            className="
-              h-11
-              rounded-xl
-              border
-              border-slate-300
-              px-5
-              font-medium
-              text-slate-800
-              hover:bg-slate-50
-            "
-          >
-            Se déconnecter
-          </button>
-        </div>
-
-        <div
+        <h1
           className="
-            mt-8
-            rounded-2xl
-            border
-            border-emerald-200
-            bg-emerald-50
-            p-5
-            text-emerald-900
+            mt-3
+            max-w-3xl
+            text-3xl
+            font-extrabold
+            tracking-[-0.04em]
+            text-[var(--flascam-black)]
+            sm:text-4xl
           "
         >
-          Session sécurisée active
-          pour{' '}
-          <strong>
-            {user?.email}
-          </strong>.
-        </div>
+          Administration FLASCAM
+        </h1>
 
-        <div
-  className="
-    mt-6
-    grid
-    gap-4
-    sm:grid-cols-2
-  "
->
-  <Link
-    href="/admin/institutional"
-    className="
-      rounded-2xl
-      border
-      border-slate-200
-      p-6
-      transition
-      hover:border-red-300
-      hover:shadow-sm
-    "
-  >
-    <p
-      className="
-        text-sm
-        font-semibold
-        text-red-700
-      "
-    >
-      Portail public
-    </p>
+        <p
+          className="
+            mt-3
+            max-w-2xl
+            text-sm
+            leading-6
+            text-[var(--flascam-slate)]
+            sm:text-base
+          "
+        >
+          Le tableau de bord sert de page d’accueil du
+          back-office. La navigation entre les rubriques se fait
+          uniquement depuis la sidebar.
+        </p>
+      </div>
 
-    <h2
-      className="
-        mt-2
-        text-xl
-        font-bold
-        text-slate-950
-      "
-    >
-      Contenus institutionnels
-    </h2>
+      <div
+        className="
+          mt-6
+          grid
+          gap-4
+          md:grid-cols-3
+        "
+      >
+        {dashboardCards.map((card) => {
+          const Icon = card.icon;
 
-    <p
-      className="
-        mt-2
-        text-sm
-        leading-6
-        text-slate-600
-      "
-    >
-      Modifier la page d’accueil,
-      les missions, les chiffres
-      clés, le bureau, les partenaires
-      et les documents.
-    </p>
-  </Link>
+          return (
+            <article
+              key={card.title}
+              className="
+                rounded-3xl
+                border
+                border-[var(--flascam-border)]
+                bg-white
+                p-5
+                shadow-sm
+              "
+            >
+              <div
+                className="
+                  flex
+                  items-start
+                  justify-between
+                  gap-4
+                "
+              >
+                <div
+                  className="
+                    grid
+                    size-12
+                    place-items-center
+                    rounded-2xl
+                    bg-[#eaf5ff]
+                    text-[var(--flascam-blue)]
+                  "
+                >
+                  <Icon size={22} />
+                </div>
 
-  <Link
-    href="/admin/contact-messages"
-    className="
-      rounded-2xl
-      border
-      border-slate-200
-      p-6
-      transition
-      hover:border-red-300
-      hover:shadow-sm
-    "
-  >
-    <p
-      className="
-        text-sm
-        font-semibold
-        text-red-700
-      "
-    >
-      Contact
-    </p>
+                <span
+                  className={`
+                    rounded-full
+                    px-3
+                    py-1
+                    text-[0.68rem]
+                    font-extrabold
+                    uppercase
+                    tracking-wide
+                    ${
+                      card.status ===
+                      'Actif'
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : 'bg-slate-100 text-slate-500'
+                    }
+                  `}
+                >
+                  {card.status}
+                </span>
+              </div>
 
-    <h2
-      className="
-        mt-2
-        text-xl
-        font-bold
-        text-slate-950
-      "
-    >
-      Messages reçus
-    </h2>
+              <h2
+                className="
+                  mt-5
+                  text-lg
+                  font-extrabold
+                  text-slate-950
+                "
+              >
+                {card.title}
+              </h2>
 
-    <p
-      className="
-        mt-2
-        text-sm
-        leading-6
-        text-slate-600
-      "
-    >
-      Consulter et traiter les
-      demandes envoyées depuis le
-      portail public.
-    </p>
-  </Link>
-</div>
-      </section>
-    </main>
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  leading-6
+                  text-[var(--flascam-slate)]
+                "
+              >
+                {card.description}
+              </p>
+            </article>
+          );
+        })}
+      </div>
+
+      <div
+        className="
+          mt-6
+          rounded-3xl
+          border
+          border-[var(--flascam-border)]
+          bg-white
+          p-5
+          shadow-sm
+          sm:p-6
+        "
+      >
+        <h2
+          className="
+            text-xl
+            font-extrabold
+            text-slate-950
+          "
+        >
+          Règle de navigation
+        </h2>
+
+        <p
+          className="
+            mt-2
+            text-sm
+            leading-6
+            text-[var(--flascam-slate)]
+          "
+        >
+          Les cartes du tableau de bord ne sont pas cliquables.
+          Pour changer de rubrique, utilisez la sidebar à gauche
+          sur desktop ou le bouton menu sur mobile.
+        </p>
+      </div>
+    </section>
   );
 }
