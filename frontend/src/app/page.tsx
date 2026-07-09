@@ -21,6 +21,10 @@ import {
   PublicHeader,
 } from '@/components/site/public-header';
 
+import {
+  getFeaturedAssociations,
+} from '@/lib/associations-api';
+
 export const metadata: Metadata = {
   title: 'Accueil',
   description:
@@ -344,6 +348,90 @@ function AccessSection() {
   );
 }
 
+async function AssociationsPreview() {
+  const associations =
+    await getFeaturedAssociations();
+
+  if (associations.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="bg-white py-16 sm:py-24">
+      <div className="site-container">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-3xl">
+            <p className="section-eyebrow">
+              Associations régionales
+            </p>
+
+            <h2 className="mt-4 text-3xl font-extrabold leading-tight tracking-[-0.035em] text-[var(--flascam-black)] sm:text-4xl lg:text-[3rem]">
+              Les relais régionaux de la fédération.
+            </h2>
+
+            <p className="section-body">
+              Consultez les associations affiliées, leurs coordonnées,
+              leurs actualités et leurs événements.
+            </p>
+          </div>
+
+          <Link
+            href="/associations"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[var(--flascam-border)] bg-white px-6 text-sm font-extrabold text-[var(--flascam-blue-dark)] transition hover:border-[var(--flascam-blue)] hover:text-[var(--flascam-blue)]"
+          >
+            Voir toutes les associations
+            <ArrowRight size={16} />
+          </Link>
+        </div>
+
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {associations.map((association) => (
+            <Link
+              key={association.id}
+              href={`/associations/${association.slug}`}
+              className="interactive-card group rounded-[1.75rem] border border-[var(--flascam-border)] bg-[var(--ivory)] p-5 outline-none transition hover:-translate-y-1 hover:border-[var(--flascam-blue)]"
+            >
+              <div className="flex items-center gap-4">
+                <div className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[var(--flascam-blue-dark)] text-white">
+                  {association.logoUrl ? (
+                    <img
+                      src={association.logoUrl}
+                      alt={`Logo ${association.name}`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-lg font-black">
+                      {association.logoText ||
+                        association.name.slice(0, 2).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+
+                <div className="min-w-0">
+                  <h3 className="line-clamp-2 text-lg font-extrabold leading-tight text-[var(--flascam-black)] group-hover:text-[var(--flascam-blue)]">
+                    {association.name}
+                  </h3>
+
+                  <p className="mt-1 text-sm text-[var(--flascam-slate)]">
+                    {association.city
+                      ? `${association.city} · ${association.region}`
+                      : association.region}
+                  </p>
+                </div>
+              </div>
+
+              <span className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-[var(--flascam-blue)]">
+                Découvrir
+                <ArrowRight size={16} />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   return (
     <>
@@ -352,6 +440,7 @@ export default function Home() {
       <main>
         <HeroSection />
         <FederationPreview />
+        <AssociationsPreview />
         <AccessSection />
       </main>
 

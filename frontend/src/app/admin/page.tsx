@@ -3,6 +3,7 @@ import {
   Inbox,
   LayoutDashboard,
   ShieldCheck,
+  Building2,
 } from 'lucide-react';
 
 const dashboardCards = [
@@ -27,6 +28,14 @@ const dashboardCards = [
     status: 'Bientôt',
     icon: ShieldCheck,
   },
+
+  {
+  title: 'Associations',
+  description:
+    'Module disponible pour gérer les associations régionales, leurs pages publiques, leurs actualités, événements et médias.',
+  status: 'Actif',
+  icon: Building2,
+},
 ];
 
 export default function AdminPage() {

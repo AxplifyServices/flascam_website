@@ -61,6 +61,10 @@ import {
   InstitutionalModule,
 } from './institutional/institutional.module';
 
+import {
+  AssociationsModule,
+} from './associations/associations.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -82,6 +86,7 @@ import {
     RolesModule,
     PermissionsModule,
     InstitutionalModule,
+    AssociationsModule,
   ],
   controllers: [
     AppController,

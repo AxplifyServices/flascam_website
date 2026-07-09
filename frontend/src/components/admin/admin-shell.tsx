@@ -22,6 +22,7 @@ import {
   Settings,
   ShieldCheck,
   X,
+  Building2,
 } from 'lucide-react';
 
 import type {
@@ -64,10 +65,10 @@ const navItems: AdminNavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    label: 'Portail public',
-    href: '/admin/institutional',
-    icon: FileText,
-  },
+  label: 'Associations',
+  href: '/admin/associations',
+  icon: Building2,
+},
   {
     label: 'Messages reçus',
     href: '/admin/contact-messages',
