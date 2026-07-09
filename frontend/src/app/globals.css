@@ -294,40 +294,86 @@ summary::-webkit-details-marker {
 }
 
 .interactive-card {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
   transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease;
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease;
+}
+
+.interactive-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at 20% 15%,
+      rgba(194, 145, 61, 0.14),
+      transparent 34%
+    );
+  opacity: 0;
+  transition: opacity 220ms ease;
+  pointer-events: none;
 }
 
 .interactive-card:hover,
 .interactive-card:focus-visible {
-  transform: translateY(-6px);
-  border-color: rgba(194, 145, 61, 0.45);
-  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.1);
+  transform: translateY(-8px) scale(1.015);
+  border-color: rgba(194, 145, 61, 0.5);
+  box-shadow: 0 26px 65px rgba(15, 23, 42, 0.13);
+}
+
+.interactive-card:hover::before,
+.interactive-card:focus-visible::before {
+  opacity: 1;
 }
 
 .interactive-card:active {
-  transform: translateY(-2px) scale(0.99);
+  transform: translateY(-3px) scale(0.99);
 }
 
 .interactive-card-dark {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
   transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease;
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease;
+}
+
+.interactive-card-dark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at 18% 12%,
+      rgba(194, 145, 61, 0.3),
+      transparent 38%
+    );
+  opacity: 0;
+  transition: opacity 220ms ease;
+  pointer-events: none;
 }
 
 .interactive-card-dark:hover,
 .interactive-card-dark:focus-visible {
-  transform: translateY(-6px);
-  border-color: rgba(255, 255, 255, 0.3);
-  background-color: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18);
+  transform: translateY(-8px) scale(1.025);
+  border-color: rgba(194, 145, 61, 0.65);
+  background-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 24px 54px rgba(0, 0, 0, 0.22);
+}
+
+.interactive-card-dark:hover::before,
+.interactive-card-dark:focus-visible::before {
+  opacity: 1;
 }
 
 .interactive-card-dark:active {
-  transform: translateY(-2px) scale(0.99);
+  transform: translateY(-3px) scale(0.98);
 }

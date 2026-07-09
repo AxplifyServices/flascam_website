@@ -6,9 +6,8 @@ import Link from 'next/link';
 
 import {
   ArrowLeft,
-  Building2,
+  Car,
   Handshake,
-  Landmark,
   ShieldCheck,
 } from 'lucide-react';
 
@@ -49,12 +48,75 @@ const pillars = [
       'Créer un cadre national de collaboration entre les associations affiliées, les professionnels et les partenaires.',
   },
   {
-    icon: Landmark,
+    icon: Car,
     title: 'Structurer le secteur',
     description:
       'Centraliser l’information officielle et accompagner la montée en qualité de la profession.',
   },
 ];
+
+function VehicleLineIcon() {
+  return (
+    <svg
+      viewBox="0 0 640 260"
+      className="h-auto w-full max-w-[72px] sm:max-w-[90px]"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M92 164C102 111 139 86 200 80L260 74C290 52 323 42 365 42L459 45C506 49 544 66 580 95L613 106C631 112 640 128 640 150V165C640 174 635 179 626 179H561"
+        stroke="currentColor"
+        strokeWidth="6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      <path
+        d="M92 164H176"
+        stroke="currentColor"
+        strokeWidth="6"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M243 179H493"
+        stroke="currentColor"
+        strokeWidth="6"
+        strokeLinecap="round"
+      />
+
+      <circle
+        cx="208"
+        cy="179"
+        r="34"
+        stroke="white"
+        strokeWidth="6"
+      />
+
+      <circle
+        cx="528"
+        cy="179"
+        r="34"
+        stroke="white"
+        strokeWidth="6"
+      />
+
+      <circle
+        cx="208"
+        cy="179"
+        r="12"
+        fill="currentColor"
+      />
+
+      <circle
+        cx="528"
+        cy="179"
+        r="12"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
 
 export default function FederationPage() {
   return (
@@ -90,8 +152,8 @@ export default function FederationPage() {
     leading-tight
     tracking-[-0.035em]
     text-[var(--flascam-black)]
-    sm:text-4xl
-    lg:text-5xl
+    sm:text-[2.35rem]
+    lg:text-[3rem]
   "
 >
   Une organisation nationale pour représenter et structurer la
@@ -107,33 +169,65 @@ export default function FederationPage() {
                 </p>
               </div>
 
-              <div className="rounded-[2rem] bg-[var(--flascam-blue-dark)] p-7 text-white shadow-[0_26px_80px_rgba(7,53,93,0.18)] sm:p-10">
-                <Building2
-                  size={44}
-                  strokeWidth={1.5}
-                  aria-hidden="true"
-                />
+<div
+  className="
+    relative
+    overflow-hidden
+    rounded-[2rem]
+    bg-[var(--flascam-blue-dark)]
+    p-7
+    text-white
+    shadow-[0_26px_80px_rgba(7,53,93,0.18)]
+    sm:p-10
+  "
+>
+  <div
+    className="
+      absolute
+      -right-16
+      -top-14
+      size-52
+      rounded-full
+      bg-[radial-gradient(circle,rgba(194,145,61,0.28)_0%,rgba(194,145,61,0.12)_42%,transparent_72%)]
+      blur-sm
+    "
+  />
 
-<p className="mt-12 text-2xl font-extrabold leading-tight sm:text-3xl">
-  Une voix commune, une plateforme nationale, une profession
-  mieux organisée.
-</p>
-              </div>
+<div className="relative -mt-4 -ml-4 flex justify-start text-[var(--flascam-gold)]">
+  <VehicleLineIcon />
+</div>
+
+  <p className="relative mt-10 text-xl font-extrabold leading-tight sm:text-2xl">
+    Une voix commune, une plateforme nationale, une profession
+    mieux organisée.
+  </p>
+</div>
             </div>
           </div>
         </section>
 
         <section className="bg-white py-16 sm:py-24">
           <div className="site-container">
-            <div className="max-w-3xl">
+            <div className="max-w-5xl">
               <p className="section-eyebrow">
                 Rôle et mission
               </p>
 
-              <h2 className="section-title">
-                FLASCAM agit comme point de référence pour les professionnels du
-                secteur.
-              </h2>
+<h2
+  className="
+    max-w-5xl
+    text-3xl
+    font-extrabold
+    leading-tight
+    tracking-[-0.035em]
+    text-[var(--flascam-black)]
+    sm:text-4xl
+    lg:text-[3rem]
+  "
+>
+  FLASCAM agit comme point de référence pour les professionnels du
+  secteur.
+</h2>
 
               <p className="section-body">
                 La fédération n’est pas modélisée depuis l’administration pour
@@ -159,20 +253,22 @@ export default function FederationPage() {
     shadow-[0_18px_50px_rgba(15,23,42,0.04)]
   "
 >
-                  <pillar.icon
-                    size={30}
-                    className="text-[var(--flascam-blue)]"
-                    aria-hidden="true"
-                  />
+  <div className="relative z-10">
+    <pillar.icon
+      size={30}
+      className="text-[var(--flascam-blue)]"
+      aria-hidden="true"
+    />
 
-                  <h3 className="mt-7 text-xl font-extrabold text-[var(--flascam-black)]">
-                    {pillar.title}
-                  </h3>
+    <h3 className="mt-7 text-xl font-extrabold text-[var(--flascam-black)]">
+      {pillar.title}
+    </h3>
 
-                  <p className="mt-4 text-sm leading-7 text-[var(--flascam-slate)]">
-                    {pillar.description}
-                  </p>
-                </article>
+    <p className="mt-4 text-sm leading-7 text-[var(--flascam-slate)]">
+      {pillar.description}
+    </p>
+  </div>
+</article>
               ))}
             </div>
           </div>

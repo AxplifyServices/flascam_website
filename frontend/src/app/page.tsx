@@ -6,7 +6,6 @@ import Link from 'next/link';
 
 import {
   ArrowRight,
-  Building2,
   Handshake,
   ShieldCheck,
 } from 'lucide-react';
@@ -34,11 +33,15 @@ export const metadata: Metadata = {
   },
 };
 
-function VehicleLineIcon() {
+function VehicleLineIcon({
+  className = '',
+}: {
+  className?: string;
+}) {
   return (
     <svg
       viewBox="0 0 640 260"
-      className="h-auto w-full max-w-[520px]"
+      className={`h-auto w-full ${className}`}
       fill="none"
       aria-hidden="true"
     >
@@ -148,31 +151,27 @@ function FederationPreview() {
             "
           />
 
-          <div className="relative text-[var(--flascam-gold)]">
-            <VehicleLineIcon />
-          </div>
+<div className="relative -mt-5 -ml-5 flex justify-start text-[var(--flascam-gold)]">
+  <VehicleLineIcon className="max-w-[115px] sm:max-w-[140px]" />
+</div>
 
-          <p className="relative mt-10 max-w-md text-3xl font-extrabold leading-tight sm:text-4xl">
-            Une fédération nationale au service de la profession.
-          </p>
+<p className="relative mt-9 max-w-md text-2xl font-extrabold leading-tight sm:text-3xl">
+  Une fédération nationale au service de la profession.
+</p>
 
-          <div className="relative mt-8 grid gap-3 sm:grid-cols-3">
-            {[
-              {
-                icon: ShieldCheck,
-                label: 'Représenter',
-              },
-              {
-                icon: Handshake,
-                label: 'Fédérer',
-              },
-              {
-                icon: ShieldCheck,
-                label: 'Structurer',
-              },
-            ].map((item) => (
-              <div
-                key={item.label}
+<div className="relative mt-8 grid gap-3 sm:grid-cols-2">
+{[
+  {
+    icon: ShieldCheck,
+    label: 'Représenter',
+  },
+  {
+    icon: Handshake,
+    label: 'Fédérer',
+  },
+].map((item) => (
+  <div
+    key={item.label}
                 tabIndex={0}
                 className="
                   interactive-card-dark
@@ -184,14 +183,16 @@ function FederationPreview() {
                   outline-none
                 "
               >
-                <item.icon
-                  size={22}
-                  aria-hidden="true"
-                />
+<div className="relative z-10">
+  <item.icon
+    size={22}
+    aria-hidden="true"
+  />
 
-                <p className="mt-3 text-sm font-bold">
-                  {item.label}
-                </p>
+  <p className="mt-3 text-sm font-bold">
+    {item.label}
+  </p>
+</div>
               </div>
             ))}
           </div>
@@ -202,12 +203,21 @@ function FederationPreview() {
             Fédération nationale
           </p>
 
-          <h1
-            id="home-federation-title"
-            className="section-title"
-          >
-            La voix unifiée de la location automobile professionnelle au Maroc.
-          </h1>
+<h1
+  id="home-federation-title"
+  className="
+    max-w-4xl
+    text-3xl
+    font-extrabold
+    leading-tight
+    tracking-[-0.035em]
+    text-[var(--flascam-black)]
+    sm:text-4xl
+    lg:text-[3.25rem]
+  "
+>
+  La voix unifiée de la location automobile professionnelle au Maroc.
+</h1>
 
           <p className="section-body">
             FLASCAM fédère les associations affiliées, valorise les loueurs
