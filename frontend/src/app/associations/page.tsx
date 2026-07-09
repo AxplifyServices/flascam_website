@@ -79,47 +79,21 @@ export default async function AssociationsPage() {
       <main>
         <section className="bg-[var(--ivory)] py-12 sm:py-16 lg:py-20">
           <div className="site-container">
-            <div className="max-w-4xl">
-              <p className="section-eyebrow">
-                Réseau régional
-              </p>
+<div className="max-w-none">
+  <p className="section-eyebrow">
+    Réseau régional
+  </p>
 
-              <h1 className="mt-4 text-3xl font-extrabold leading-tight tracking-[-0.04em] text-[var(--flascam-black)] sm:text-4xl lg:text-[3.25rem]">
-                Associations régionales affiliées à FLASCAM
-              </h1>
+  <h1 className="mt-4 w-full text-3xl font-extrabold leading-tight tracking-[-0.04em] text-[var(--flascam-black)] sm:text-4xl lg:text-[3.25rem]">
+    Associations régionales affiliées à FLASCAM
+  </h1>
 
-              <p className="section-body">
-                Retrouvez les relais régionaux de la fédération,
-                leurs coordonnées, leurs actualités, leurs événements
-                et leurs contenus médias.
-              </p>
-            </div>
-
-            <div className="mt-8 grid gap-4 rounded-[2rem] border border-[var(--flascam-border)] bg-white p-4 shadow-[0_20px_70px_rgba(7,53,93,0.06)] sm:grid-cols-3 sm:p-5">
-              <div className="flex items-center gap-3 rounded-2xl bg-[#eaf5ff] p-4">
-                <UsersRound className="text-[var(--flascam-blue)]" />
-                <div>
-                  <p className="text-2xl font-black text-[var(--flascam-black)]">
-                    {associations.length}
-                  </p>
-                  <p className="text-xs font-bold uppercase tracking-wide text-[var(--flascam-slate)]">
-                    associations publiées
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 rounded-2xl bg-[#eaf5ff] p-4">
-                <MapPin className="text-[var(--flascam-blue)]" />
-                <div>
-                  <p className="text-2xl font-black text-[var(--flascam-black)]">
-                    Maroc
-                  </p>
-                  <p className="text-xs font-bold uppercase tracking-wide text-[var(--flascam-slate)]">
-                    couverture régionale
-                  </p>
-                </div>
-              </div>
-            </div>
+  <p className="section-body max-w-none">
+    Retrouvez les relais régionaux de la fédération,
+    leurs coordonnées, leurs actualités, leurs événements
+    et leurs contenus médias.
+  </p>
+</div>
           </div>
         </section>
 

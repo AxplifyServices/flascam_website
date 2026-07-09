@@ -53,6 +53,7 @@ export type AssociationMediaItem = {
 };
 
 export type AssociationDetail = AssociationSummary & {
+  logoMediaAssetId?: string | null;
   presentation?: string | null;
   address?: string | null;
   phone?: string | null;

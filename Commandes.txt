@@ -23,7 +23,7 @@ Mot de passe : flascam_minio_local_password_2026
 
 ** Execution d'un script 
 
-psql -U postgres -d flascam_db -f "database\migrations\005_regional_associations.sql
+psql -U postgres -d flascam_db -f "database\migrations\create_association_admin.sql
 
 
 cd /opt/apps/hire/repo
