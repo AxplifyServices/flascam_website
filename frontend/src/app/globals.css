@@ -292,3 +292,42 @@ summary::-webkit-details-marker {
       #e7f3ff 100%
     );
 }
+
+.interactive-card {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.interactive-card:hover,
+.interactive-card:focus-visible {
+  transform: translateY(-6px);
+  border-color: rgba(194, 145, 61, 0.45);
+  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.1);
+}
+
+.interactive-card:active {
+  transform: translateY(-2px) scale(0.99);
+}
+
+.interactive-card-dark {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.interactive-card-dark:hover,
+.interactive-card-dark:focus-visible {
+  transform: translateY(-6px);
+  border-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18);
+}
+
+.interactive-card-dark:active {
+  transform: translateY(-2px) scale(0.99);
+}

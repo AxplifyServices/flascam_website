@@ -82,10 +82,21 @@ export default function FederationPage() {
                   La fédération
                 </p>
 
-                <h1 className="section-title">
-                  Une organisation nationale pour représenter et structurer la
-                  location automobile professionnelle.
-                </h1>
+<h1
+  className="
+    max-w-4xl
+    text-3xl
+    font-extrabold
+    leading-tight
+    tracking-[-0.035em]
+    text-[var(--flascam-black)]
+    sm:text-4xl
+    lg:text-5xl
+  "
+>
+  Une organisation nationale pour représenter et structurer la
+  location automobile professionnelle.
+</h1>
 
                 <p className="section-body">
                   FLASCAM rassemble les associations affiliées de loueurs
@@ -103,10 +114,10 @@ export default function FederationPage() {
                   aria-hidden="true"
                 />
 
-                <p className="mt-16 text-3xl font-extrabold leading-tight sm:text-4xl">
-                  Une voix commune, une plateforme nationale, une profession
-                  mieux organisée.
-                </p>
+<p className="mt-12 text-2xl font-extrabold leading-tight sm:text-3xl">
+  Une voix commune, une plateforme nationale, une profession
+  mieux organisée.
+</p>
               </div>
             </div>
           </div>
@@ -134,10 +145,20 @@ export default function FederationPage() {
 
             <div className="mt-12 grid gap-5 md:grid-cols-3">
               {pillars.map((pillar) => (
-                <article
-                  key={pillar.title}
-                  className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-[0_18px_50px_rgba(15,23,42,0.04)]"
-                >
+<article
+  key={pillar.title}
+  tabIndex={0}
+  className="
+    interactive-card
+    rounded-[2rem]
+    border
+    border-slate-200
+    bg-white
+    p-7
+    outline-none
+    shadow-[0_18px_50px_rgba(15,23,42,0.04)]
+  "
+>
                   <pillar.icon
                     size={30}
                     className="text-[var(--flascam-blue)]"

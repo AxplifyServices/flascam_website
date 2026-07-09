@@ -34,14 +34,73 @@ export const metadata: Metadata = {
   },
 };
 
+function VehicleLineIcon() {
+  return (
+    <svg
+      viewBox="0 0 640 260"
+      className="h-auto w-full max-w-[520px]"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M92 164C102 111 139 86 200 80L260 74C290 52 323 42 365 42L459 45C506 49 544 66 580 95L613 106C631 112 640 128 640 150V165C640 174 635 179 626 179H561"
+        stroke="currentColor"
+        strokeWidth="6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      <path
+        d="M92 164H176"
+        stroke="currentColor"
+        strokeWidth="6"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M243 179H493"
+        stroke="currentColor"
+        strokeWidth="6"
+        strokeLinecap="round"
+      />
+
+      <circle
+        cx="208"
+        cy="179"
+        r="34"
+        stroke="white"
+        strokeWidth="6"
+      />
+
+      <circle
+        cx="528"
+        cy="179"
+        r="34"
+        stroke="white"
+        strokeWidth="6"
+      />
+
+      <circle
+        cx="208"
+        cy="179"
+        r="12"
+        fill="currentColor"
+      />
+
+      <circle
+        cx="528"
+        cy="179"
+        r="12"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 function FederationPreview() {
   return (
     <section
-      className="
-        bg-[var(--ivory)]
-        py-16
-        sm:py-24
-      "
+      className="bg-[var(--ivory)] py-16 sm:py-24"
       aria-labelledby="home-federation-title"
     >
       <div
@@ -68,39 +127,36 @@ function FederationPreview() {
           <div
             className="
               absolute
-              -right-16
-              -top-16
-              size-44
+              -right-20
+              -top-20
+              size-56
               rounded-full
-              border
-              border-white/[0.15]
+              bg-[radial-gradient(circle,rgba(194,145,61,0.36)_0%,rgba(194,145,61,0.14)_42%,transparent_70%)]
+              blur-sm
             "
           />
 
           <div
             className="
               absolute
-              -bottom-24
+              -bottom-28
               -left-20
-              size-64
+              size-72
               rounded-full
-              bg-[var(--flascam-blue)]/30
-              blur-3xl
+              bg-[radial-gradient(circle,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_38%,transparent_72%)]
+              blur-2xl
             "
           />
 
-          <Building2
-            size={42}
-            strokeWidth={1.5}
-            className="text-white"
-            aria-hidden="true"
-          />
+          <div className="relative text-[var(--flascam-gold)]">
+            <VehicleLineIcon />
+          </div>
 
-          <p className="mt-20 max-w-md text-3xl font-extrabold leading-tight sm:text-4xl">
+          <p className="relative mt-10 max-w-md text-3xl font-extrabold leading-tight sm:text-4xl">
             Une fédération nationale au service de la profession.
           </p>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+          <div className="relative mt-8 grid gap-3 sm:grid-cols-3">
             {[
               {
                 icon: ShieldCheck,
@@ -111,13 +167,22 @@ function FederationPreview() {
                 label: 'Fédérer',
               },
               {
-                icon: Building2,
+                icon: ShieldCheck,
                 label: 'Structurer',
               },
             ].map((item) => (
               <div
                 key={item.label}
-                className="rounded-2xl border border-white/[0.12] bg-white/[0.08] p-4"
+                tabIndex={0}
+                className="
+                  interactive-card-dark
+                  rounded-2xl
+                  border
+                  border-white/[0.12]
+                  bg-white/[0.08]
+                  p-4
+                  outline-none
+                "
               >
                 <item.icon
                   size={22}
@@ -169,7 +234,7 @@ function FederationPreview() {
                 bg-[var(--flascam-blue-dark)]
                 px-7
                 font-semibold
-                text-white
+                !text-white
                 shadow-[0_18px_40px_rgba(7,53,93,0.22)]
                 transition
                 hover:bg-[var(--flascam-blue)]

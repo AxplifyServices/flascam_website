@@ -104,7 +104,7 @@ export function PublicHeader() {
               bg-[var(--flascam-blue-dark)]
               px-5
               py-2.5
-              text-white
+              !text-white
               shadow-[0_10px_25px_rgba(7,53,93,0.22)]
               transition
               hover:bg-[var(--flascam-blue)]
@@ -183,7 +183,7 @@ export function PublicHeader() {
                 text-center
                 text-sm
                 font-semibold
-                text-white
+                !text-white
               "
             >
               Espace pro

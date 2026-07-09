@@ -18,10 +18,10 @@ export const metadata:
     },
     description:
       'FLASCAM représente les loueurs automobiles sans chauffeur au Maroc et accompagne la structuration de la profession.',
-    icons: {
-      icon: '/logo-flascam.png',
-      apple: '/logo-flascam.png',
-    },
+icons: {
+  icon: '/Logo-flascam.png',
+  apple: '/Logo-flascam.png',
+},
     openGraph: {
       title:
         'FLASCAM - Fédération des loueurs automobiles sans chauffeur au Maroc',
@@ -31,7 +31,7 @@ export const metadata:
       locale: 'fr_MA',
       images: [
         {
-          url: '/logo-flascam.png',
+          url: '/Logo-flascam.png',
           width: 512,
           height: 512,
           alt: 'Logo FLASCAM',
