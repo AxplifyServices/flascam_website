@@ -69,3 +69,6 @@ MDP PostgreSQL serveur :
 Email : admin@flascam.ma
 Mot de passe : admin123
 Rôle : SUPER_ADMIN
+
+association : assotest@gmail.com
+mdp : assotest123

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -44,6 +45,8 @@ import {
 import {
   UpsertAssociationPostDto,
 } from './dto/upsert-association-post.dto';
+
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AssociationsService {
@@ -325,15 +328,19 @@ export class AssociationsService {
       }),
     ]);
 
-    return {
-      ...this.formatAssociationDetail(association),
-      posts: posts.map((post) =>
-        this.formatPost(post),
-      ),
-      mediaItems: mediaItems.map((media) =>
-        this.formatMediaItem(media),
-      ),
-    };
+const adminAccount =
+  await this.getAssociationAdminAccount(id);
+
+return {
+  ...this.formatAssociationDetail(association),
+  adminAccount,
+  posts: posts.map((post) =>
+    this.formatPost(post),
+  ),
+  mediaItems: mediaItems.map((media) =>
+    this.formatMediaItem(media),
+  ),
+};
   }
 
   async createAssociation(
@@ -375,6 +382,19 @@ export class AssociationsService {
             dto.seoDescription,
         },
       });
+
+if (
+  dto.adminEmail ||
+  dto.adminPassword ||
+  dto.adminFirstName ||
+  dto.adminLastName
+) {
+  await this.upsertAssociationAdminAccount(
+    association.id,
+    dto,
+    user,
+  );
+}      
 
     await this.auditLogs.log({
       userId: user.id,
@@ -445,6 +465,21 @@ export class AssociationsService {
         },
       });
 
+      if (
+  dto.adminEmail ||
+  dto.adminPassword ||
+  dto.adminFirstName ||
+  dto.adminLastName
+) {
+  this.ensureFlascamAdmin(user);
+
+  await this.upsertAssociationAdminAccount(
+    association.id,
+    dto,
+    user,
+  );
+}
+
     await this.auditLogs.log({
       userId: user.id,
       action: 'ASSOCIATION_UPDATED',
@@ -484,6 +519,10 @@ export class AssociationsService {
           updated_at: new Date(),
         },
       });
+
+      
+
+    
 
     await this.auditLogs.log({
       userId: user.id,
@@ -555,7 +594,11 @@ export class AssociationsService {
           ? 'SUBMITTED'
           : 'DRAFT',
       updated_at: new Date(),
-    };
+    }
+    
+    ;
+
+
 
     const post = postId
       ? await this.prisma.association_posts.update({
@@ -686,6 +729,218 @@ export class AssociationsService {
       user,
     );
   }
+
+private async getAssociationAdminAccount(
+  associationId: string,
+) {
+  const role =
+    await this.prisma.roles.findUnique({
+      where: {
+        code: 'ASSOCIATION_ADMIN',
+      },
+      select: {
+        id: true,
+      },
+    });
+
+  if (!role) {
+    return null;
+  }
+
+  const account =
+    await this.prisma.users.findFirst({
+      where: {
+        regional_association_id:
+          associationId,
+        role_id: role.id,
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        email: true,
+        first_name: true,
+        last_name: true,
+        is_active: true,
+        last_login_at: true,
+      },
+      orderBy: {
+        created_at: 'asc',
+      },
+    });
+
+  if (!account) {
+    return null;
+  }
+
+  return {
+    id: account.id,
+    email: account.email,
+    firstName: account.first_name,
+    lastName: account.last_name,
+    isActive: account.is_active,
+    lastLoginAt: account.last_login_at,
+  };
+}
+
+private async upsertAssociationAdminAccount(
+  associationId: string,
+  dto: UpsertAssociationDto,
+  user: AuthUser,
+) {
+  this.ensureFlascamAdmin(user);
+
+  const role =
+    await this.prisma.roles.findUnique({
+      where: {
+        code: 'ASSOCIATION_ADMIN',
+      },
+      select: {
+        id: true,
+      },
+    });
+
+  if (!role) {
+    throw new BadRequestException(
+      'Le rôle ASSOCIATION_ADMIN est introuvable.',
+    );
+  }
+
+  const existingAccount =
+    await this.prisma.users.findFirst({
+      where: {
+        regional_association_id:
+          associationId,
+        role_id: role.id,
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+
+  const requestedEmail =
+    dto.adminEmail?.trim().toLowerCase() ||
+    existingAccount?.email;
+
+  if (!requestedEmail) {
+    throw new BadRequestException(
+      'L’e-mail du compte association est obligatoire.',
+    );
+  }
+
+  const emailOwner =
+    await this.prisma.users.findFirst({
+      where: {
+        email: requestedEmail,
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        regional_association_id: true,
+      },
+    });
+
+  if (
+    emailOwner &&
+    emailOwner.id !== existingAccount?.id
+  ) {
+    throw new ConflictException(
+      'Cet e-mail est déjà utilisé par un autre compte.',
+    );
+  }
+
+  const passwordData =
+    dto.adminPassword
+      ? {
+          password_hash:
+            await bcrypt.hash(
+              dto.adminPassword,
+              12,
+            ),
+          password_changed_at:
+            new Date(),
+        }
+      : {};
+
+  if (!existingAccount && !dto.adminPassword) {
+    throw new BadRequestException(
+      'Le mot de passe est obligatoire pour créer le compte association.',
+    );
+  }
+
+  if (existingAccount) {
+    await this.prisma.users.update({
+      where: {
+        id: existingAccount.id,
+      },
+      data: {
+        email: requestedEmail,
+        first_name:
+          dto.adminFirstName ??
+          'Admin',
+        last_name:
+          dto.adminLastName ??
+          'Association',
+        role_id: role.id,
+        regional_association_id:
+          associationId,
+        is_active: true,
+        is_email_verified: true,
+        deleted_at: null,
+        updated_at: new Date(),
+        ...passwordData,
+      },
+    });
+
+    await this.auditLogs.log({
+      userId: user.id,
+      action:
+        'ASSOCIATION_ADMIN_ACCOUNT_UPDATED',
+      entityType: 'USER',
+      entityId: existingAccount.id,
+      description:
+        'Modification du compte administrateur association.',
+    });
+
+    return;
+  }
+
+  const createdUser =
+    await this.prisma.users.create({
+      data: {
+        role_id: role.id,
+        regional_association_id:
+          associationId,
+        email: requestedEmail,
+        password_hash:
+          passwordData.password_hash!,
+        first_name:
+          dto.adminFirstName ??
+          'Admin',
+        last_name:
+          dto.adminLastName ??
+          'Association',
+        is_active: true,
+        is_email_verified: true,
+        password_changed_at:
+          new Date(),
+      },
+      select: {
+        id: true,
+      },
+    });
+
+  await this.auditLogs.log({
+    userId: user.id,
+    action:
+      'ASSOCIATION_ADMIN_ACCOUNT_CREATED',
+    entityType: 'USER',
+    entityId: createdUser.id,
+    description:
+      'Création du compte administrateur association.',
+  });
+}  
 
   private async getAssociationScope(
     user: AuthUser,
@@ -827,15 +1082,17 @@ export class AssociationsService {
     };
   }
 
-  private formatAssociationDetail(
-    association: any,
-  ) {
-    return {
-      ...this.formatAssociationSummary(
-        association,
-      ),
-      presentation:
-        association.presentation,
+private formatAssociationDetail(
+  association: any,
+) {
+  return {
+    ...this.formatAssociationSummary(
+      association,
+    ),
+    logoMediaAssetId:
+      association.logo_media_asset_id,
+    presentation:
+      association.presentation,
       address: association.address,
       phone: association.phone,
       email: association.email,

@@ -136,6 +136,32 @@ export async function getAdminAssociations() {
   );
 }
 
+export async function uploadAdminImage(
+  file: File,
+) {
+  const formData =
+    new FormData();
+
+  formData.append(
+    'file',
+    file,
+  );
+
+  return await adminFetch<{
+    id: string;
+    url: string;
+    originalFilename: string;
+    mimeType: string;
+    sizeBytes: number;
+  }>(
+    '/media/admin/images',
+    {
+      method: 'POST',
+      body: formData,
+    },
+  );
+}
+
 export async function getAdminAssociation(
   id: string,
 ) {
@@ -345,6 +371,23 @@ function associationPayload(
       emptyToUndefined(
         form.seoDescription,
       ),
+
+adminEmail:
+  emptyToUndefined(
+    form.adminEmail,
+  ),
+adminFirstName:
+  emptyToUndefined(
+    form.adminFirstName,
+  ),
+adminLastName:
+  emptyToUndefined(
+    form.adminLastName,
+  ),
+adminPassword:
+  emptyToUndefined(
+    form.adminPassword,
+  ),      
   };
 }
 

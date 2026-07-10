@@ -65,6 +65,10 @@ import {
   AssociationsModule,
 } from './associations/associations.module';
 
+import {
+  MediaModule,
+} from './media/media.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -87,6 +91,7 @@ import {
     PermissionsModule,
     InstitutionalModule,
     AssociationsModule,
+    MediaModule,
   ],
   controllers: [
     AppController,

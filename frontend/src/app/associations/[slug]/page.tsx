@@ -196,6 +196,18 @@ export default async function AssociationDetailPage({
   const website =
     normalizeUrl(association.websiteUrl);
 
+const actualities =
+  association.actualities ?? [];
+
+const events =
+  association.events ?? [];
+
+const photos =
+  association.photos ?? [];
+
+const videos =
+  association.videos ?? [];    
+
   const socialLinks = [
     {
       label: 'Facebook',
@@ -342,13 +354,13 @@ export default async function AssociationDetailPage({
 
                 <div className="mt-4 h-px bg-[var(--flascam-border)]" />
 
-                {association.actualities.length === 0 ? (
+                {actualities.length === 0 ? (
                   <p className="mt-6 text-sm text-[var(--flascam-slate)]">
                     Aucune actualité publiée pour le moment.
                   </p>
                 ) : (
                   <div className="mt-6 grid gap-5 md:grid-cols-2">
-                    {association.actualities.map((post) => (
+                    {actualities.map((post) => (
                       <article
                         key={post.id}
                         className="overflow-hidden rounded-[1.4rem] border border-[var(--flascam-border)] bg-white shadow-sm"
@@ -391,13 +403,13 @@ export default async function AssociationDetailPage({
 
                 <div className="mt-4 h-px bg-[var(--flascam-border)]" />
 
-                {association.photos.length === 0 ? (
+                {photos.length === 0 ? (
                   <p className="mt-6 text-sm text-[var(--flascam-slate)]">
                     Aucune photo publiée pour le moment.
                   </p>
                 ) : (
                   <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    {association.photos.map((photo) => (
+                    {photos.map((photo) => (
                       <figure
                         key={photo.id}
                         className="overflow-hidden rounded-2xl bg-slate-200"
@@ -422,13 +434,13 @@ export default async function AssociationDetailPage({
 
                 <div className="mt-4 h-px bg-[var(--flascam-border)]" />
 
-                {association.videos.length === 0 ? (
+                {videos.length === 0 ? (
                   <p className="mt-6 text-sm text-[var(--flascam-slate)]">
                     Aucune vidéo publiée pour le moment.
                   </p>
                 ) : (
                   <div className="mt-6 grid gap-5 md:grid-cols-2">
-                    {association.videos.map((video) => (
+                    {videos.map((video) => (
                       <div
                         key={video.id}
                         className="overflow-hidden rounded-[1.4rem] border border-[var(--flascam-border)] bg-white shadow-sm"
@@ -533,13 +545,13 @@ export default async function AssociationDetailPage({
                   Agenda & événements
                 </h2>
 
-                {association.events.length === 0 ? (
+                {events.length === 0 ? (
                   <p className="mt-4 text-sm leading-6 text-[var(--flascam-slate)]">
                     Aucun événement à venir publié pour le moment.
                   </p>
                 ) : (
                   <div className="mt-5 space-y-4">
-                    {association.events.map((event) => {
+                    {events.map((event) => {
                       const date =
                         dayMonth(event.eventStartAt);
 

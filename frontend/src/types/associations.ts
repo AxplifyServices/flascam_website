@@ -72,6 +72,16 @@ export type AssociationDetail = AssociationSummary & {
   videos?: AssociationMediaItem[];
   posts?: AssociationPost[];
   mediaItems?: AssociationMediaItem[];
+  adminAccount?: AssociationAdminAccount | null;
+};
+
+export type AssociationAdminAccount = {
+  id: string;
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  isActive: boolean;
+  lastLoginAt?: string | null;
 };
 
 export type AssociationFormState = {
@@ -97,6 +107,10 @@ export type AssociationFormState = {
   displayOrder: string;
   seoTitle: string;
   seoDescription: string;
+  adminEmail: string;
+  adminFirstName: string;
+  adminLastName: string;
+  adminPassword: string;
 };
 
 export type AssociationPostFormState = {

@@ -7,14 +7,21 @@ export async function apiFetch(
   path: string,
   init: RequestInit = {},
 ) {
+  const isFormData =
+    init.body instanceof FormData;
+
   return fetch(
     `${API_URL}${path}`,
     {
       ...init,
       credentials: 'include',
       headers: {
-        'Content-Type':
-          'application/json',
+        ...(isFormData
+          ? {}
+          : {
+              'Content-Type':
+                'application/json',
+            }),
         ...init.headers,
       },
     },

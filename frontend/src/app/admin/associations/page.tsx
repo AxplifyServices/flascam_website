@@ -3,8 +3,10 @@
 import {
   FormEvent,
   ReactNode,
+  RefObject,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -19,6 +21,7 @@ import {
   Plus,
   Save,
   Search,
+  Upload,
   X,
 } from 'lucide-react';
 
@@ -28,6 +31,7 @@ import {
   getAdminAssociations,
   updateAdminAssociation,
   updateAdminAssociationStatus,
+  uploadAdminImage,
 } from '@/lib/associations-api';
 
 import type {
@@ -59,6 +63,10 @@ const emptyForm: AssociationFormState = {
   displayOrder: '0',
   seoTitle: '',
   seoDescription: '',
+  adminEmail: '',
+  adminFirstName: '',
+  adminLastName: '',
+  adminPassword: '',
 };
 
 const statusLabels: Record<string, string> = {
@@ -72,10 +80,7 @@ function slugify(value: string) {
   return value
     .toLowerCase()
     .normalize('NFD')
-    .replace(
-      /[\u0300-\u036f]/g,
-      '',
-    )
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
@@ -94,15 +99,12 @@ function formFromAssociation(
       association.memberCount === undefined
         ? ''
         : String(association.memberCount),
-    affiliatedSinceYear:
-      association.affiliatedSinceYear
-        ? String(association.affiliatedSinceYear)
-        : '',
+    affiliatedSinceYear: association.affiliatedSinceYear
+      ? String(association.affiliatedSinceYear)
+      : '',
     logoMediaAssetId:
       'logoMediaAssetId' in association
-        ? String(
-            association.logoMediaAssetId ?? '',
-          )
+        ? String(association.logoMediaAssetId ?? '')
         : '',
     logoText: association.logoText ?? '',
     presentation:
@@ -148,8 +150,20 @@ function formFromAssociation(
         ? '0'
         : String(association.displayOrder),
     seoTitle: association.seoTitle ?? '',
-    seoDescription:
-      association.seoDescription ?? '',
+    seoDescription: association.seoDescription ?? '',
+    adminEmail:
+      'adminAccount' in association
+        ? association.adminAccount?.email ?? ''
+        : '',
+    adminFirstName:
+      'adminAccount' in association
+        ? association.adminAccount?.firstName ?? ''
+        : '',
+    adminLastName:
+      'adminAccount' in association
+        ? association.adminAccount?.lastName ?? ''
+        : '',
+    adminPassword: '',
   };
 }
 
@@ -190,9 +204,27 @@ export default function AdminAssociationsPage() {
   ] = useState(false);
 
   const [
-    error,
-    setError,
+    logoUploading,
+    setLogoUploading,
+  ] = useState(false);
+
+  const [
+    logoPreviewUrl,
+    setLogoPreviewUrl,
   ] = useState('');
+
+  const [
+    pageError,
+    setPageError,
+  ] = useState('');
+
+  const [
+    modalError,
+    setModalError,
+  ] = useState('');
+
+  const modalScrollRef =
+    useRef<HTMLDivElement | null>(null);
 
   const [
     success,
@@ -212,18 +244,17 @@ export default function AdminAssociationsPage() {
       return associations;
     }
 
-    return associations.filter(
-      (association) =>
-        [
-          association.name,
-          association.region,
-          association.city,
-          association.status,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase()
-          .includes(searchValue),
+    return associations.filter((association) =>
+      [
+        association.name,
+        association.region,
+        association.city,
+        association.status,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(searchValue),
     );
   }, [associations, query]);
 
@@ -233,15 +264,13 @@ export default function AdminAssociationsPage() {
 
   async function load() {
     setLoading(true);
-    setError('');
+    setPageError('');
 
     try {
-      const data =
-        await getAdminAssociations();
-
+      const data = await getAdminAssociations();
       setAssociations(data);
     } catch (caughtError) {
-      setError(
+      setPageError(
         caughtError instanceof Error
           ? caughtError.message
           : 'Impossible de charger les associations.',
@@ -249,6 +278,17 @@ export default function AdminAssociationsPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function showModalError(message: string) {
+    setModalError(message);
+
+    requestAnimationFrame(() => {
+      modalScrollRef.current?.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    });
   }
 
   function updateField(
@@ -272,7 +312,9 @@ export default function AdminAssociationsPage() {
   function startCreate() {
     setSelected(null);
     setForm(emptyForm);
-    setError('');
+    setLogoPreviewUrl('');
+    setPageError('');
+    setModalError('');
     setSuccess('');
     setModalOpen(true);
   }
@@ -280,7 +322,8 @@ export default function AdminAssociationsPage() {
   async function startEdit(
     association: AssociationSummary,
   ) {
-    setError('');
+    setPageError('');
+    setModalError('');
     setSuccess('');
     setLoadingDetails(true);
 
@@ -291,12 +334,11 @@ export default function AdminAssociationsPage() {
         );
 
       setSelected(detail);
-      setForm(
-        formFromAssociation(detail),
-      );
+      setForm(formFromAssociation(detail));
+      setLogoPreviewUrl(detail.logoUrl ?? '');
       setModalOpen(true);
     } catch (caughtError) {
-      setError(
+      setPageError(
         caughtError instanceof Error
           ? caughtError.message
           : 'Impossible de charger cette association.',
@@ -307,13 +349,49 @@ export default function AdminAssociationsPage() {
   }
 
   function closeModal() {
-    if (saving) {
+    if (saving || logoUploading) {
       return;
     }
 
     setModalOpen(false);
     setSelected(null);
     setForm(emptyForm);
+    setLogoPreviewUrl('');
+    setModalError('');
+  }
+
+  async function handleLogoUpload(file?: File) {
+    if (!file) {
+      return;
+    }
+
+    setLogoUploading(true);
+    setModalError('');
+    setSuccess('');
+
+    try {
+      const uploaded =
+        await uploadAdminImage(file);
+
+      setForm((current) => ({
+        ...current,
+        logoMediaAssetId: uploaded.id,
+      }));
+
+      setLogoPreviewUrl(uploaded.url);
+
+      setSuccess(
+        'Logo importé. Pense à enregistrer l’association pour appliquer le changement.',
+      );
+    } catch (caughtError) {
+      showModalError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : 'Import du logo impossible.',
+      );
+    } finally {
+      setLogoUploading(false);
+    }
   }
 
   async function submit(
@@ -322,7 +400,7 @@ export default function AdminAssociationsPage() {
     event.preventDefault();
 
     setSaving(true);
-    setError('');
+    setModalError('');
     setSuccess('');
 
     try {
@@ -340,14 +418,13 @@ export default function AdminAssociationsPage() {
       );
 
       setSelected(updated);
-      setForm(
-        formFromAssociation(updated),
-      );
+      setForm(formFromAssociation(updated));
+      setLogoPreviewUrl(updated.logoUrl ?? '');
 
       await load();
       setModalOpen(false);
     } catch (caughtError) {
-      setError(
+      showModalError(
         caughtError instanceof Error
           ? caughtError.message
           : 'Enregistrement impossible.',
@@ -369,7 +446,7 @@ export default function AdminAssociationsPage() {
     }
 
     setSaving(true);
-    setError('');
+    setModalError('');
     setSuccess('');
 
     try {
@@ -384,9 +461,8 @@ export default function AdminAssociationsPage() {
         );
 
       setSelected(refreshed);
-      setForm(
-        formFromAssociation(refreshed),
-      );
+      setForm(formFromAssociation(refreshed));
+      setLogoPreviewUrl(refreshed.logoUrl ?? '');
 
       await load();
 
@@ -394,7 +470,7 @@ export default function AdminAssociationsPage() {
         `Statut mis à jour : ${statusLabels[status]}.`,
       );
     } catch (caughtError) {
-      setError(
+      showModalError(
         caughtError instanceof Error
           ? caughtError.message
           : 'Changement de statut impossible.',
@@ -435,9 +511,9 @@ export default function AdminAssociationsPage() {
         </div>
       </header>
 
-      {error && (
+      {pageError && (
         <p className="mt-5 rounded-xl bg-red-50 p-4 text-sm font-medium text-red-800">
-          {error}
+          {pageError}
         </p>
       )}
 
@@ -557,11 +633,18 @@ export default function AdminAssociationsPage() {
               : 'Créer une association'
           }
           onClose={closeModal}
+          scrollRef={modalScrollRef}
         >
           <form
             onSubmit={submit}
             className="space-y-7"
           >
+            {modalError && (
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium leading-6 text-red-800">
+                {modalError}
+              </div>
+            )}
+
             {selected && (
               <div className="rounded-2xl bg-[#f8fbff] p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -805,17 +888,68 @@ export default function AdminAssociationsPage() {
 
             <FormSection title="Médias et affichage">
               <div className="grid gap-5 lg:grid-cols-2">
-                <AdminInput
-                  label="ID média du logo"
-                  value={form.logoMediaAssetId}
-                  onChange={(value) =>
-                    updateField(
-                      'logoMediaAssetId',
-                      value,
-                    )
-                  }
-                  helper="Temporaire : l’upload MinIO sera branché dans l’étape médias."
-                />
+                <div className="rounded-2xl border border-[var(--flascam-border)] p-4">
+                  <span className="text-sm font-bold text-slate-800">
+                    Logo de l’association
+                  </span>
+
+                  <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center">
+                    <div className="grid size-24 place-items-center overflow-hidden rounded-2xl bg-[var(--flascam-blue-dark)]">
+                      {logoPreviewUrl ? (
+                        <img
+                          src={logoPreviewUrl}
+                          alt="Logo association"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-xl font-black text-white">
+                          {form.logoText ||
+                            form.name
+                              .slice(0, 2)
+                              .toUpperCase() ||
+                            'LO'}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex-1">
+                      <label className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[var(--flascam-border)] bg-white px-4 text-sm font-bold text-slate-700 transition hover:border-[var(--flascam-blue)] hover:text-[var(--flascam-blue)]">
+                        {logoUploading ? (
+                          <Loader2
+                            size={16}
+                            className="animate-spin"
+                          />
+                        ) : (
+                          <Upload size={16} />
+                        )}
+
+                        Importer un logo
+
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                          className="hidden"
+                          disabled={logoUploading}
+                          onChange={(event) =>
+                            void handleLogoUpload(
+                              event.target.files?.[0],
+                            )
+                          }
+                        />
+                      </label>
+
+                      <p className="mt-2 text-xs leading-5 text-[var(--flascam-slate)]">
+                        Formats acceptés : JPG, PNG, WEBP, SVG. Le fichier est stocké dans MinIO.
+                      </p>
+
+                      {form.logoMediaAssetId && (
+                        <p className="mt-1 text-xs text-slate-400">
+                          Média lié : {form.logoMediaAssetId}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
                 <AdminInput
                   label="Ordre d’affichage"
@@ -845,6 +979,67 @@ export default function AdminAssociationsPage() {
               </label>
             </FormSection>
 
+            <FormSection title="Identifiants espace association">
+              <div className="rounded-2xl bg-[#f8fbff] p-4 text-sm leading-6 text-[var(--flascam-slate)]">
+                Ces identifiants permettent à l’association de se connecter à son propre espace admin.
+                L’association ne pourra modifier que sa propre fiche et ses contenus.
+              </div>
+
+              <div className="grid gap-5 lg:grid-cols-2">
+                <AdminInput
+                  label="E-mail de connexion"
+                  type="email"
+                  value={form.adminEmail}
+                  onChange={(value) =>
+                    updateField(
+                      'adminEmail',
+                      value,
+                    )
+                  }
+                  helper="Exemple : admin.casa@flascam.ma"
+                />
+
+                <AdminInput
+                  label="Mot de passe"
+                  type="password"
+                  value={form.adminPassword}
+                  onChange={(value) =>
+                    updateField(
+                      'adminPassword',
+                      value,
+                    )
+                  }
+                  helper={
+                    selected
+                      ? 'Laissez vide pour ne pas modifier le mot de passe.'
+                      : 'Obligatoire si vous créez un compte association.'
+                  }
+                />
+
+                <AdminInput
+                  label="Prénom"
+                  value={form.adminFirstName}
+                  onChange={(value) =>
+                    updateField(
+                      'adminFirstName',
+                      value,
+                    )
+                  }
+                />
+
+                <AdminInput
+                  label="Nom"
+                  value={form.adminLastName}
+                  onChange={(value) =>
+                    updateField(
+                      'adminLastName',
+                      value,
+                    )
+                  }
+                />
+              </div>
+            </FormSection>
+
             <FormSection title="SEO">
               <AdminInput
                 label="Titre SEO"
@@ -871,7 +1066,7 @@ export default function AdminAssociationsPage() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  disabled={saving}
+                  disabled={saving || logoUploading}
                   className="inline-flex h-11 items-center justify-center rounded-xl border border-[var(--flascam-border)] px-5 text-sm font-bold text-slate-700 hover:border-slate-400 disabled:opacity-60"
                 >
                   Annuler
@@ -879,7 +1074,7 @@ export default function AdminAssociationsPage() {
 
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || logoUploading}
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[var(--flascam-blue)] px-5 text-sm font-bold text-white transition hover:bg-[var(--flascam-blue-dark)] disabled:opacity-60"
                 >
                   {saving ? (
@@ -905,10 +1100,12 @@ function Modal({
   title,
   children,
   onClose,
+  scrollRef,
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
+  scrollRef: RefObject<HTMLDivElement | null>;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-5">
@@ -928,7 +1125,10 @@ function Modal({
           </button>
         </div>
 
-        <div className="max-h-[calc(94vh-4.5rem)] overflow-y-auto px-6 py-6 sm:px-7 sm:py-7">
+        <div
+          ref={scrollRef}
+          className="max-h-[calc(94vh-4.5rem)] overflow-y-auto px-6 py-6 sm:px-7 sm:py-7"
+        >
           {children}
         </div>
       </div>

@@ -8,6 +8,7 @@ import {
   IsUUID,
   MaxLength,
   Min,
+  MinLength,
 } from 'class-validator';
 
 export class UpsertAssociationDto {
@@ -118,4 +119,25 @@ export class UpsertAssociationDto {
   @IsString()
   @MaxLength(320)
   seoDescription?: string;
+
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(255)
+  adminEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  adminFirstName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  adminLastName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  @MaxLength(128)
+  adminPassword?: string;
 }
