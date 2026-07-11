@@ -5,8 +5,12 @@
   --flascam-blue-dark: #07355d;
   --flascam-blue-light: #eaf5ff;
 
-  --flascam-black: #05070a;
-  --flascam-slate: #4b5b6b;
+  --flascam-accent: #c96f4a;
+  --flascam-accent-dark: #a95235;
+  --flascam-accent-light: #f8ede8;
+
+  --flascam-black: #101820;
+  --flascam-slate: #536273;
   --flascam-border: #dbe5ef;
 
   --foreground: #111827;
@@ -376,4 +380,50 @@ summary::-webkit-details-marker {
 
 .interactive-card-dark:active {
   transform: translateY(-3px) scale(0.98);
+}
+
+@keyframes institutionalReveal {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes institutionalFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes institutionalLine {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,29 +1,18 @@
-import type {
-  Metadata,
-} from 'next';
+import type { Metadata } from 'next';
 
 import Link from 'next/link';
 
 import {
   ArrowRight,
   BadgeCheck,
-  Building2,
-  FileCheck2,
   Leaf,
   ShieldCheck,
-  UsersRound,
 } from 'lucide-react';
 
-import {
-  PublicFooter,
-} from '@/components/site/public-footer';
-import {
-  PublicHeader,
-} from '@/components/site/public-header';
+import { PublicFooter } from '@/components/site/public-footer';
+import { PublicHeader } from '@/components/site/public-header';
 
-import {
-  getFeaturedAssociations,
-} from '@/lib/associations-api';
+import { getFeaturedAssociations } from '@/lib/associations-api';
 
 export const metadata: Metadata = {
   title: 'Accueil',
@@ -33,7 +22,8 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'FLASCAM - Fédération des loueurs automobiles sans chauffeur au Maroc',
+    title:
+      'FLASCAM - Fédération des loueurs automobiles sans chauffeur au Maroc',
     description:
       'Découvrez la fédération nationale dédiée à la représentation, la labellisation et la professionnalisation des loueurs automobiles sans chauffeur au Maroc.',
     type: 'website',
@@ -77,27 +67,6 @@ const focusItems = [
   },
 ];
 
-const quickLinks = [
-  {
-    href: '/la-federation',
-    label: 'Découvrir la fédération',
-    description:
-      'Rôle, mission, positionnement et vision nationale de la FLASCAM.',
-  },
-  {
-    href: '/associations',
-    label: 'Associations régionales',
-    description:
-      'Un espace dédié aux relais régionaux et aux associations affiliées.',
-  },
-  {
-    href: '/actualites',
-    label: 'Actualités du secteur',
-    description:
-      'Événements, communiqués et informations importantes pour la profession.',
-  },
-];
-
 function VehicleLineIcon({
   className = '',
 }: {
@@ -113,7 +82,7 @@ function VehicleLineIcon({
       <path
         d="M92 164C102 111 139 86 200 80L260 74C290 52 323 42 365 42L459 45C506 49 544 66 580 95L613 106C631 112 640 128 640 150V165C640 174 635 179 626 179H561"
         stroke="currentColor"
-        strokeWidth="6"
+        strokeWidth="5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -121,14 +90,14 @@ function VehicleLineIcon({
       <path
         d="M92 164H176"
         stroke="currentColor"
-        strokeWidth="6"
+        strokeWidth="5"
         strokeLinecap="round"
       />
 
       <path
         d="M243 179H493"
         stroke="currentColor"
-        strokeWidth="6"
+        strokeWidth="5"
         strokeLinecap="round"
       />
 
@@ -136,29 +105,29 @@ function VehicleLineIcon({
         cx="208"
         cy="179"
         r="34"
-        stroke="white"
-        strokeWidth="6"
+        stroke="currentColor"
+        strokeWidth="5"
       />
 
       <circle
         cx="528"
         cy="179"
         r="34"
-        stroke="white"
-        strokeWidth="6"
+        stroke="currentColor"
+        strokeWidth="5"
       />
 
       <circle
         cx="208"
         cy="179"
-        r="12"
+        r="10"
         fill="currentColor"
       />
 
       <circle
         cx="528"
         cy="179"
-        r="12"
+        r="10"
         fill="currentColor"
       />
     </svg>
@@ -167,74 +136,110 @@ function VehicleLineIcon({
 
 function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-[var(--ivory)] py-12 sm:py-16 lg:py-24">
-      <div className="absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-[rgba(15,95,159,0.08)] blur-3xl" />
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#07355d] via-[#0a487b] to-[#0f5f9f] text-white">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.12]"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }}
+      />
 
-      <div className="site-container relative grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-        <div>
-          <p className="section-eyebrow">
-            Fédération nationale
-          </p>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-32 -top-40 h-[34rem] w-[34rem] rounded-full border border-white/10"
+      />
 
-<h1 className="mt-4 max-w-5xl text-3xl font-extrabold leading-[1.08] tracking-[-0.045em] text-[var(--flascam-black)] sm:text-4xl lg:text-[3.2rem]">
-  Unir, défendre et professionnaliser les loueurs automobiles sans chauffeur au Maroc.
-</h1>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-12 right-[8%] h-64 w-64 rounded-full border border-[#c96f4a]/40"
+      />
 
-          <p className="section-body max-w-3xl">
-            La FLASCAM représente les professionnels de la location automobile sans chauffeur,
-            accompagne la structuration du secteur et renforce la confiance entre loueurs,
-            clients, partenaires et institutions.
-          </p>
+      <div className="site-container relative">
+        <div className="grid gap-12 pb-14 pt-14 sm:pb-20 sm:pt-20 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:gap-20 lg:pb-24 lg:pt-24">
+          <div className="animate-[institutionalReveal_700ms_ease-out_both]">
+            <p className="flex items-center gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-white">
+              <span className="h-[3px] w-10 bg-[#c96f4a]" />
+              Fédération nationale
+            </p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/la-federation"
-              className="inline-flex h-[3.25rem] items-center justify-center gap-2 rounded-full bg-[var(--flascam-blue-dark)] px-7 font-semibold !text-white shadow-[0_18px_40px_rgba(7,53,93,0.22)] transition hover:bg-[var(--flascam-blue)]"
-            >
-              Découvrir la fédération
-              <ArrowRight size={18} aria-hidden="true" />
-            </Link>
+            <h1 className="mt-6 max-w-4xl text-[2.4rem] font-extrabold leading-[1.08] tracking-[-0.045em] text-white sm:text-[3.4rem] lg:text-[4.15rem]">
+              Unir, défendre et professionnaliser les loueurs automobiles sans
+              chauffeur au Maroc.
+            </h1>
 
-            <Link
-              href="/contact"
-              className="inline-flex h-[3.25rem] items-center justify-center rounded-full border border-[var(--flascam-border)] bg-white px-7 font-semibold text-[var(--flascam-blue-dark)] transition hover:border-[var(--flascam-blue)] hover:text-[var(--flascam-blue)]"
-            >
-              Devenir adhérent
-            </Link>
+            <p className="mt-7 max-w-3xl text-base leading-8 text-white/80 sm:text-lg sm:leading-9">
+              La FLASCAM représente les professionnels de la location
+              automobile sans chauffeur, accompagne la structuration du secteur
+              et renforce la confiance entre loueurs, clients, partenaires et
+              institutions.
+            </p>
+
+            <div className="mt-9 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+              <Link
+                href="/la-federation"
+                className="inline-flex min-h-13 items-center justify-center gap-3 rounded-md border border-[#c96f4a] bg-[#c96f4a] px-6 text-sm font-extrabold text-white transition duration-200 hover:-translate-y-0.5 hover:border-[#a95235] hover:bg-[#a95235] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30"
+              >
+                Découvrir la fédération
+
+                <ArrowRight
+                  size={18}
+                  aria-hidden="true"
+                />
+              </Link>
+
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-3 text-sm font-extrabold text-white transition duration-200 hover:gap-4 hover:text-[#ffd8c8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-[#07355d]"
+              >
+                Devenir adhérent
+
+                <ArrowRight
+                  size={17}
+                  aria-hidden="true"
+                />
+              </Link>
+            </div>
+          </div>
+
+          <div
+            aria-hidden="true"
+            className="relative flex min-h-64 items-center justify-center text-white/90 sm:min-h-80 lg:min-h-[22rem]"
+          >
+            <div className="absolute right-0 top-4 text-xs font-extrabold tracking-[0.24em] text-white/45">
+              FLASCAM
+            </div>
+
+            <div className="relative w-full max-w-[34rem] animate-[institutionalFloat_7s_ease-in-out_infinite] rounded-full border border-white/20 bg-white/[0.04] px-6 py-12 sm:px-10 sm:py-16">
+              <VehicleLineIcon />
+            </div>
+
+            <div className="absolute bottom-8 right-0 h-[3px] w-28 origin-right animate-[institutionalLine_1.2s_ease-out_both] bg-[#c96f4a]" />
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-[2rem] bg-[var(--flascam-blue-dark)] p-7 text-white shadow-[0_26px_80px_rgba(7,53,93,0.18)] sm:p-10">
-          <div className="absolute -right-20 -top-20 size-56 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.08)_38%,transparent_72%)] blur-2xl" />
-          <div className="absolute -bottom-28 -left-20 size-72 rounded-full bg-[radial-gradient(circle,rgba(15,95,159,0.46)_0%,rgba(15,95,159,0.18)_42%,transparent_70%)] blur-sm" />
+        <div className="grid border-t border-white/20 bg-[#032039]/30 backdrop-blur-sm sm:grid-cols-3">
+          {heroStats.map((stat) => (
+            <div
+              key={stat.label}
+              className="border-b border-white/15 px-5 py-6 last:border-b-0 sm:border-b-0 sm:border-r sm:px-8 sm:py-7 sm:last:border-r-0"
+            >
+              <p className="text-3xl font-extrabold tracking-[-0.035em] text-white">
+                {stat.value}
+              </p>
 
-<div className="relative -mr6 -mt-5 flex justify-end text-white">
-  <VehicleLineIcon className="max-w-[125px] sm:max-w-[155px]" />
-</div>
+              <p className="mt-2 text-sm font-semibold text-white/70">
+                {stat.label}
+              </p>
+            </div>
+          ))}
 
-          <p className="relative mt-8 max-w-md text-2xl font-extrabold leading-tight sm:text-3xl">
-            Une plateforme nationale pour structurer un secteur clé de la mobilité et du tourisme.
-          </p>
-
-          <div className="relative mt-8 grid gap-3 sm:grid-cols-3">
-            {heroStats.map((stat) => (
-<div
-  key={stat.label}
-  className="interactive-card-dark rounded-2xl border border-white/[0.12] bg-white/[0.08] p-4 outline-none"
->
-                <p className="text-2xl font-extrabold">
-                  {stat.value}
-                </p>
-                <p className="mt-2 text-xs font-semibold leading-5 text-white/78">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <p className="relative mt-5 text-xs leading-6 text-white/65">
-            Chiffres issus des prises de parole publiques et annuaires professionnels. À confirmer
-            par la fédération avant publication définitive.
+          <p className="border-t border-white/15 px-5 py-4 text-xs leading-5 text-white/50 sm:col-span-3 sm:px-8">
+            Chiffres issus des prises de parole publiques et annuaires
+            professionnels. À confirmer par la fédération avant publication
+            définitive.
           </p>
         </div>
       </div>
@@ -245,103 +250,90 @@ function HeroSection() {
 function FederationPreview() {
   return (
     <section
-      className="bg-white py-16 sm:py-24"
+      className="overflow-hidden bg-white py-16 sm:py-24 lg:py-28"
       aria-labelledby="home-federation-title"
     >
-      <div className="site-container grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-          {focusItems.map((item) => (
-<article
-  key={item.title}
-  className="interactive-card rounded-[1.5rem] border border-slate-200 bg-white p-6 outline-none shadow-[0_18px_50px_rgba(15,23,42,0.04)]"
->
-              <item.icon
-                size={28}
-                className="text-[var(--flascam-blue)]"
+      <div className="site-container">
+        <div className="grid gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:gap-20">
+          <div>
+            <p className="section-eyebrow">
+              Rôle de la FLASCAM
+            </p>
+
+            <h2
+              id="home-federation-title"
+              className="mt-5 max-w-2xl text-3xl font-extrabold leading-[1.13] tracking-[-0.04em] text-[var(--flascam-black)] sm:text-4xl lg:text-[3.25rem]"
+            >
+              La voix unifiée de la location automobile professionnelle au
+              Maroc.
+            </h2>
+
+            <div className="mt-8 h-[3px] w-20 bg-[var(--flascam-accent)]" />
+
+            <p className="section-body">
+              La FLASCAM fédère les loueurs automobiles sans chauffeur,
+              soutient les actions collectives et accompagne les professionnels
+              dans les enjeux de conformité, de qualité de service, de
+              visibilité et de transition durable.
+            </p>
+
+            <p className="section-body">
+              Elle agit comme point de référence pour les professionnels, les
+              associations régionales, les partenaires économiques et les
+              institutions concernées par la mobilité, le tourisme et
+              l’automobile.
+            </p>
+
+            <Link
+              href="/la-federation"
+              className="mt-8 inline-flex items-center gap-3 text-sm font-extrabold text-[var(--flascam-blue-dark)] transition-colors hover:text-[var(--flascam-accent-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--flascam-accent)] focus-visible:ring-offset-4"
+            >
+              En savoir plus sur la fédération
+
+              <ArrowRight
+                size={17}
                 aria-hidden="true"
               />
-
-              <h2 className="mt-5 text-lg font-extrabold text-[var(--flascam-black)]">
-                {item.title}
-              </h2>
-
-              <p className="mt-3 text-sm leading-7 text-[var(--flascam-slate)]">
-                {item.description}
-              </p>
-            </article>
-          ))}
-        </div>
-
-        <div>
-          <p className="section-eyebrow">
-            Rôle de la FLASCAM
-          </p>
-
-          <h2
-            id="home-federation-title"
-            className="mt-4 max-w-4xl text-3xl font-extrabold leading-tight tracking-[-0.035em] text-[var(--flascam-black)] sm:text-4xl lg:text-[3.25rem]"
-          >
-            La voix unifiée de la location automobile professionnelle au Maroc.
-          </h2>
-
-          <p className="section-body">
-            La FLASCAM fédère les loueurs automobiles sans chauffeur, soutient les actions
-            collectives et accompagne les professionnels dans les enjeux de conformité,
-            de qualité de service, de visibilité et de transition durable.
-          </p>
-
-          <p className="section-body">
-            Elle agit comme point de référence pour les professionnels, les associations
-            régionales, les partenaires économiques et les institutions concernées par la
-            mobilité, le tourisme et l’automobile.
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function AccessSection() {
-  return (
-    <section className="bg-[var(--ivory)] py-16 sm:py-24">
-      <div className="site-container">
-        <div className="max-w-4xl">
-          <p className="section-eyebrow">
-            Accès rapide
-          </p>
-
-          <h2 className="mt-4 text-3xl font-extrabold leading-tight tracking-[-0.035em] text-[var(--flascam-black)] sm:text-4xl lg:text-[3rem]">
-            Un parcours simple pour comprendre, adhérer et suivre l’actualité de la profession.
-          </h2>
-        </div>
-
-        <div className="mt-10 grid gap-5 md:grid-cols-3">
-          {quickLinks.map((item) => (
-<Link
-  key={item.href}
-  href={item.href}
-  className="interactive-card group rounded-[1.75rem] border border-slate-200 bg-white p-6 outline-none shadow-[0_18px_50px_rgba(15,23,42,0.04)]"
->
-              <div className="flex size-12 items-center justify-center rounded-2xl bg-[var(--flascam-blue-light)] text-[var(--flascam-blue)]">
-                {item.href === '/la-federation' && <Building2 size={24} aria-hidden="true" />}
-                {item.href === '/associations' && <UsersRound size={24} aria-hidden="true" />}
-                {item.href === '/actualites' && <FileCheck2 size={24} aria-hidden="true" />}
-              </div>
-
-              <h3 className="mt-6 text-xl font-extrabold text-[var(--flascam-black)] group-hover:text-[var(--flascam-blue)]">
-                {item.label}
-              </h3>
-
-              <p className="mt-3 text-sm leading-7 text-[var(--flascam-slate)]">
-                {item.description}
-              </p>
-
-              <span className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-[var(--flascam-blue)]">
-                Consulter
-                <ArrowRight size={16} aria-hidden="true" />
-              </span>
             </Link>
-          ))}
+          </div>
+
+          <div className="border-t border-slate-200 lg:border-l lg:border-t-0 lg:pl-12">
+            {focusItems.map((item, index) => {
+              const Icon = item.icon;
+
+              return (
+<article
+  key={item.title}
+  className="group grid grid-cols-[2.5rem_1fr] gap-4 border-b border-slate-200 py-8 sm:grid-cols-[4rem_1fr] sm:gap-6 sm:py-9"
+>
+  <div className="pt-1 text-xs font-extrabold tracking-[0.14em] text-[#c96f4a] transition-transform duration-200 group-hover:translate-x-1">
+    {String(index + 1).padStart(2, '0')}
+  </div>
+
+  <div className="transition-transform duration-200 group-hover:translate-x-1">
+    <div className="flex items-start gap-4">
+      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-md border border-[#0f5f9f]/20 bg-[#eaf5ff] text-[#0f5f9f] transition duration-200 group-hover:border-[#c96f4a] group-hover:bg-[#f8ede8] group-hover:text-[#a95235]">
+        <Icon
+          size={22}
+          aria-hidden="true"
+        />
+      </div>
+
+      <div>
+        <h3 className="text-xl font-extrabold text-[#07355d] sm:text-2xl">
+          {item.title}
+        </h3>
+
+        <p className="mt-3 max-w-xl text-sm leading-7 text-[#536273] sm:text-base sm:leading-8">
+          {item.description}
+        </p>
+      </div>
+    </div>
+  </div>
+</article>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
@@ -349,17 +341,16 @@ function AccessSection() {
 }
 
 async function AssociationsPreview() {
-  const associations =
-    await getFeaturedAssociations();
+  const associations = await getFeaturedAssociations();
 
   if (associations.length === 0) {
     return null;
   }
 
   return (
-    <section className="bg-white py-16 sm:py-24">
+    <section className="bg-[var(--ivory)] py-16 sm:py-24">
       <div className="site-container">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-6 border-b border-[var(--flascam-border)] pb-8 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-3xl">
             <p className="section-eyebrow">
               Associations régionales
@@ -370,59 +361,67 @@ async function AssociationsPreview() {
             </h2>
 
             <p className="section-body">
-              Consultez les associations affiliées, leurs coordonnées,
-              leurs actualités et leurs événements.
+              Consultez les associations affiliées, leurs coordonnées, leurs
+              actualités et leurs événements.
             </p>
           </div>
 
           <Link
             href="/associations"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[var(--flascam-border)] bg-white px-6 text-sm font-extrabold text-[var(--flascam-blue-dark)] transition hover:border-[var(--flascam-blue)] hover:text-[var(--flascam-blue)]"
+            className="inline-flex items-center gap-3 text-sm font-extrabold text-[var(--flascam-blue-dark)] transition-colors hover:text-[var(--flascam-accent-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--flascam-accent)] focus-visible:ring-offset-4"
           >
             Voir toutes les associations
-            <ArrowRight size={16} />
+
+            <ArrowRight
+              size={17}
+              aria-hidden="true"
+            />
           </Link>
         </div>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {associations.map((association) => (
+        <div className="divide-y divide-[var(--flascam-border)]">
+          {associations.map((association, index) => (
             <Link
               key={association.id}
               href={`/associations/${association.slug}`}
-              className="interactive-card group rounded-[1.75rem] border border-[var(--flascam-border)] bg-[var(--ivory)] p-5 outline-none transition hover:-translate-y-1 hover:border-[var(--flascam-blue)]"
+              className="group grid min-h-28 grid-cols-[auto_1fr_auto] items-center gap-4 py-5 transition duration-200 hover:bg-white/70 hover:px-3 sm:grid-cols-[auto_auto_1fr_auto] sm:gap-6"
             >
-              <div className="flex items-center gap-4">
-                <div className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[var(--flascam-blue-dark)] text-white">
-                  {association.logoUrl ? (
-                    <img
-                      src={association.logoUrl}
-                      alt={`Logo ${association.name}`}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-lg font-black">
-                      {association.logoText ||
-                        association.name.slice(0, 2).toUpperCase()}
-                    </span>
-                  )}
-                </div>
+              <span className="hidden text-xs font-extrabold tracking-[0.12em] text-[#c96f4a] sm:block">
+                {String(index + 1).padStart(2, '0')}
+              </span>
 
-                <div className="min-w-0">
-                  <h3 className="line-clamp-2 text-lg font-extrabold leading-tight text-[var(--flascam-black)] group-hover:text-[var(--flascam-blue)]">
-                    {association.name}
-                  </h3>
-
-                  <p className="mt-1 text-sm text-[var(--flascam-slate)]">
-                    {association.city
-                      ? `${association.city} · ${association.region}`
-                      : association.region}
-                  </p>
-                </div>
+              <div className="grid h-14 w-14 place-items-center overflow-hidden rounded-md border border-[#dbe5ef] bg-white p-2 text-sm font-extrabold text-[#07355d]">
+                {association.logoUrl ? (
+                  <img
+                    src={association.logoUrl}
+                    alt={`Logo ${association.name}`}
+                    className="h-full w-full object-contain"
+                  />
+                ) : (
+                  <span>
+                    {association.logoText ||
+                      association.name.slice(0, 2).toUpperCase()}
+                  </span>
+                )}
               </div>
 
-              <span className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-[var(--flascam-blue)]">
-                Découvrir
-                <ArrowRight size={16} />
+              <div className="min-w-0 flex-1">
+                <h3 className="text-lg font-extrabold text-[var(--flascam-blue-dark)] transition-colors group-hover:text-[var(--flascam-blue)] sm:text-xl">
+                  {association.name}
+                </h3>
+
+                <p className="mt-1 text-sm text-[var(--flascam-slate)]">
+                  {association.city
+                    ? `${association.city} · ${association.region}`
+                    : association.region}
+                </p>
+              </div>
+
+              <span className="grid h-10 w-10 place-items-center rounded-full border border-[#dbe5ef] text-[#0f5f9f] transition duration-200 group-hover:translate-x-1 group-hover:border-[#c96f4a] group-hover:bg-[#c96f4a] group-hover:text-white">
+                <ArrowRight
+                  size={19}
+                  aria-hidden="true"
+                />
               </span>
             </Link>
           ))}
@@ -441,7 +440,6 @@ export default function Home() {
         <HeroSection />
         <FederationPreview />
         <AssociationsPreview />
-        <AccessSection />
       </main>
 
       <PublicFooter />
