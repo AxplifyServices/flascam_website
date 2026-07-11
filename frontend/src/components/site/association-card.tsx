@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 
 import {
@@ -9,36 +8,39 @@ import {
 } from 'lucide-react';
 
 import type {
-  PublicAssociation,
+  AssociationSummary,
 } from '@/types/associations';
 
 type AssociationCardProps = {
-  association: PublicAssociation;
-  priority?: boolean;
+  association: AssociationSummary;
 };
 
 function AssociationLogo({
   association,
 }: {
-  association: PublicAssociation;
+  association: AssociationSummary;
 }) {
   if (association.logoUrl) {
     return (
-      <img
-        src={association.logoUrl}
-        alt={`Logo ${association.name}`}
-        className="h-full w-full object-contain"
-      />
+      <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-xl border-4 border-white bg-white p-2 shadow-[0_12px_28px_rgba(7,53,93,0.15)]">
+        <img
+          src={association.logoUrl}
+          alt={`Logo ${association.name}`}
+          className="h-full w-full object-contain"
+        />
+      </div>
     );
   }
 
   return (
-    <span className="text-xl font-black text-white">
-      {association.logoText ||
-        association.name
-          .slice(0, 2)
-          .toUpperCase()}
-    </span>
+    <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-xl border-4 border-white bg-[#07355d] p-2 shadow-[0_12px_28px_rgba(7,53,93,0.15)]">
+      <span className="text-xl font-black text-white">
+        {association.logoText ||
+          association.name
+            .slice(0, 2)
+            .toUpperCase()}
+      </span>
+    </div>
   );
 }
 
@@ -48,23 +50,40 @@ export function AssociationCard({
   return (
     <Link
       href={`/associations/${association.slug}`}
-      className="group relative flex min-h-[21rem] flex-col overflow-hidden rounded-[1.25rem] border border-[#dbe5ef] bg-white transition duration-300 hover:-translate-y-1 hover:border-[#c96f4a]/50 hover:shadow-[0_24px_65px_rgba(7,53,93,0.12)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0f5f9f]/20"
+      className="group relative flex min-h-[23rem] flex-col overflow-hidden rounded-[1.25rem] border border-[#dbe5ef] bg-white transition duration-300 hover:-translate-y-1 hover:border-[#c96f4a]/50 hover:shadow-[0_24px_65px_rgba(7,53,93,0.12)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0f5f9f]/20"
     >
-      <div className="relative h-28 overflow-hidden bg-gradient-to-br from-[#07355d] via-[#0a487b] to-[#0f5f9f]">
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 opacity-[0.14]"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)',
-            backgroundSize: '18px 18px',
-          }}
-        />
+      <div className="relative h-36 overflow-hidden bg-gradient-to-br from-[#07355d] via-[#0a487b] to-[#0f5f9f]">
+        {association.coverImageUrl ? (
+          <>
+            <img
+              src={association.coverImageUrl}
+              alt=""
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            />
 
-        <div
-          aria-hidden="true"
-          className="absolute -right-10 -top-12 h-32 w-32 rounded-full border border-white/20"
-        />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-t from-[#07355d]/55 via-[#07355d]/10 to-transparent"
+            />
+          </>
+        ) : (
+          <>
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 opacity-[0.14]"
+              style={{
+                backgroundImage:
+                  'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)',
+                backgroundSize: '18px 18px',
+              }}
+            />
+
+            <div
+              aria-hidden="true"
+              className="absolute -right-10 -top-12 h-32 w-32 rounded-full border border-white/20"
+            />
+          </>
+        )}
 
         <div
           aria-hidden="true"
@@ -73,11 +92,9 @@ export function AssociationCard({
       </div>
 
       <div className="relative -mt-10 flex flex-1 flex-col px-6 pb-6">
-        <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-xl border-4 border-white bg-[#07355d] p-2 shadow-[0_12px_28px_rgba(7,53,93,0.15)]">
-          <AssociationLogo
-            association={association}
-          />
-        </div>
+        <AssociationLogo
+          association={association}
+        />
 
         <div className="mt-5 flex-1">
           <h3 className="text-xl font-extrabold leading-tight tracking-[-0.025em] text-[#101820] transition-colors group-hover:text-[#0f5f9f]">
@@ -123,8 +140,7 @@ export function AssociationCard({
                 />
 
                 <span>
-                  Affiliée depuis{' '}
-                  {association.affiliatedSinceYear}
+                  Affiliée depuis {association.affiliatedSinceYear}
                 </span>
               </p>
             )}

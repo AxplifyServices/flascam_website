@@ -153,7 +153,7 @@ export default function FederationPage() {
               Retour à l’accueil
             </Link>
 
-            <div className="mt-10 grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:gap-20">
+            <div className="mt-10 grid gap-12 lg:grid-cols-[1.15fr_0.85fr] lg:items-start lg:gap-20">
               <div>
                 <p className="flex items-center gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-white">
                   <span className="h-[3px] w-10 bg-[#c96f4a]" />
@@ -172,7 +172,7 @@ export default function FederationPage() {
                 </p>
               </div>
 
-              <div className="border-l-4 border-[#c96f4a] bg-white/10 p-6 backdrop-blur-sm sm:p-8">
+              <div className="border-l-4 border-[#c96f4a] bg-white/10 p-6 backdrop-blur-sm sm:p-8 lg:mt-[2.1rem]">
                 <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#f0a27f]">
                   Positionnement
                 </p>
@@ -348,11 +348,11 @@ export default function FederationPage() {
               </p>
 
               <div className="mt-9 flex flex-col gap-4 sm:flex-row">
-                <Link
-                  href="/contact"
-                  className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-[#07355d] px-6 text-sm font-extrabold text-white transition hover:bg-[#0f5f9f] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0f5f9f]/20"
-                >
-                  Demander l’adhésion
+<Link
+  href="/contact"
+  className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-[#c96f4a] px-6 text-sm font-extrabold text-white transition hover:bg-[#a95235] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#c96f4a]/25"
+>
+  Demander l’adhésion
 
                   <ArrowRight
                     size={17}

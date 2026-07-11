@@ -359,6 +359,7 @@ model regional_associations {
   created_at              DateTime                  @default(now()) @db.Timestamptz(6)
   updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
   deleted_at              DateTime?                 @db.Timestamptz(6)
+  cover_image_url         String?
   association_media_items association_media_items[]
   association_posts       association_posts[]
   media_assets            media_assets?             @relation(fields: [logo_media_asset_id], references: [id], onUpdate: NoAction)

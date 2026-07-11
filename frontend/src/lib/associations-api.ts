@@ -322,11 +322,15 @@ function associationPayload(
       numberOrUndefined(
         form.affiliatedSinceYear,
       ),
-    logoMediaAssetId:
-      emptyToUndefined(
-        form.logoMediaAssetId,
-      ),
-    logoText:
+logoMediaAssetId:
+  emptyToUndefined(
+    form.logoMediaAssetId,
+  ),
+coverImageUrl:
+  emptyToUndefined(
+    form.coverImageUrl,
+  ),
+logoText:
       emptyToUndefined(form.logoText),
     presentation:
       emptyToUndefined(

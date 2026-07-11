@@ -168,14 +168,18 @@ export async function generateMetadata({
       description,
       type: 'article',
       locale: 'fr_MA',
-      images: association.logoUrl
-        ? [
-            {
-              url: association.logoUrl,
-              alt: association.name,
-            },
-          ]
-        : undefined,
+images:
+  association.coverImageUrl || association.logoUrl
+    ? [
+        {
+          url:
+            association.coverImageUrl ||
+            association.logoUrl ||
+            '',
+          alt: association.name,
+        },
+      ]
+    : undefined,
     },
   };
 }
@@ -241,124 +245,162 @@ export default async function AssociationDetailPage({
       <PublicHeader />
 
       <main>
-        <section className="relative overflow-hidden bg-gradient-to-br from-[#07355d] via-[#0a487b] to-[#0f5f9f] text-white">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-[0.12]"
-            style={{
-              backgroundImage:
-                'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)',
-              backgroundSize: '22px 22px',
-            }}
+<section
+  className="relative min-h-[280px] overflow-hidden bg-gradient-to-br from-[#07355d] via-[#0a487b] to-[#0f5f9f] sm:min-h-[360px] lg:min-h-[430px]"
+  style={
+    association.coverImageUrl
+      ? {
+          backgroundImage: `url("${association.coverImageUrl}")`,
+          backgroundPosition: 'center',
+          backgroundSize: 'cover',
+        }
+      : undefined
+  }
+>
+  {!association.coverImageUrl && (
+    <>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.12]"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)',
+          backgroundSize: '22px 22px',
+        }}
+      />
+
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-36 -top-48 h-[32rem] w-[32rem] rounded-full border border-white/10"
+      />
+    </>
+  )}
+</section>
+
+<section className="border-b border-[#dbe5ef] bg-white">
+  <div className="site-container py-8 sm:py-10">
+    <nav className="flex flex-wrap items-center gap-2 text-sm font-medium text-[#536273]">
+      <Link
+        href="/"
+        className="transition hover:text-[#0f5f9f]"
+      >
+        Accueil
+      </Link>
+
+      <span>/</span>
+
+      <Link
+        href="/associations"
+        className="transition hover:text-[#0f5f9f]"
+      >
+        Associations
+      </Link>
+
+      <span>/</span>
+
+      <span className="font-semibold text-[#07355d]">
+        {association.name}
+      </span>
+    </nav>
+
+    <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+        <div
+          className={`
+            grid
+            h-28
+            w-28
+            shrink-0
+            place-items-center
+            overflow-hidden
+            rounded-xl
+            border
+            border-[#dbe5ef]
+            p-3
+            shadow-[0_14px_35px_rgba(7,53,93,0.12)]
+            sm:h-32
+            sm:w-32
+            ${
+              association.logoUrl
+                ? 'bg-white'
+                : 'bg-[#07355d]'
+            }
+          `}
+        >
+          <AssociationLogo
+            name={association.name}
+            logoText={association.logoText}
+            logoUrl={association.logoUrl}
           />
+        </div>
 
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-36 -top-48 h-[32rem] w-[32rem] rounded-full border border-white/10"
-          />
+        <div>
+          <p className="flex items-center gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-[#c96f4a]">
+            <span className="h-[3px] w-8 bg-[#c96f4a]" />
+            Association régionale
+          </p>
 
-          <div className="site-container relative py-10 sm:py-14 lg:py-16">
-            <nav className="flex flex-wrap items-center gap-2 text-sm font-medium text-white/65">
-              <Link
-                href="/"
-                className="transition hover:text-white"
-              >
-                Accueil
-              </Link>
+          <h1 className="mt-4 max-w-4xl text-4xl font-extrabold leading-[1.08] tracking-[-0.045em] text-[#101820] sm:text-5xl">
+            {association.name}
+          </h1>
 
-              <span>/</span>
+          <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-[#536273]">
+            <span className="inline-flex items-center gap-2">
+              <MapPin
+                size={17}
+                className="text-[#c96f4a]"
+                aria-hidden="true"
+              />
 
-              <Link
-                href="/associations"
-                className="transition hover:text-white"
-              >
-                Associations
-              </Link>
+              {association.city
+                ? `${association.city} · ${association.region}`
+                : association.region}
+            </span>
 
-              <span>/</span>
-
-              <span className="text-white">
-                {association.name}
-              </span>
-            </nav>
-
-            <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div className="flex flex-col gap-7 sm:flex-row sm:items-center">
-                <div className="grid h-28 w-28 shrink-0 place-items-center overflow-hidden rounded-xl border-4 border-white/20 bg-[#07355d] p-4 shadow-[0_18px_45px_rgba(0,0,0,0.2)] sm:h-32 sm:w-32">
-                  <AssociationLogo
-                    name={association.name}
-                    logoText={association.logoText}
-                    logoUrl={association.logoUrl}
-                  />
-                </div>
-
-                <div>
-                  <p className="flex items-center gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-[#f0a27f]">
-                    <span className="h-[3px] w-8 bg-[#c96f4a]" />
-                    Association régionale
-                  </p>
-
-                  <h1 className="mt-4 max-w-4xl text-4xl font-extrabold leading-[1.08] tracking-[-0.045em] text-white sm:text-5xl">
-                    {association.name}
-                  </h1>
-
-                  <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-white/72">
-                    <span className="inline-flex items-center gap-2">
-                      <MapPin
-                        size={17}
-                        className="text-[#f0a27f]"
-                        aria-hidden="true"
-                      />
-
-                      {association.city
-                        ? `${association.city} · ${association.region}`
-                        : association.region}
-                    </span>
-
-                    {association.memberCount !== null &&
-                      association.memberCount !== undefined && (
-                        <span className="inline-flex items-center gap-2">
-                          <UsersRound
-                            size={17}
-                            className="text-[#f0a27f]"
-                            aria-hidden="true"
-                          />
-
-                          {association.memberCount} loueurs membres
-                        </span>
-                      )}
-
-                    {association.affiliatedSinceYear && (
-                      <span className="inline-flex items-center gap-2">
-                        <CalendarDays
-                          size={17}
-                          className="text-[#f0a27f]"
-                          aria-hidden="true"
-                        />
-
-                        Affiliée depuis {association.affiliatedSinceYear}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {association.email && (
-                <a
-                  href={`mailto:${association.email}`}
-                  className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-[#c96f4a] px-6 text-sm font-extrabold text-white transition hover:bg-[#a95235] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30"
-                >
-                  Contacter l’association
-
-                  <ArrowRight
+            {association.memberCount !== null &&
+              association.memberCount !== undefined && (
+                <span className="inline-flex items-center gap-2">
+                  <UsersRound
                     size={17}
+                    className="text-[#0f5f9f]"
                     aria-hidden="true"
                   />
-                </a>
+
+                  {association.memberCount} loueurs membres
+                </span>
               )}
-            </div>
+
+            {association.affiliatedSinceYear && (
+              <span className="inline-flex items-center gap-2">
+                <CalendarDays
+                  size={17}
+                  className="text-[#0f5f9f]"
+                  aria-hidden="true"
+                />
+
+                Affiliée depuis {association.affiliatedSinceYear}
+              </span>
+            )}
           </div>
-        </section>
+        </div>
+      </div>
+
+      {association.email && (
+        <a
+          href={`mailto:${association.email}`}
+          className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-[#c96f4a] px-6 text-sm font-extrabold text-white transition hover:bg-[#a95235] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#c96f4a]/25"
+        >
+          Contacter l’association
+
+          <ArrowRight
+            size={17}
+            aria-hidden="true"
+          />
+        </a>
+      )}
+    </div>
+  </div>
+</section>
 
         <section className="relative overflow-hidden bg-[#f5f9fc] py-12 sm:py-16 lg:py-20">
           <div

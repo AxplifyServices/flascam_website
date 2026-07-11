@@ -361,9 +361,11 @@ return {
           member_count: dto.memberCount,
           affiliated_since_year:
             dto.affiliatedSinceYear,
-          logo_media_asset_id:
-            dto.logoMediaAssetId,
-          logo_text: dto.logoText,
+logo_media_asset_id:
+  dto.logoMediaAssetId,
+cover_image_url:
+  dto.coverImageUrl,
+logo_text: dto.logoText,
           presentation: dto.presentation,
           address: dto.address,
           phone: dto.phone,
@@ -438,9 +440,11 @@ if (
           member_count: dto.memberCount,
           affiliated_since_year:
             dto.affiliatedSinceYear,
-          logo_media_asset_id:
-            dto.logoMediaAssetId,
-          logo_text: dto.logoText,
+logo_media_asset_id:
+  dto.logoMediaAssetId,
+cover_image_url:
+  dto.coverImageUrl,
+logo_text: dto.logoText,
           presentation: dto.presentation,
           address: dto.address,
           phone: dto.phone,
@@ -1067,10 +1071,12 @@ private async upsertAssociationAdminAccount(
         association.affiliated_since_year,
       logoText:
         association.logo_text,
-      logoUrl: this.mediaUrl(
-        association.media_assets,
-      ),
-      status: association.status,
+logoUrl: this.mediaUrl(
+  association.media_assets,
+),
+coverImageUrl:
+  association.cover_image_url,
+status: association.status,
       isFeatured:
         association.is_featured,
       displayOrder:

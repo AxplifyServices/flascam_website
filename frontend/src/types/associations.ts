@@ -9,6 +9,7 @@ export type AssociationSummary = {
   affiliatedSinceYear?: number | null;
   logoText?: string | null;
   logoUrl?: string | null;
+  coverImageUrl?: string | null;
   status?: string;
   isFeatured?: boolean;
   displayOrder?: number;
@@ -93,6 +94,7 @@ export type AssociationFormState = {
   memberCount: string;
   affiliatedSinceYear: string;
   logoMediaAssetId: string;
+  coverImageUrl: string;
   logoText: string;
   presentation: string;
   address: string;

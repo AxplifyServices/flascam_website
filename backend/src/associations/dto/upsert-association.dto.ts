@@ -50,6 +50,11 @@ export class UpsertAssociationDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(2048)
+  coverImageUrl?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(12)
   logoText?: string;
 

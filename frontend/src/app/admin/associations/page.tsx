@@ -49,6 +49,7 @@ const emptyForm: AssociationFormState = {
   memberCount: '',
   affiliatedSinceYear: '',
   logoMediaAssetId: '',
+  coverImageUrl: '',
   logoText: '',
   presentation: '',
   address: '',
@@ -106,6 +107,10 @@ function formFromAssociation(
       'logoMediaAssetId' in association
         ? String(association.logoMediaAssetId ?? '')
         : '',
+
+coverImageUrl:
+  association.coverImageUrl ?? '',
+
     logoText: association.logoText ?? '',
     presentation:
       'presentation' in association
@@ -212,6 +217,16 @@ export default function AdminAssociationsPage() {
     logoPreviewUrl,
     setLogoPreviewUrl,
   ] = useState('');
+
+const [
+  coverUploading,
+  setCoverUploading,
+] = useState(false);
+
+const [
+  coverPreviewUrl,
+  setCoverPreviewUrl,
+] = useState('');  
 
   const [
     pageError,
@@ -336,6 +351,7 @@ export default function AdminAssociationsPage() {
       setSelected(detail);
       setForm(formFromAssociation(detail));
       setLogoPreviewUrl(detail.logoUrl ?? '');
+      setCoverPreviewUrl(detail.coverImageUrl ?? '');
       setModalOpen(true);
     } catch (caughtError) {
       setPageError(
@@ -349,7 +365,7 @@ export default function AdminAssociationsPage() {
   }
 
   function closeModal() {
-    if (saving || logoUploading) {
+    if (saving || logoUploading || coverUploading) {
       return;
     }
 
@@ -357,6 +373,7 @@ export default function AdminAssociationsPage() {
     setSelected(null);
     setForm(emptyForm);
     setLogoPreviewUrl('');
+    setCoverPreviewUrl('');
     setModalError('');
   }
 
@@ -393,6 +410,40 @@ export default function AdminAssociationsPage() {
       setLogoUploading(false);
     }
   }
+
+async function handleCoverUpload(file?: File) {
+  if (!file) {
+    return;
+  }
+
+  setCoverUploading(true);
+  setModalError('');
+  setSuccess('');
+
+  try {
+    const uploaded =
+      await uploadAdminImage(file);
+
+    setForm((current) => ({
+      ...current,
+      coverImageUrl: uploaded.url,
+    }));
+
+    setCoverPreviewUrl(uploaded.url);
+
+    setSuccess(
+      'Photo de couverture importée. Enregistre l’association pour appliquer le changement.',
+    );
+  } catch (caughtError) {
+    showModalError(
+      caughtError instanceof Error
+        ? caughtError.message
+        : 'Import de la couverture impossible.',
+    );
+  } finally {
+    setCoverUploading(false);
+  }
+}  
 
   async function submit(
     event: FormEvent<HTMLFormElement>,
@@ -951,6 +1002,75 @@ export default function AdminAssociationsPage() {
                   </div>
                 </div>
 
+<div className="lg:col-span-2">
+  <p className="mb-2 text-sm font-bold text-slate-800">
+    Photo de couverture
+  </p>
+
+  <div className="overflow-hidden rounded-xl border border-[var(--flascam-border)] bg-[#f5f9fc]">
+    <div className="relative h-48">
+      {coverPreviewUrl ? (
+        <img
+          src={coverPreviewUrl}
+          alt="Aperçu de la couverture"
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <div className="grid h-full place-items-center bg-gradient-to-br from-[#07355d] via-[#0a487b] to-[#0f5f9f] px-6 text-center text-sm font-bold text-white/75">
+          Aucune couverture importée
+        </div>
+      )}
+    </div>
+
+    <div className="flex flex-col gap-3 border-t border-[var(--flascam-border)] bg-white p-4 sm:flex-row sm:items-center">
+      <label className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[var(--flascam-border)] bg-white px-4 text-sm font-bold text-slate-700 transition hover:border-[var(--flascam-blue)] hover:text-[var(--flascam-blue)]">
+        {coverUploading ? (
+          <Loader2
+            size={16}
+            className="animate-spin"
+          />
+        ) : (
+          <Upload size={16} />
+        )}
+
+        Importer une couverture
+
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          disabled={coverUploading}
+          onChange={(event) =>
+            void handleCoverUpload(
+              event.target.files?.[0],
+            )
+          }
+        />
+      </label>
+
+      {coverPreviewUrl && (
+        <button
+          type="button"
+          onClick={() => {
+            setCoverPreviewUrl('');
+            updateField(
+              'coverImageUrl',
+              '',
+            );
+          }}
+          className="inline-flex h-11 items-center justify-center rounded-xl border border-red-200 px-4 text-sm font-bold text-red-700 transition hover:bg-red-50"
+        >
+          Retirer la couverture
+        </button>
+      )}
+    </div>
+  </div>
+
+  <p className="mt-2 text-xs leading-5 text-[var(--flascam-slate)]">
+    Format conseillé : image horizontale d’au moins 1600 × 700 pixels.
+  </p>
+</div>                
+
                 <AdminInput
                   label="Ordre d’affichage"
                   type="number"
@@ -1066,7 +1186,7 @@ export default function AdminAssociationsPage() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  disabled={saving || logoUploading}
+                  disabled={saving || logoUploading || coverUploading}
                   className="inline-flex h-11 items-center justify-center rounded-xl border border-[var(--flascam-border)] px-5 text-sm font-bold text-slate-700 hover:border-slate-400 disabled:opacity-60"
                 >
                   Annuler
@@ -1074,7 +1194,7 @@ export default function AdminAssociationsPage() {
 
                 <button
                   type="submit"
-                  disabled={saving || logoUploading}
+                  disabled={saving || logoUploading || coverUploading}
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[var(--flascam-blue)] px-5 text-sm font-bold text-white transition hover:bg-[var(--flascam-blue-dark)] disabled:opacity-60"
                 >
                   {saving ? (
