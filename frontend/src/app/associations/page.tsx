@@ -14,6 +14,10 @@ import {
 } from 'lucide-react';
 
 import {
+  AssociationCard,
+} from '@/components/site/association-card';
+
+import {
   PublicFooter,
 } from '@/components/site/public-footer';
 
@@ -42,31 +46,7 @@ export const metadata: Metadata = {
   },
 };
 
-function AssociationLogo({
-  name,
-  logoText,
-  logoUrl,
-}: {
-  name: string;
-  logoText?: string | null;
-  logoUrl?: string | null;
-}) {
-  if (logoUrl) {
-    return (
-      <img
-        src={logoUrl}
-        alt={`Logo ${name}`}
-        className="h-full w-full object-cover"
-      />
-    );
-  }
 
-  return (
-    <span className="text-xl font-black text-white">
-      {logoText || name.slice(0, 2).toUpperCase()}
-    </span>
-  );
-}
 
 export default async function AssociationsPage() {
   const associations =
@@ -76,117 +56,92 @@ export default async function AssociationsPage() {
     <>
       <PublicHeader />
 
-      <main>
-        <section className="bg-[var(--ivory)] py-12 sm:py-16 lg:py-20">
-          <div className="site-container">
-<div className="max-w-none">
-  <p className="section-eyebrow">
-    Réseau régional
-  </p>
+<main>
+  <section className="relative overflow-hidden bg-gradient-to-br from-[#07355d] via-[#0a487b] to-[#0f5f9f] py-14 text-white sm:py-20 lg:py-24">
+    <div
+      aria-hidden="true"
+      className="absolute inset-0 opacity-[0.12]"
+      style={{
+        backgroundImage:
+          'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)',
+        backgroundSize: '22px 22px',
+      }}
+    />
 
-  <h1 className="mt-4 w-full text-3xl font-extrabold leading-tight tracking-[-0.04em] text-[var(--flascam-black)] sm:text-4xl lg:text-[3.25rem]">
-    Associations régionales affiliées à FLASCAM
-  </h1>
+    <div
+      aria-hidden="true"
+      className="absolute -right-32 -top-48 h-[32rem] w-[32rem] rounded-full border border-white/10"
+    />
 
-  <p className="section-body max-w-none">
-    Retrouvez les relais régionaux de la fédération,
-    leurs coordonnées, leurs actualités, leurs événements
-    et leurs contenus médias.
-  </p>
-</div>
-          </div>
-        </section>
+    <div className="site-container relative">
+      <p className="flex items-center gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-white">
+        <span className="h-[3px] w-10 bg-[#c96f4a]" />
+        Réseau régional
+      </p>
 
-        <section className="bg-white py-12 sm:py-16 lg:py-20">
-          <div className="site-container">
-            {associations.length === 0 ? (
-              <div className="rounded-[2rem] border border-dashed border-[var(--flascam-border)] bg-[var(--ivory)] p-8 text-center">
-                <Building2
-                  className="mx-auto text-[var(--flascam-blue)]"
-                  size={36}
-                />
+      <h1 className="mt-6 max-w-4xl text-4xl font-extrabold leading-[1.08] tracking-[-0.045em] text-white sm:text-5xl lg:text-[4rem]">
+        Les associations régionales affiliées à la FLASCAM.
+      </h1>
 
-                <h2 className="mt-4 text-2xl font-extrabold text-[var(--flascam-black)]">
-                  Aucune association publiée pour le moment
-                </h2>
+      <p className="mt-7 max-w-3xl text-base leading-8 text-white/75 sm:text-lg">
+        Découvrez les relais territoriaux de la fédération, leurs
+        coordonnées, leurs actualités, leurs événements et leurs actions au
+        service des loueurs automobiles.
+      </p>
 
-                <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-[var(--flascam-slate)]">
-                  Les associations créées depuis le back-office apparaîtront ici
-                  dès leur publication par l’administration FLASCAM.
-                </p>
-              </div>
-            ) : (
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {associations.map((association) => (
-                  <Link
-                    key={association.id}
-                    href={`/associations/${association.slug}`}
-                    className="interactive-card group overflow-hidden rounded-[1.75rem] border border-[var(--flascam-border)] bg-white p-5 shadow-[0_20px_55px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 hover:border-[var(--flascam-blue)]"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[var(--flascam-blue-dark)]">
-                        <AssociationLogo
-                          name={association.name}
-                          logoText={association.logoText}
-                          logoUrl={association.logoUrl}
-                        />
-                      </div>
+      {associations.length > 0 && (
+        <div className="mt-10 inline-flex items-center gap-3 border-l-4 border-[#c96f4a] bg-white/10 px-5 py-4 backdrop-blur-sm">
+          <strong className="text-2xl font-extrabold">
+            {associations.length}
+          </strong>
 
-                      <div className="min-w-0">
-                        <p className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[0.68rem] font-extrabold uppercase tracking-wide text-emerald-700">
-                          Page publiée
-                        </p>
+          <span className="text-sm text-white/75">
+            association
+            {associations.length > 1 ? 's' : ''} publiée
+            {associations.length > 1 ? 's' : ''}
+          </span>
+        </div>
+      )}
+    </div>
+  </section>
 
-                        <h2 className="mt-3 text-xl font-extrabold leading-tight text-[var(--flascam-black)] group-hover:text-[var(--flascam-blue)]">
-                          {association.name}
-                        </h2>
-                      </div>
-                    </div>
+  <section className="relative overflow-hidden bg-[#f5f9fc] py-14 sm:py-20 lg:py-24">
+    <div
+      aria-hidden="true"
+      className="absolute -left-40 top-20 h-80 w-80 rounded-full bg-[#0f5f9f]/[0.05] blur-3xl"
+    />
 
-                    <div className="mt-5 space-y-3 text-sm text-[var(--flascam-slate)]">
-                      <p className="flex items-center gap-2">
-                        <MapPin
-                          size={16}
-                          className="text-[var(--flascam-blue)]"
-                        />
-                        {association.city
-                          ? `${association.city} · ${association.region}`
-                          : association.region}
-                      </p>
+    <div className="site-container relative">
+      {associations.length === 0 ? (
+        <div className="rounded-[1.25rem] border border-dashed border-[#b9c9d8] bg-white p-8 text-center sm:p-12">
+          <Building2
+            className="mx-auto text-[#0f5f9f]"
+            size={38}
+            aria-hidden="true"
+          />
 
-                      {association.memberCount !== null &&
-                        association.memberCount !== undefined && (
-                          <p className="flex items-center gap-2">
-                            <UsersRound
-                              size={16}
-                              className="text-[var(--flascam-blue)]"
-                            />
-                            {association.memberCount} loueurs membres
-                          </p>
-                        )}
+          <h2 className="mt-5 text-2xl font-extrabold text-[#101820]">
+            Aucune association publiée pour le moment
+          </h2>
 
-                      {association.affiliatedSinceYear && (
-                        <p className="flex items-center gap-2">
-                          <CalendarDays
-                            size={16}
-                            className="text-[var(--flascam-blue)]"
-                          />
-                          Affiliée depuis {association.affiliatedSinceYear}
-                        </p>
-                      )}
-                    </div>
-
-                    <span className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-[var(--flascam-blue)]">
-                      Voir la page
-                      <ArrowRight size={16} />
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      </main>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-[#536273]">
+            Les associations créées depuis le back-office apparaîtront ici
+            dès leur publication par l’administration FLASCAM.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {associations.map((association) => (
+            <AssociationCard
+              key={association.id}
+              association={association}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+</main>
 
       <PublicFooter />
     </>

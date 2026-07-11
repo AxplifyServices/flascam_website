@@ -22,6 +22,10 @@ import {
   getPublicHomepageHeroSlides,
 } from '@/lib/homepage-hero-api';
 
+import {
+  AssociationCard,
+} from '@/components/site/association-card';
+
 export const metadata: Metadata = {
   title: 'Accueil',
   description:
@@ -273,30 +277,81 @@ async function AssociationsPreview() {
     return null;
   }
 
-  return (
-    <section className="bg-[var(--ivory)] py-16 sm:py-24">
-      <div className="site-container">
-        <div className="flex flex-col gap-6 border-b border-[var(--flascam-border)] pb-8 sm:flex-row sm:items-end sm:justify-between">
-          <div className="max-w-3xl">
-            <p className="section-eyebrow">
-              Associations régionales
-            </p>
+return (
+  <section className="relative overflow-hidden bg-[#f5f9fc] py-16 sm:py-24 lg:py-28">
+    <div
+      aria-hidden="true"
+      className="absolute -left-40 top-16 h-80 w-80 rounded-full bg-[#0f5f9f]/[0.06] blur-3xl"
+    />
 
-            <h2 className="mt-4 text-3xl font-extrabold leading-tight tracking-[-0.035em] text-[var(--flascam-black)] sm:text-4xl lg:text-[3rem]">
-              Les relais régionaux de la fédération.
-            </h2>
+    <div
+      aria-hidden="true"
+      className="absolute -right-40 bottom-0 h-96 w-96 rounded-full bg-[#c96f4a]/[0.08] blur-3xl"
+    />
 
-            <p className="section-body">
-              Consultez les associations affiliées, leurs coordonnées, leurs
-              actualités et leurs événements.
-            </p>
-          </div>
+    <div className="site-container relative">
+      <div className="grid gap-8 border-b border-[#dbe5ef] pb-10 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="max-w-3xl">
+          <p className="flex items-center gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-[#0f5f9f]">
+            <span className="h-[3px] w-10 bg-[#c96f4a]" />
+            Associations régionales
+          </p>
 
+          <h2 className="mt-5 text-3xl font-extrabold leading-[1.1] tracking-[-0.04em] text-[#101820] sm:text-4xl lg:text-[3.25rem]">
+            Un réseau régional proche des professionnels.
+          </h2>
+
+          <p className="mt-6 max-w-2xl text-base leading-8 text-[#536273] sm:text-lg">
+            Les associations affiliées relaient les réalités du terrain,
+            accompagnent les loueurs et participent à la représentation
+            nationale du secteur.
+          </p>
+        </div>
+
+        <Link
+          href="/associations"
+          className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md border border-[#07355d] px-5 text-sm font-extrabold text-[#07355d] transition duration-200 hover:bg-[#07355d] hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0f5f9f]/20"
+        >
+          Voir tout le réseau
+
+          <ArrowRight
+            size={17}
+            aria-hidden="true"
+          />
+        </Link>
+      </div>
+
+      <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {associations.map((association) => (
+          <AssociationCard
+            key={association.id}
+            association={association}
+          />
+        ))}
+      </div>
+
+      <div className="mt-12 grid overflow-hidden rounded-[1.25rem] bg-[#07355d] text-white lg:grid-cols-[1fr_auto] lg:items-center">
+        <div className="p-7 sm:p-9">
+          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#f0a27f]">
+            Rejoindre le réseau
+          </p>
+
+          <h3 className="mt-3 text-2xl font-extrabold tracking-[-0.03em] sm:text-3xl">
+            Votre association souhaite rejoindre la FLASCAM ?
+          </h3>
+
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-white/75 sm:text-base">
+            Découvrez les conditions d’affiliation et échangez avec la
+            fédération pour intégrer le réseau national.
+          </p>
+        </div>
+
+        <div className="border-t border-white/15 p-7 lg:border-l lg:border-t-0 lg:p-9">
           <Link
-            href="/associations"
-            className="inline-flex items-center gap-3 text-sm font-extrabold text-[var(--flascam-blue-dark)] transition-colors hover:text-[var(--flascam-accent-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--flascam-accent)] focus-visible:ring-offset-4"
+            href="/contact"
+            className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-[#c96f4a] px-6 text-sm font-extrabold text-white transition hover:bg-[#a95235] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30"
           >
-            Voir toutes les associations
+            Contacter la fédération
 
             <ArrowRight
               size={17}
@@ -304,55 +359,10 @@ async function AssociationsPreview() {
             />
           </Link>
         </div>
-
-        <div className="divide-y divide-[var(--flascam-border)]">
-          {associations.map((association) => (
-            <Link
-              key={association.id}
-              href={`/associations/${association.slug}`}
-              className="group grid min-h-28 grid-cols-[auto_1fr_auto] items-center gap-4 py-5 transition duration-200 hover:bg-white/70 hover:px-3 sm:gap-6"
-            >
-
-
-              <div className="grid h-14 w-14 place-items-center overflow-hidden rounded-md border border-[#dbe5ef] bg-white p-2 text-sm font-extrabold text-[#07355d]">
-                {association.logoUrl ? (
-                  <img
-                    src={association.logoUrl}
-                    alt={`Logo ${association.name}`}
-                    className="h-full w-full object-contain"
-                  />
-                ) : (
-                  <span>
-                    {association.logoText ||
-                      association.name.slice(0, 2).toUpperCase()}
-                  </span>
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <h3 className="text-lg font-extrabold text-[var(--flascam-blue-dark)] transition-colors group-hover:text-[var(--flascam-blue)] sm:text-xl">
-                  {association.name}
-                </h3>
-
-                <p className="mt-1 text-sm text-[var(--flascam-slate)]">
-                  {association.city
-                    ? `${association.city} · ${association.region}`
-                    : association.region}
-                </p>
-              </div>
-
-              <span className="grid h-10 w-10 place-items-center rounded-full border border-[#dbe5ef] text-[#0f5f9f] transition duration-200 group-hover:translate-x-1 group-hover:border-[#c96f4a] group-hover:bg-[#c96f4a] group-hover:text-white">
-                <ArrowRight
-                  size={19}
-                  aria-hidden="true"
-                />
-              </span>
-            </Link>
-          ))}
-        </div>
       </div>
-    </section>
-  );
+    </div>
+  </section>
+);
 }
 
 export default function Home() {
