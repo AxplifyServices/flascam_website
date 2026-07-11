@@ -133,6 +133,7 @@ model media_assets {
   updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
   association_media_items association_media_items[]
   association_posts       association_posts[]
+  homepage_hero_slides    homepage_hero_slides?
   users                   users?                    @relation(fields: [uploaded_by_user_id], references: [id], onUpdate: NoAction)
   regional_associations   regional_associations[]
 
@@ -367,4 +368,19 @@ model regional_associations {
   @@index([is_featured, display_order], map: "regional_associations_featured_order_idx")
   @@index([region])
   @@index([status])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model homepage_hero_slides {
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  media_asset_id String       @unique(map: "homepage_hero_slides_media_unique") @db.Uuid
+  title          String?      @db.VarChar(180)
+  alt_text       String       @db.VarChar(255)
+  display_order  Int          @default(0)
+  is_published   Boolean      @default(true)
+  created_at     DateTime     @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime     @default(now()) @db.Timestamptz(6)
+  media_assets   media_assets @relation(fields: [media_asset_id], references: [id], onUpdate: NoAction)
+
+  @@index([is_published, display_order, created_at], map: "homepage_hero_slides_public_idx")
 }

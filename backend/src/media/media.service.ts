@@ -37,10 +37,11 @@ export class MediaService {
     private readonly config: ConfigService,
   ) {}
 
-  async uploadPublicImage(
-    file: Express.Multer.File,
-    user: AuthUser,
-  ) {
+async uploadPublicImage(
+  file: Express.Multer.File,
+  user: AuthUser,
+  folder = 'associations/logos',
+) {
     if (!file) {
       throw new BadRequestException(
         'Aucun fichier reçu.',
@@ -98,8 +99,13 @@ export class MediaService {
     const storedFilename =
       `${randomUUID()}${extension}`;
 
-    const objectKey =
-      `associations/logos/${storedFilename}`;
+const normalizedFolder =
+  folder
+    .replace(/^\/+|\/+$/g, '')
+    .replace(/[^a-zA-Z0-9/_-]/g, '');
+
+const objectKey =
+  `${normalizedFolder}/${storedFilename}`;
 
     const checksum =
       createHash('sha256')

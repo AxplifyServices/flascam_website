@@ -58,4 +58,29 @@ export class MediaController {
         user,
       );
   }
+
+  @Post('admin/homepage-images')
+@Permissions('content.manage')
+@UseInterceptors(
+  FileInterceptor('file', {
+    storage: memoryStorage(),
+    limits: {
+      fileSize:
+        10 * 1024 * 1024,
+    },
+  }),
+)
+uploadHomepageImage(
+  @UploadedFile()
+  file: Express.Multer.File,
+  @CurrentUser()
+  user: AuthUser,
+) {
+  return this.service
+    .uploadPublicImage(
+      file,
+      user,
+      'homepage/hero',
+    );
+}
 }

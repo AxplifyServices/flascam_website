@@ -14,6 +14,14 @@ import { PublicHeader } from '@/components/site/public-header';
 
 import { getFeaturedAssociations } from '@/lib/associations-api';
 
+import {
+  HomepageHeroSlider,
+} from '@/components/site/homepage-hero-slider';
+
+import {
+  getPublicHomepageHeroSlides,
+} from '@/lib/homepage-hero-api';
+
 export const metadata: Metadata = {
   title: 'Accueil',
   description:
@@ -67,74 +75,9 @@ const focusItems = [
   },
 ];
 
-function VehicleLineIcon({
-  className = '',
-}: {
-  className?: string;
-}) {
-  return (
-    <svg
-      viewBox="0 0 640 260"
-      className={`h-auto w-full ${className}`}
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M92 164C102 111 139 86 200 80L260 74C290 52 323 42 365 42L459 45C506 49 544 66 580 95L613 106C631 112 640 128 640 150V165C640 174 635 179 626 179H561"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      <path
-        d="M92 164H176"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-
-      <path
-        d="M243 179H493"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-
-      <circle
-        cx="208"
-        cy="179"
-        r="34"
-        stroke="currentColor"
-        strokeWidth="5"
-      />
-
-      <circle
-        cx="528"
-        cy="179"
-        r="34"
-        stroke="currentColor"
-        strokeWidth="5"
-      />
-
-      <circle
-        cx="208"
-        cy="179"
-        r="10"
-        fill="currentColor"
-      />
-
-      <circle
-        cx="528"
-        cy="179"
-        r="10"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
-
-function HeroSection() {
+async function HeroSection() {
+  const slides =
+    await getPublicHomepageHeroSlides();
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#07355d] via-[#0a487b] to-[#0f5f9f] text-white">
       <div
@@ -158,67 +101,60 @@ function HeroSection() {
       />
 
       <div className="site-container relative">
-        <div className="grid gap-12 pb-14 pt-14 sm:pb-20 sm:pt-20 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:gap-20 lg:pb-24 lg:pt-24">
-          <div className="animate-[institutionalReveal_700ms_ease-out_both]">
-            <p className="flex items-center gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-white">
-              <span className="h-[3px] w-10 bg-[#c96f4a]" />
-              Fédération nationale
-            </p>
+<div className="grid lg:grid-cols-2">
+  <div className="flex items-center py-14 pr-0 sm:py-20 lg:min-h-[610px] lg:pr-14">
+    <div className="animate-[institutionalReveal_700ms_ease-out_both]">
+      <p className="flex items-center gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-white">
+        <span className="h-[3px] w-10 bg-[#c96f4a]" />
+        Fédération nationale
+      </p>
 
-            <h1 className="mt-6 max-w-4xl text-[2.4rem] font-extrabold leading-[1.08] tracking-[-0.045em] text-white sm:text-[3.4rem] lg:text-[4.15rem]">
-              Unir, défendre et professionnaliser les loueurs automobiles sans
-              chauffeur au Maroc.
-            </h1>
+      <h1 className="mt-6 max-w-4xl text-[2.4rem] font-extrabold leading-[1.08] tracking-[-0.045em] text-white sm:text-[3.4rem] lg:text-[4.15rem]">
+        Unir, défendre et professionnaliser les loueurs automobiles sans
+        chauffeur au Maroc.
+      </h1>
 
-            <p className="mt-7 max-w-3xl text-base leading-8 text-white/80 sm:text-lg sm:leading-9">
-              La FLASCAM représente les professionnels de la location
-              automobile sans chauffeur, accompagne la structuration du secteur
-              et renforce la confiance entre loueurs, clients, partenaires et
-              institutions.
-            </p>
+      <p className="mt-7 max-w-3xl text-base leading-8 text-white/80 sm:text-lg sm:leading-9">
+        La FLASCAM représente les professionnels de la location
+        automobile sans chauffeur, accompagne la structuration du secteur
+        et renforce la confiance entre loueurs, clients, partenaires et
+        institutions.
+      </p>
 
-            <div className="mt-9 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-              <Link
-                href="/la-federation"
-                className="inline-flex min-h-13 items-center justify-center gap-3 rounded-md border border-[#c96f4a] bg-[#c96f4a] px-6 text-sm font-extrabold text-white transition duration-200 hover:-translate-y-0.5 hover:border-[#a95235] hover:bg-[#a95235] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30"
-              >
-                Découvrir la fédération
+      <div className="mt-9 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+        <Link
+          href="/la-federation"
+          className="inline-flex min-h-13 items-center justify-center gap-3 rounded-md border border-[#c96f4a] bg-[#c96f4a] px-6 text-sm font-extrabold text-white transition duration-200 hover:-translate-y-0.5 hover:border-[#a95235] hover:bg-[#a95235] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30"
+        >
+          Découvrir la fédération
 
-                <ArrowRight
-                  size={18}
-                  aria-hidden="true"
-                />
-              </Link>
-
-              <Link
-                href="/contact"
-                className="inline-flex items-center gap-3 text-sm font-extrabold text-white transition duration-200 hover:gap-4 hover:text-[#ffd8c8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-[#07355d]"
-              >
-                Devenir adhérent
-
-                <ArrowRight
-                  size={17}
-                  aria-hidden="true"
-                />
-              </Link>
-            </div>
-          </div>
-
-          <div
+          <ArrowRight
+            size={18}
             aria-hidden="true"
-            className="relative flex min-h-64 items-center justify-center text-white/90 sm:min-h-80 lg:min-h-[22rem]"
-          >
-            <div className="absolute right-0 top-4 text-xs font-extrabold tracking-[0.24em] text-white/45">
-              FLASCAM
-            </div>
+          />
+        </Link>
 
-            <div className="relative w-full max-w-[34rem] animate-[institutionalFloat_7s_ease-in-out_infinite] rounded-full border border-white/20 bg-white/[0.04] px-6 py-12 sm:px-10 sm:py-16">
-              <VehicleLineIcon />
-            </div>
+        <Link
+          href="/contact"
+          className="inline-flex items-center gap-3 text-sm font-extrabold text-white transition duration-200 hover:gap-4 hover:text-[#ffd8c8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-4 focus-visible:ring-offset-[#07355d]"
+        >
+          Devenir adhérent
 
-            <div className="absolute bottom-8 right-0 h-[3px] w-28 origin-right animate-[institutionalLine_1.2s_ease-out_both] bg-[#c96f4a]" />
-          </div>
-        </div>
+          <ArrowRight
+            size={17}
+            aria-hidden="true"
+          />
+        </Link>
+      </div>
+    </div>
+  </div>
+
+  <div className="-mx-4 sm:-mx-6 lg:mx-0 lg:translate-x-[calc((100vw-76rem)/2)] lg:w-[calc(50vw+0.5rem)]">
+    <HomepageHeroSlider
+      slides={slides}
+    />
+  </div>
+</div>
 
         <div className="grid border-t border-white/20 bg-[#032039]/30 backdrop-blur-sm sm:grid-cols-3">
           {heroStats.map((stat) => (
@@ -236,11 +172,7 @@ function HeroSection() {
             </div>
           ))}
 
-          <p className="border-t border-white/15 px-5 py-4 text-xs leading-5 text-white/50 sm:col-span-3 sm:px-8">
-            Chiffres issus des prises de parole publiques et annuaires
-            professionnels. À confirmer par la fédération avant publication
-            définitive.
-          </p>
+
         </div>
       </div>
     </section>
@@ -298,36 +230,30 @@ function FederationPreview() {
           </div>
 
           <div className="border-t border-slate-200 lg:border-l lg:border-t-0 lg:pl-12">
-            {focusItems.map((item, index) => {
+            {focusItems.map((item) => {
               const Icon = item.icon;
 
               return (
 <article
   key={item.title}
-  className="group grid grid-cols-[2.5rem_1fr] gap-4 border-b border-slate-200 py-8 sm:grid-cols-[4rem_1fr] sm:gap-6 sm:py-9"
+  className="group border-b border-slate-200 py-8 sm:py-9"
 >
-  <div className="pt-1 text-xs font-extrabold tracking-[0.14em] text-[#c96f4a] transition-transform duration-200 group-hover:translate-x-1">
-    {String(index + 1).padStart(2, '0')}
-  </div>
+  <div className="flex items-start gap-4 transition-transform duration-200 group-hover:translate-x-1">
+    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-md border border-[#0f5f9f]/20 bg-[#eaf5ff] text-[#0f5f9f] transition duration-200 group-hover:border-[#c96f4a] group-hover:bg-[#f8ede8] group-hover:text-[#a95235]">
+      <Icon
+        size={22}
+        aria-hidden="true"
+      />
+    </div>
 
-  <div className="transition-transform duration-200 group-hover:translate-x-1">
-    <div className="flex items-start gap-4">
-      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-md border border-[#0f5f9f]/20 bg-[#eaf5ff] text-[#0f5f9f] transition duration-200 group-hover:border-[#c96f4a] group-hover:bg-[#f8ede8] group-hover:text-[#a95235]">
-        <Icon
-          size={22}
-          aria-hidden="true"
-        />
-      </div>
+    <div>
+      <h3 className="text-xl font-extrabold text-[#07355d] sm:text-2xl">
+        {item.title}
+      </h3>
 
-      <div>
-        <h3 className="text-xl font-extrabold text-[#07355d] sm:text-2xl">
-          {item.title}
-        </h3>
-
-        <p className="mt-3 max-w-xl text-sm leading-7 text-[#536273] sm:text-base sm:leading-8">
-          {item.description}
-        </p>
-      </div>
+      <p className="mt-3 max-w-xl text-sm leading-7 text-[#536273] sm:text-base sm:leading-8">
+        {item.description}
+      </p>
     </div>
   </div>
 </article>
@@ -380,15 +306,13 @@ async function AssociationsPreview() {
         </div>
 
         <div className="divide-y divide-[var(--flascam-border)]">
-          {associations.map((association, index) => (
+          {associations.map((association) => (
             <Link
               key={association.id}
               href={`/associations/${association.slug}`}
-              className="group grid min-h-28 grid-cols-[auto_1fr_auto] items-center gap-4 py-5 transition duration-200 hover:bg-white/70 hover:px-3 sm:grid-cols-[auto_auto_1fr_auto] sm:gap-6"
+              className="group grid min-h-28 grid-cols-[auto_1fr_auto] items-center gap-4 py-5 transition duration-200 hover:bg-white/70 hover:px-3 sm:gap-6"
             >
-              <span className="hidden text-xs font-extrabold tracking-[0.12em] text-[#c96f4a] sm:block">
-                {String(index + 1).padStart(2, '0')}
-              </span>
+
 
               <div className="grid h-14 w-14 place-items-center overflow-hidden rounded-md border border-[#dbe5ef] bg-white p-2 text-sm font-extrabold text-[#07355d]">
                 {association.logoUrl ? (

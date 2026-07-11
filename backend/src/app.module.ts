@@ -69,6 +69,10 @@ import {
   MediaModule,
 } from './media/media.module';
 
+import {
+  HomepageHeroModule,
+} from './homepage-hero/homepage-hero.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -92,6 +96,7 @@ import {
     InstitutionalModule,
     AssociationsModule,
     MediaModule,
+    HomepageHeroModule,
   ],
   controllers: [
     AppController,
