@@ -23,6 +23,7 @@ import {
   Settings,
   ShieldCheck,
   X,
+  UserRound,
 } from 'lucide-react';
 
 import type {
@@ -66,6 +67,18 @@ const navItems: AdminNavItem[] = [
     href: '/admin',
     icon: LayoutDashboard,
   },
+
+  {
+    label: 'Ma fiche',
+    href: '/admin/my-association',
+    icon: UserRound,
+    permission:
+      'association.profile.read',
+    roles: [
+      'ASSOCIATION_ADMIN',
+    ],
+  },
+
   {
     label: 'Page d’accueil',
     href: '/admin/homepage',

@@ -9,6 +9,7 @@ import type {
   AssociationMediaFormState,
   AssociationPostFormState,
   AssociationSummary,
+  OwnAssociationFormState,
 } from '@/types/associations';
 
 async function publicFetch<T>(
@@ -127,6 +128,51 @@ export async function getPublicAssociationBySlug(
 ) {
   return await publicFetch<AssociationDetail>(
     `/associations/public/${slug}`,
+  );
+}
+
+export async function getOwnAssociation() {
+  return await adminFetch<AssociationDetail>(
+    '/associations/me',
+  );
+}
+
+export async function updateOwnAssociation(
+  form: OwnAssociationFormState,
+) {
+  return await adminFetch<AssociationDetail>(
+    '/associations/me',
+    {
+      method: 'PUT',
+      body: JSON.stringify(
+        ownAssociationPayload(form),
+      ),
+    },
+  );
+}
+
+export async function uploadAssociationImage(
+  file: File,
+) {
+  const formData = new FormData();
+
+  formData.append(
+    'file',
+    file,
+  );
+
+  return await adminFetch<{
+    id: string;
+    url: string;
+    originalFilename: string;
+    mimeType: string;
+    sizeBytes: number;
+  }>(
+    '/media/association/images',
+    {
+      method: 'POST',
+      body: formData,
+    },
   );
 }
 
@@ -302,6 +348,83 @@ export async function updateAssociationMediaItem(
       ),
     },
   );
+}
+
+function ownAssociationPayload(
+  form: OwnAssociationFormState,
+) {
+  return {
+    name: form.name.trim(),
+    acronym:
+      emptyToUndefined(
+        form.acronym,
+      ),
+    region: form.region.trim(),
+    city:
+      emptyToUndefined(
+        form.city,
+      ),
+    memberCount:
+      numberOrUndefined(
+        form.memberCount,
+      ),
+    logoMediaAssetId:
+      emptyToUndefined(
+        form.logoMediaAssetId,
+      ),
+    coverImageUrl:
+      emptyToUndefined(
+        form.coverImageUrl,
+      ),
+    logoText:
+      emptyToUndefined(
+        form.logoText,
+      ),
+    presentation:
+      emptyToUndefined(
+        form.presentation,
+      ),
+    address:
+      emptyToUndefined(
+        form.address,
+      ),
+    phone:
+      emptyToUndefined(
+        form.phone,
+      ),
+    email:
+      emptyToUndefined(
+        form.email,
+      ),
+    websiteUrl:
+      emptyToUndefined(
+        form.websiteUrl,
+      ),
+    facebookUrl:
+      emptyToUndefined(
+        form.facebookUrl,
+      ),
+    instagramUrl:
+      emptyToUndefined(
+        form.instagramUrl,
+      ),
+    linkedinUrl:
+      emptyToUndefined(
+        form.linkedinUrl,
+      ),
+    youtubeUrl:
+      emptyToUndefined(
+        form.youtubeUrl,
+      ),
+    seoTitle:
+      emptyToUndefined(
+        form.seoTitle,
+      ),
+    seoDescription:
+      emptyToUndefined(
+        form.seoDescription,
+      ),
+  };
 }
 
 function associationPayload(
