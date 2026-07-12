@@ -80,13 +80,17 @@ const navItems: AdminNavItem[] = [
     permission:
       'associations.read',
   },
-  {
-    label: 'Messages reçus',
-    href: '/admin/contact-messages',
-    icon: Inbox,
-    permission:
-      'contact_messages.read',
-  },
+{
+  label: 'Messages reçus',
+  href: '/admin/contact-messages',
+  icon: Inbox,
+  permission:
+    'content.manage',
+  roles: [
+    'SUPER_ADMIN',
+    'FLASCAM_ADMIN',
+  ],
+},
   {
     label: 'Utilisateurs & rôles',
     href: '/admin/users',
