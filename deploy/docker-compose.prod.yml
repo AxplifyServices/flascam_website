@@ -1,7 +1,9 @@
+version: "3.9"
+
 services:
-  backend:
+  flascam-backend:
     build:
-      context: ./backend
+      context: ./repo/backend
       dockerfile: Dockerfile
 
     container_name: flascam-backend
@@ -9,25 +11,21 @@ services:
     restart: unless-stopped
 
     env_file:
-      - .env.production
-
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      API_PREFIX: api
+      - /opt/apps/flascam/backend.env
 
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-    networks:
-      - flascam_internal
-      - traefik_proxy
-
     depends_on:
-      minio:
+      flascam-minio:
         condition: service_healthy
-      minio-init:
+
+      flascam-minio-init:
         condition: service_completed_successfully
+
+    networks:
+      - flascam-internal
+      - traefik-public
 
     healthcheck:
       test:
@@ -42,26 +40,22 @@ services:
       retries: 10
       start_period: 30s
 
-    security_opt:
-      - no-new-privileges:true
-
     labels:
       - "traefik.enable=true"
 
-      - "traefik.http.routers.flascam-api.rule=Host(`flascam.axplitest.com`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.flascam-api.entrypoints=${TRAEFIK_ENTRYPOINT}"
-      - "traefik.http.routers.flascam-api.tls=true"
-      - "traefik.http.routers.flascam-api.tls.certresolver=${TRAEFIK_CERTRESOLVER}"
-      - "traefik.http.routers.flascam-api.priority=100"
+      - "traefik.http.routers.flascam-backend.rule=Host(`flascam.axplitest.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.flascam-backend.entrypoints=websecure"
+      - "traefik.http.routers.flascam-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.flascam-backend.priority=100"
 
-      - "traefik.http.services.flascam-api.loadbalancer.server.port=3000"
+      - "traefik.http.services.flascam-backend.loadbalancer.server.port=3000"
 
-      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      - "traefik.docker.network=traefik-public"
 
 
-  frontend:
+  flascam-frontend:
     build:
-      context: ./frontend
+      context: ./repo/frontend
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: /api
@@ -76,32 +70,28 @@ services:
       HOSTNAME: 0.0.0.0
       NEXT_TELEMETRY_DISABLED: 1
 
-    networks:
-      - flascam_internal
-      - traefik_proxy
-
     depends_on:
-      backend:
+      flascam-backend:
         condition: service_healthy
 
-    security_opt:
-      - no-new-privileges:true
+    networks:
+      - flascam-internal
+      - traefik-public
 
     labels:
       - "traefik.enable=true"
 
       - "traefik.http.routers.flascam-frontend.rule=Host(`flascam.axplitest.com`)"
-      - "traefik.http.routers.flascam-frontend.entrypoints=${TRAEFIK_ENTRYPOINT}"
-      - "traefik.http.routers.flascam-frontend.tls=true"
-      - "traefik.http.routers.flascam-frontend.tls.certresolver=${TRAEFIK_CERTRESOLVER}"
+      - "traefik.http.routers.flascam-frontend.entrypoints=websecure"
+      - "traefik.http.routers.flascam-frontend.tls.certresolver=letsencrypt"
       - "traefik.http.routers.flascam-frontend.priority=10"
 
       - "traefik.http.services.flascam-frontend.loadbalancer.server.port=3001"
 
-      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      - "traefik.docker.network=traefik-public"
 
 
-  minio:
+  flascam-minio:
     image: quay.io/minio/minio:latest
 
     container_name: flascam-minio
@@ -114,16 +104,15 @@ services:
       - --console-address
       - ":9001"
 
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    env_file:
+      - /opt/apps/flascam/minio.env
 
     volumes:
-      - flascam_minio_data:/data
+      - flascam-minio-data:/data
 
     networks:
-      - flascam_internal
-      - traefik_proxy
+      - flascam-internal
+      - traefik-public
 
     healthcheck:
       test:
@@ -138,16 +127,12 @@ services:
       retries: 10
       start_period: 20s
 
-    security_opt:
-      - no-new-privileges:true
-
     labels:
       - "traefik.enable=true"
 
       - "traefik.http.routers.flascam-storage.rule=Host(`flascam.axplitest.com`) && PathPrefix(`/storage`)"
-      - "traefik.http.routers.flascam-storage.entrypoints=${TRAEFIK_ENTRYPOINT}"
-      - "traefik.http.routers.flascam-storage.tls=true"
-      - "traefik.http.routers.flascam-storage.tls.certresolver=${TRAEFIK_CERTRESOLVER}"
+      - "traefik.http.routers.flascam-storage.entrypoints=websecure"
+      - "traefik.http.routers.flascam-storage.tls.certresolver=letsencrypt"
       - "traefik.http.routers.flascam-storage.priority=110"
 
       - "traefik.http.routers.flascam-storage.middlewares=flascam-storage-strip"
@@ -155,25 +140,22 @@ services:
 
       - "traefik.http.services.flascam-storage.loadbalancer.server.port=9000"
 
-      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      - "traefik.docker.network=traefik-public"
 
 
-  minio-init:
+  flascam-minio-init:
     image: quay.io/minio/mc:latest
 
     container_name: flascam-minio-init
 
     restart: "no"
 
-    depends_on:
-      minio:
-        condition: service_healthy
+    env_file:
+      - /opt/apps/flascam/minio.env
 
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_PUBLIC_BUCKET: ${MINIO_PUBLIC_BUCKET}
-      MINIO_PRIVATE_BUCKET: ${MINIO_PRIVATE_BUCKET}
+    depends_on:
+      flascam-minio:
+        condition: service_healthy
 
     entrypoint:
       - /bin/sh
@@ -182,7 +164,7 @@ services:
         set -e
 
         mc alias set flascam \
-          http://minio:9000 \
+          http://flascam-minio:9000 \
           "$${MINIO_ROOT_USER}" \
           "$${MINIO_ROOT_PASSWORD}"
 
@@ -202,26 +184,20 @@ services:
           none \
           flascam/"$${MINIO_PRIVATE_BUCKET}"
 
-        echo "Buckets MinIO FLASCAM initialisés."
+        echo "Initialisation MinIO terminée."
 
     networks:
-      - flascam_internal
+      - flascam-internal
 
 
 networks:
-  flascam_internal:
-    name: flascam_internal
+  flascam-internal:
+    name: flascam-internal
 
-    ipam:
-      config:
-        - subnet: 172.31.50.0/24
-          gateway: 172.31.50.1
-
-  traefik_proxy:
+  traefik-public:
     external: true
-    name: ${TRAEFIK_NETWORK}
 
 
 volumes:
-  flascam_minio_data:
-    name: flascam_minio_data
+  flascam-minio-data:
+    name: flascam-minio-data
