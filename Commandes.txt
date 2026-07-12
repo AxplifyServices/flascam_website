@@ -26,9 +26,9 @@ Mot de passe : flascam_minio_local_password_2026
 psql -U postgres -d flascam_db -f "database\migrations\008_admin_and_association_permissions.sql
 
 
-cd /opt/apps/hire/repo
+cd /opt/apps/flascam/repo
 
-sudo -u postgres psql -d hire_db  -f database/schema/040_add_client_password_resets.sql
+sudo -u postgres psql -d flascam_db  -f database/schema/040_add_client_password_resets.sql
 
 
 ** Build l'appli
