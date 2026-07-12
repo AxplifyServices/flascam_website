@@ -58,7 +58,13 @@ export async function getPublicHomepageHeroSlides(): Promise<
       await fetch(
         `${API_URL}/homepage-hero/public`,
         {
-          cache: 'no-store',
+          cache:
+            'no-store',
+
+          signal:
+            AbortSignal.timeout(
+              5000,
+            ),
         },
       );
 
@@ -66,7 +72,9 @@ export async function getPublicHomepageHeroSlides(): Promise<
       return [];
     }
 
-    return await response.json() as HomepageHeroSlide[];
+    return (
+      await response.json()
+    ) as HomepageHeroSlide[];
   } catch {
     return [];
   }

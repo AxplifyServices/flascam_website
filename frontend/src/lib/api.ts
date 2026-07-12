@@ -1,7 +1,17 @@
-export const API_URL =
+const BROWSER_API_URL =
   process.env
     .NEXT_PUBLIC_API_URL ??
+  '/api';
+
+const SERVER_API_URL =
+  process.env
+    .SERVER_API_URL ??
   'http://localhost:3000/api';
+
+export const API_URL =
+  typeof window === 'undefined'
+    ? SERVER_API_URL
+    : BROWSER_API_URL;
 
 export async function apiFetch(
   path: string,
@@ -14,7 +24,10 @@ export async function apiFetch(
     `${API_URL}${path}`,
     {
       ...init,
-      credentials: 'include',
+
+      credentials:
+        'include',
+
       headers: {
         ...(isFormData
           ? {}
@@ -22,6 +35,7 @@ export async function apiFetch(
               'Content-Type':
                 'application/json',
             }),
+
         ...init.headers,
       },
     },

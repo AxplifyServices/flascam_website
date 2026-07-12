@@ -16,20 +16,28 @@ async function publicFetch<T>(
   path: string,
 ): Promise<T | null> {
   try {
-    const response = await fetch(
-      `${API_URL}${path}`,
-      {
-        next: {
-          revalidate: 60,
+    const response =
+      await fetch(
+        `${API_URL}${path}`,
+        {
+          next: {
+            revalidate: 60,
+          },
+
+          signal:
+            AbortSignal.timeout(
+              5000,
+            ),
         },
-      },
-    );
+      );
 
     if (!response.ok) {
       return null;
     }
 
-    return await response.json() as T;
+    return (
+      await response.json()
+    ) as T;
   } catch {
     return null;
   }

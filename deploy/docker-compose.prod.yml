@@ -64,11 +64,17 @@ services:
 
     restart: unless-stopped
 
-    environment:
-      NODE_ENV: production
-      PORT: 3001
-      HOSTNAME: 0.0.0.0
-      NEXT_TELEMETRY_DISABLED: 1
+environment:
+  NODE_ENV: production
+
+  PORT: 3001
+  HOSTNAME: 0.0.0.0
+
+  NEXT_TELEMETRY_DISABLED: 1
+
+  NEXT_PUBLIC_API_URL: /api
+
+  SERVER_API_URL: http://flascam-backend:3000/api
 
     depends_on:
       flascam-backend:

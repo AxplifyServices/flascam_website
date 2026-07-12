@@ -26,6 +26,9 @@ import {
   AssociationCard,
 } from '@/components/site/association-card';
 
+export const dynamic =
+  'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Accueil',
   description:

@@ -10,6 +10,11 @@ import './globals.css';
 
 export const metadata:
   Metadata = {
+    metadataBase:
+      new URL(
+        'https://flascam.axplitest.com',
+      ),
+
     title: {
       default:
         'FLASCAM - Fédération des loueurs automobiles sans chauffeur au Maroc',
