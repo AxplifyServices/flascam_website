@@ -11,7 +11,7 @@ Code .
    // Utiliser une base de données
 
 psql -U postgres
-\c hire_db  
+\c flascam_db
 \q
 
 Mot de passe : flascam_local_password
@@ -30,11 +30,6 @@ cd /opt/apps/hire/repo
 
 sudo -u postgres psql -d hire_db  -f database/schema/040_add_client_password_resets.sql
 
-
-** Installer un env
-
-npm install  
-c
 
 ** Build l'appli
 

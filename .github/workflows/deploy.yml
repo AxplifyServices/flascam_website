@@ -1,0 +1,177 @@
+name: Deploy FLASCAM
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flascam-production-deployment
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate application
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+        run: npx prisma generate
+
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: /api
+        run: npm run build
+
+      - name: Validate Docker Compose
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@host.docker.internal:5432/flascam_db
+          JWT_ACCESS_SECRET: placeholder
+          JWT_REFRESH_SECRET: placeholder
+          MINIO_ROOT_USER: placeholder
+          MINIO_ROOT_PASSWORD: placeholder-placeholder
+          MINIO_PUBLIC_BUCKET: flascam-public
+          MINIO_PRIVATE_BUCKET: flascam-private
+          S3_ACCESS_KEY: placeholder
+          S3_SECRET_KEY: placeholder-placeholder
+          TRAEFIK_NETWORK: traefik
+          TRAEFIK_ENTRYPOINT: websecure
+          TRAEFIK_CERTRESOLVER: letsencrypt
+        run: |
+          touch .env.production
+
+          docker compose \
+            --env-file .env.production \
+            -f docker-compose.prod.yml \
+            config \
+            --quiet
+
+          rm .env.production
+
+
+  deploy:
+    name: Deploy to test server
+
+    needs:
+      - validate
+
+    runs-on: ubuntu-latest
+
+    environment:
+      name: test
+      url: https://flascam.axplitest.com
+
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SERVER_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+
+          printf '%s\n' "${SSH_PRIVATE_KEY}" \
+            > ~/.ssh/flascam_deploy_key
+
+          chmod 600 ~/.ssh/flascam_deploy_key
+
+          printf '%s\n' "${SSH_KNOWN_HOSTS}" \
+            > ~/.ssh/known_hosts
+
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy application
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}.git
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+        run: |
+          ssh \
+            -i ~/.ssh/flascam_deploy_key \
+            -p "${SERVER_PORT}" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            "${SERVER_USER}@${SERVER_HOST}" \
+            "bash -s" <<EOF
+          set -Eeuo pipefail
+
+          APP_DIR="/opt/apps/flascam"
+
+          if [ ! -d "\${APP_DIR}/.git" ]; then
+            mkdir -p "\${APP_DIR}"
+
+            git clone \
+              --branch "${DEPLOY_BRANCH}" \
+              --single-branch \
+              "${REPOSITORY_URL}" \
+              "\${APP_DIR}"
+          fi
+
+          cd "\${APP_DIR}"
+
+          git remote set-url origin "${REPOSITORY_URL}"
+          git fetch origin "${DEPLOY_BRANCH}"
+          git checkout "${DEPLOY_BRANCH}"
+          git reset --hard "origin/${DEPLOY_BRANCH}"
+          git clean -fd -e .env.production
+
+          chmod +x deploy.sh
+
+          ./deploy.sh \
+            "${REPOSITORY_URL}" \
+            "${DEPLOY_BRANCH}"
+          EOF
+
+      - name: Verify public endpoint
+        run: |
+          for attempt in $(seq 1 20); do
+            if curl \
+              --fail \
+              --silent \
+              --show-error \
+              https://flascam.axplitest.com/api/health; then
+
+              exit 0
+            fi
+
+            echo "Tentative ${attempt}/20..."
+            sleep 5
+          done
+
+          echo "Le healthcheck public a échoué."
+          exit 1
