@@ -115,6 +115,28 @@ export type AssociationFormState = {
   adminPassword: string;
 };
 
+export type OwnAssociationFormState = {
+  name: string;
+  acronym: string;
+  region: string;
+  city: string;
+  memberCount: string;
+  logoMediaAssetId: string;
+  coverImageUrl: string;
+  logoText: string;
+  presentation: string;
+  address: string;
+  phone: string;
+  email: string;
+  websiteUrl: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  linkedinUrl: string;
+  youtubeUrl: string;
+  seoTitle: string;
+  seoDescription: string;
+};
+
 export type AssociationPostFormState = {
   contentType: 'ACTUALITY' | 'EVENT';
   title: string;

@@ -42,6 +42,10 @@ import {
 } from './dto/update-association-status.dto';
 
 import {
+  UpdateOwnAssociationDto,
+} from './dto/update-own-association.dto';
+
+import {
   UpsertAssociationDto,
 } from './dto/upsert-association.dto';
 
@@ -56,22 +60,23 @@ import {
 @Controller('associations')
 export class AssociationsController {
   constructor(
-    private readonly service:
-      AssociationsService,
+    private readonly service: AssociationsService,
   ) {}
+
+  /*
+   * Routes publiques
+   */
 
   @Public()
   @Get('public')
   getPublicAssociations() {
-    return this.service
-      .getPublicAssociations();
+    return this.service.getPublicAssociations();
   }
 
   @Public()
   @Get('public/featured')
   getFeaturedAssociations() {
-    return this.service
-      .getFeaturedAssociations();
+    return this.service.getFeaturedAssociations();
   }
 
   @Public()
@@ -80,11 +85,121 @@ export class AssociationsController {
     @Param('slug')
     slug: string,
   ) {
-    return this.service
-      .getPublicAssociationBySlug(
-        slug,
-      );
+    return this.service.getPublicAssociationBySlug(
+      slug,
+    );
   }
+
+  /*
+   * Espace de l’association connectée
+   *
+   * Aucun ID d’association n’est reçu depuis le navigateur.
+   * Le backend détermine l’association depuis le compte connecté.
+   */
+
+  @Get('me')
+  @Permissions('association.profile.read')
+  getOwnAssociation(
+    @CurrentUser()
+    user: AuthUser,
+  ) {
+    return this.service.getOwnAssociation(user);
+  }
+
+  @Put('me')
+  @Permissions('association.profile.update')
+  updateOwnAssociation(
+    @Body()
+    dto: UpdateOwnAssociationDto,
+    @CurrentUser()
+    user: AuthUser,
+    @Req()
+    request: Request,
+  ) {
+    return this.service.updateOwnAssociation(
+      dto,
+      user,
+      request,
+    );
+  }
+
+  @Post('me/posts')
+  @Permissions('association.content.manage')
+  createOwnPost(
+    @Body()
+    dto: UpsertAssociationPostDto,
+    @CurrentUser()
+    user: AuthUser,
+    @Req()
+    request: Request,
+  ) {
+    return this.service.createOwnPost(
+      dto,
+      user,
+      request,
+    );
+  }
+
+  @Put('me/posts/:postId')
+  @Permissions('association.content.manage')
+  updateOwnPost(
+    @Param('postId')
+    postId: string,
+    @Body()
+    dto: UpsertAssociationPostDto,
+    @CurrentUser()
+    user: AuthUser,
+    @Req()
+    request: Request,
+  ) {
+    return this.service.updateOwnPost(
+      postId,
+      dto,
+      user,
+      request,
+    );
+  }
+
+  @Post('me/media')
+  @Permissions('association.media.manage')
+  createOwnMediaItem(
+    @Body()
+    dto: UpsertAssociationMediaDto,
+    @CurrentUser()
+    user: AuthUser,
+    @Req()
+    request: Request,
+  ) {
+    return this.service.createOwnMediaItem(
+      dto,
+      user,
+      request,
+    );
+  }
+
+  @Put('me/media/:mediaItemId')
+  @Permissions('association.media.manage')
+  updateOwnMediaItem(
+    @Param('mediaItemId')
+    mediaItemId: string,
+    @Body()
+    dto: UpsertAssociationMediaDto,
+    @CurrentUser()
+    user: AuthUser,
+    @Req()
+    request: Request,
+  ) {
+    return this.service.updateOwnMediaItem(
+      mediaItemId,
+      dto,
+      user,
+      request,
+    );
+  }
+
+  /*
+   * Administration FLASCAM
+   */
 
   @Get('admin')
   @Permissions('associations.read')
@@ -92,8 +207,9 @@ export class AssociationsController {
     @CurrentUser()
     user: AuthUser,
   ) {
-    return this.service
-      .getAdminAssociations(user);
+    return this.service.getAdminAssociations(
+      user,
+    );
   }
 
   @Get('admin/:id')
@@ -104,11 +220,10 @@ export class AssociationsController {
     @CurrentUser()
     user: AuthUser,
   ) {
-    return this.service
-      .getAdminAssociation(
-        id,
-        user,
-      );
+    return this.service.getAdminAssociation(
+      id,
+      user,
+    );
   }
 
   @Post('admin')
@@ -121,12 +236,11 @@ export class AssociationsController {
     @Req()
     request: Request,
   ) {
-    return this.service
-      .createAssociation(
-        dto,
-        user,
-        request,
-      );
+    return this.service.createAssociation(
+      dto,
+      user,
+      request,
+    );
   }
 
   @Put('admin/:id')
@@ -141,13 +255,12 @@ export class AssociationsController {
     @Req()
     request: Request,
   ) {
-    return this.service
-      .updateAssociation(
-        id,
-        dto,
-        user,
-        request,
-      );
+    return this.service.updateAssociation(
+      id,
+      dto,
+      user,
+      request,
+    );
   }
 
   @Patch('admin/:id/status')
@@ -162,13 +275,12 @@ export class AssociationsController {
     @Req()
     request: Request,
   ) {
-    return this.service
-      .updateAssociationStatus(
-        id,
-        dto,
-        user,
-        request,
-      );
+    return this.service.updateAssociationStatus(
+      id,
+      dto,
+      user,
+      request,
+    );
   }
 
   @Post('admin/:associationId/posts')
@@ -215,7 +327,9 @@ export class AssociationsController {
     );
   }
 
-  @Patch('admin/:associationId/posts/:postId/status')
+  @Patch(
+    'admin/:associationId/posts/:postId/status',
+  )
   @Permissions('associations.manage')
   updatePostStatus(
     @Param('associationId')
@@ -229,14 +343,13 @@ export class AssociationsController {
     @Req()
     request: Request,
   ) {
-    return this.service
-      .updatePostStatus(
-        associationId,
-        postId,
-        dto,
-        user,
-        request,
-      );
+    return this.service.updatePostStatus(
+      associationId,
+      postId,
+      dto,
+      user,
+      request,
+    );
   }
 
   @Post('admin/:associationId/media')
@@ -251,17 +364,18 @@ export class AssociationsController {
     @Req()
     request: Request,
   ) {
-    return this.service
-      .upsertMediaItem(
-        associationId,
-        null,
-        dto,
-        user,
-        request,
-      );
+    return this.service.upsertMediaItem(
+      associationId,
+      null,
+      dto,
+      user,
+      request,
+    );
   }
 
-  @Put('admin/:associationId/media/:mediaItemId')
+  @Put(
+    'admin/:associationId/media/:mediaItemId',
+  )
   @Permissions('associations.manage')
   updateMediaItem(
     @Param('associationId')
@@ -275,13 +389,12 @@ export class AssociationsController {
     @Req()
     request: Request,
   ) {
-    return this.service
-      .upsertMediaItem(
-        associationId,
-        mediaItemId,
-        dto,
-        user,
-        request,
-      );
+    return this.service.upsertMediaItem(
+      associationId,
+      mediaItemId,
+      dto,
+      user,
+      request,
+    );
   }
 }

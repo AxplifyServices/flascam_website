@@ -59,28 +59,51 @@ export class MediaController {
       );
   }
 
+  @Post('association/images')
+  @Permissions('association.media.manage')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: {
+        fileSize:
+          10 * 1024 * 1024,
+      },
+    }),
+  )
+  uploadAssociationImage(
+    @UploadedFile()
+    file: Express.Multer.File,
+    @CurrentUser()
+    user: AuthUser,
+  ) {
+    return this.service.uploadPublicImage(
+      file,
+      user,
+      `associations/${user.id}`,
+    );
+  }  
+
   @Post('admin/homepage-images')
-@Permissions('content.manage')
-@UseInterceptors(
-  FileInterceptor('file', {
-    storage: memoryStorage(),
-    limits: {
-      fileSize:
-        10 * 1024 * 1024,
-    },
-  }),
-)
-uploadHomepageImage(
-  @UploadedFile()
-  file: Express.Multer.File,
-  @CurrentUser()
-  user: AuthUser,
-) {
-  return this.service
-    .uploadPublicImage(
+  @Permissions('homepage.manage')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: {
+        fileSize:
+          10 * 1024 * 1024,
+      },
+    }),
+  )
+  uploadHomepageImage(
+    @UploadedFile()
+    file: Express.Multer.File,
+    @CurrentUser()
+    user: AuthUser,
+  ) {
+    return this.service.uploadPublicImage(
       file,
       user,
       'homepage/hero',
     );
-}
+  }
 }

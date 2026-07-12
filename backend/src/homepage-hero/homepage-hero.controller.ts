@@ -28,6 +28,10 @@ import {
   HomepageHeroService,
 } from './homepage-hero.service';
 
+import {
+  ReorderHomepageHeroSlidesDto,
+} from './dto/reorder-homepage-hero-slides.dto';
+
 @Controller('homepage-hero')
 export class HomepageHeroController {
   constructor(
@@ -41,13 +45,13 @@ export class HomepageHeroController {
   }
 
   @Get('admin')
-  @Permissions('content.manage')
+  @Permissions('homepage.manage')
   getAdminSlides() {
     return this.service.getAdminSlides();
   }
 
   @Post('admin')
-  @Permissions('content.manage')
+  @Permissions('homepage.manage')
   createSlide(
     @Body()
     dto: CreateHomepageHeroSlideDto,
@@ -55,8 +59,19 @@ export class HomepageHeroController {
     return this.service.createSlide(dto);
   }
 
+  @Patch('admin/reorder')
+  @Permissions('homepage.manage')
+  reorderSlides(
+    @Body()
+    dto: ReorderHomepageHeroSlidesDto,
+  ) {
+    return this.service.reorderSlides(
+      dto,
+    );
+  }  
+
   @Patch('admin/:id')
-  @Permissions('content.manage')
+  @Permissions('homepage.manage')
   updateSlide(
     @Param('id')
     id: string,
@@ -70,7 +85,7 @@ export class HomepageHeroController {
   }
 
   @Delete('admin/:id')
-  @Permissions('content.manage')
+  @Permissions('homepage.manage')
   deleteSlide(
     @Param('id')
     id: string,

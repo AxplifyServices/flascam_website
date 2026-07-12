@@ -23,6 +23,10 @@ import type {
   HomepageHeroSlideResponse,
 } from './homepage-hero.types';
 
+import {
+  ReorderHomepageHeroSlidesDto,
+} from './dto/reorder-homepage-hero-slides.dto';
+
 @Injectable()
 export class HomepageHeroService {
   constructor(
@@ -173,6 +177,62 @@ export class HomepageHeroService {
 
     return this.mapSlide(slide);
   }
+
+  async reorderSlides(
+    dto: ReorderHomepageHeroSlidesDto,
+  ): Promise<HomepageHeroSlideResponse[]> {
+    const uniqueIds =
+      [...new Set(dto.slideIds)];
+
+    if (
+      uniqueIds.length !==
+      dto.slideIds.length
+    ) {
+      throw new NotFoundException(
+        'La liste contient des images en double.',
+      );
+    }
+
+    const existingSlides =
+      await this.prisma.homepage_hero_slides.findMany({
+        where: {
+          id: {
+            in: uniqueIds,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    if (
+      existingSlides.length !==
+      uniqueIds.length
+    ) {
+      throw new NotFoundException(
+        'Une ou plusieurs images du diaporama sont introuvables.',
+      );
+    }
+
+    await this.prisma.$transaction(
+      uniqueIds.map(
+        (id, index) =>
+          this.prisma.homepage_hero_slides.update({
+            where: {
+              id,
+            },
+            data: {
+              display_order:
+                index,
+              updated_at:
+                new Date(),
+            },
+          }),
+      ),
+    );
+
+    return this.getAdminSlides();
+  }  
 
   async deleteSlide(
     id: string,

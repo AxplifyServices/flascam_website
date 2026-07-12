@@ -35,6 +35,10 @@ import {
 } from './dto/update-association-status.dto';
 
 import {
+  UpdateOwnAssociationDto,
+} from './dto/update-own-association.dto';
+
+import {
   UpsertAssociationDto,
 } from './dto/upsert-association.dto';
 
@@ -343,6 +347,162 @@ return {
 };
   }
 
+  async getOwnAssociation(
+    user: AuthUser,
+  ) {
+    const associationId =
+      await this.getOwnAssociationId(user);
+
+    const association =
+      await this.getAdminAssociation(
+        associationId,
+        user,
+      );
+
+    const {
+      adminAccount: _adminAccount,
+      ...safeAssociation
+    } = association;
+
+    return safeAssociation;
+  }
+
+  async updateOwnAssociation(
+    dto: UpdateOwnAssociationDto,
+    user: AuthUser,
+    request: Request,
+  ) {
+    const associationId =
+      await this.getOwnAssociationId(user);
+
+    const association =
+      await this.prisma.regional_associations.update({
+        where: {
+          id: associationId,
+        },
+        data: {
+          name: dto.name,
+          acronym: dto.acronym,
+          region: dto.region,
+          city: dto.city,
+          member_count:
+            dto.memberCount,
+          logo_media_asset_id:
+            dto.logoMediaAssetId,
+          cover_image_url:
+            dto.coverImageUrl,
+          logo_text:
+            dto.logoText,
+          presentation:
+            dto.presentation,
+          address: dto.address,
+          phone: dto.phone,
+          email: dto.email,
+          website_url:
+            dto.websiteUrl,
+          facebook_url:
+            dto.facebookUrl,
+          instagram_url:
+            dto.instagramUrl,
+          linkedin_url:
+            dto.linkedinUrl,
+          youtube_url:
+            dto.youtubeUrl,
+          seo_title:
+            dto.seoTitle,
+          seo_description:
+            dto.seoDescription,
+          updated_at: new Date(),
+        },
+      });
+
+    await this.auditLogs.log({
+      userId: user.id,
+      action:
+        'ASSOCIATION_PROFILE_UPDATED',
+      entityType:
+        'REGIONAL_ASSOCIATION',
+      entityId: association.id,
+      description:
+        `Mise à jour de la fiche de l’association ${association.name}.`,
+      ipAddress: request.ip,
+      userAgent:
+        request.get('user-agent'),
+    });
+
+    return this.getOwnAssociation(user);
+  }
+
+  async createOwnPost(
+    dto: UpsertAssociationPostDto,
+    user: AuthUser,
+    request: Request,
+  ) {
+    const associationId =
+      await this.getOwnAssociationId(user);
+
+    return this.upsertPost(
+      associationId,
+      null,
+      dto,
+      user,
+      request,
+    );
+  }
+
+  async updateOwnPost(
+    postId: string,
+    dto: UpsertAssociationPostDto,
+    user: AuthUser,
+    request: Request,
+  ) {
+    const associationId =
+      await this.getOwnAssociationId(user);
+
+    return this.upsertPost(
+      associationId,
+      postId,
+      dto,
+      user,
+      request,
+    );
+  }
+
+  async createOwnMediaItem(
+    dto: UpsertAssociationMediaDto,
+    user: AuthUser,
+    request: Request,
+  ) {
+    const associationId =
+      await this.getOwnAssociationId(user);
+
+    return this.upsertMediaItem(
+      associationId,
+      null,
+      dto,
+      user,
+      request,
+    );
+  }
+
+  async updateOwnMediaItem(
+    mediaItemId: string,
+    dto: UpsertAssociationMediaDto,
+    user: AuthUser,
+    request: Request,
+  ) {
+    const associationId =
+      await this.getOwnAssociationId(user);
+
+    return this.upsertMediaItem(
+      associationId,
+      mediaItemId,
+      dto,
+      user,
+      request,
+    );
+  }  
+
   async createAssociation(
     dto: UpsertAssociationDto,
     user: AuthUser,
@@ -421,6 +581,8 @@ if (
     user: AuthUser,
     request: Request,
   ) {
+    this.ensureFlascamAdmin(user);
+
     await this.ensureAssociationAccess(
       id,
       user,
@@ -461,10 +623,6 @@ logo_text: dto.logoText,
           seo_title: dto.seoTitle,
           seo_description:
             dto.seoDescription,
-          status:
-            user.role === 'ASSOCIATION_ADMIN'
-              ? 'SUBMITTED'
-              : undefined,
           updated_at: new Date(),
         },
       });
@@ -568,6 +726,30 @@ logo_text: dto.logoText,
       );
     }
 
+    if (postId) {
+      const existingPost =
+        await this.prisma.association_posts.findFirst({
+          where: {
+            id: postId,
+            regional_association_id:
+              associationId,
+            deleted_at: null,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+      if (!existingPost) {
+        throw new NotFoundException(
+          'Contenu association introuvable.',
+        );
+      }
+    }
+
+    const isAssociationUser =
+      user.role === 'ASSOCIATION_ADMIN';
+
     const data = {
       regional_association_id:
         associationId,
@@ -594,13 +776,15 @@ logo_text: dto.logoText,
       seo_description:
         dto.seoDescription,
       status:
-        user.role === 'ASSOCIATION_ADMIN'
-          ? 'SUBMITTED'
+        isAssociationUser
+          ? 'PUBLISHED'
           : 'DRAFT',
+      published_at:
+        isAssociationUser
+          ? new Date()
+          : null,
       updated_at: new Date(),
-    }
-    
-    ;
+    };
 
 
 
@@ -642,6 +826,30 @@ logo_text: dto.logoText,
     request: Request,
   ) {
     this.ensureFlascamAdmin(user);
+
+    await this.ensureAssociationAccess(
+      associationId,
+      user,
+    );
+
+    const existingPost =
+      await this.prisma.association_posts.findFirst({
+        where: {
+          id: postId,
+          regional_association_id:
+            associationId,
+          deleted_at: null,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    if (!existingPost) {
+      throw new NotFoundException(
+        'Contenu association introuvable.',
+      );
+    }    
 
     const post =
       await this.prisma.association_posts.update({
@@ -687,6 +895,27 @@ logo_text: dto.logoText,
       user,
     );
 
+    if (mediaItemId) {
+      const existingMediaItem =
+        await this.prisma.association_media_items.findFirst({
+          where: {
+            id: mediaItemId,
+            regional_association_id:
+              associationId,
+            deleted_at: null,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+      if (!existingMediaItem) {
+        throw new NotFoundException(
+          'Média association introuvable.',
+        );
+      }
+    }
+
     const data = {
       regional_association_id:
         associationId,
@@ -699,7 +928,7 @@ logo_text: dto.logoText,
         dto.displayOrder ?? 0,
       is_published:
         user.role === 'ASSOCIATION_ADMIN'
-          ? false
+          ? true
           : dto.isPublished ?? true,
       updated_at: new Date(),
     };
@@ -733,6 +962,58 @@ logo_text: dto.logoText,
       user,
     );
   }
+
+  private async getOwnAssociationId(
+    user: AuthUser,
+  ) {
+    if (
+      user.role !== 'ASSOCIATION_ADMIN'
+    ) {
+      throw new ForbiddenException(
+        'Cette action est réservée à une association connectée.',
+      );
+    }
+
+    const account =
+      await this.prisma.users.findFirst({
+        where: {
+          id: user.id,
+          deleted_at: null,
+          is_active: true,
+        },
+        select: {
+          regional_association_id: true,
+        },
+      });
+
+    if (
+      !account?.regional_association_id
+    ) {
+      throw new ForbiddenException(
+        'Aucune association n’est liée à ce compte.',
+      );
+    }
+
+    const association =
+      await this.prisma.regional_associations.findFirst({
+        where: {
+          id:
+            account.regional_association_id,
+          deleted_at: null,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    if (!association) {
+      throw new NotFoundException(
+        'Association liée au compte introuvable.',
+      );
+    }
+
+    return association.id;
+  }  
 
 private async getAssociationAdminAccount(
   associationId: string,

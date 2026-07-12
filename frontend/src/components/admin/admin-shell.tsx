@@ -12,9 +12,10 @@ import Link from 'next/link';
 
 import {
   BarChart3,
+  Building2,
   ChevronLeft,
   ChevronRight,
-  FileText,
+  Home,
   Inbox,
   LayoutDashboard,
   LogOut,
@@ -22,7 +23,6 @@ import {
   Settings,
   ShieldCheck,
   X,
-  Building2,
 } from 'lucide-react';
 
 import type {
@@ -55,6 +55,8 @@ type AdminNavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
+  permission?: string;
+  roles?: string[];
   disabled?: boolean;
 };
 
@@ -65,31 +67,54 @@ const navItems: AdminNavItem[] = [
     icon: LayoutDashboard,
   },
   {
-  label: 'Associations',
-  href: '/admin/associations',
-  icon: Building2,
-},
+    label: 'Page d’accueil',
+    href: '/admin/homepage',
+    icon: Home,
+    permission:
+      'homepage.manage',
+  },
+  {
+    label: 'Associations',
+    href: '/admin/associations',
+    icon: Building2,
+    permission:
+      'associations.read',
+  },
   {
     label: 'Messages reçus',
     href: '/admin/contact-messages',
     icon: Inbox,
+    permission:
+      'contact_messages.read',
   },
   {
     label: 'Utilisateurs & rôles',
     href: '/admin/users',
     icon: ShieldCheck,
+    roles: [
+      'SUPER_ADMIN',
+      'FLASCAM_ADMIN',
+    ],
     disabled: true,
   },
   {
     label: 'Statistiques',
     href: '/admin/statistics',
     icon: BarChart3,
+    roles: [
+      'SUPER_ADMIN',
+      'FLASCAM_ADMIN',
+    ],
     disabled: true,
   },
   {
     label: 'Paramètres',
     href: '/admin/settings',
     icon: Settings,
+    roles: [
+      'SUPER_ADMIN',
+      'FLASCAM_ADMIN',
+    ],
     disabled: true,
   },
 ];
@@ -140,6 +165,39 @@ export function AdminShell({
       user?.email ||
       'Administrateur';
   }, [user]);
+
+  const visibleNavItems =
+    useMemo(
+      () =>
+        navItems.filter(
+          (item) => {
+            if (!user) {
+              return false;
+            }
+
+            if (
+              item.roles &&
+              !item.roles.includes(
+                user.role.code,
+              )
+            ) {
+              return false;
+            }
+
+            if (
+              item.permission &&
+              !user.permissions.includes(
+                item.permission,
+              )
+            ) {
+              return false;
+            }
+
+            return true;
+          },
+        ),
+      [user],
+    );  
 
   useEffect(() => {
     if (isLoginPage) {
@@ -415,7 +473,7 @@ export function AdminShell({
         "
         aria-label="Navigation administration"
       >
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const Icon = item.icon;
           const active =
             isActive(item.href);
