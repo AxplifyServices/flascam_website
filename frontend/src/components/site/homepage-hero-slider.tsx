@@ -104,41 +104,47 @@ export function HomepageHeroSlider({
     availableSlides.length,
   ]);
 
-  useEffect(() => {
-    const container =
-      containerRef.current;
+useEffect(() => {
+  const container =
+    containerRef.current;
 
-    if (!container) {
-      return;
-    }
+  if (!container) {
+    return;
+  }
 
-    function updateContainerDimensions() {
-      const rect =
-        container.getBoundingClientRect();
+  function updateContainerDimensions(
+    element: HTMLDivElement,
+  ) {
+    const rect =
+      element.getBoundingClientRect();
 
-      setContainerDimensions({
-        width:
-          Math.round(rect.width),
-        height:
-          Math.round(rect.height),
-      });
-    }
+    setContainerDimensions({
+      width:
+        Math.round(rect.width),
+      height:
+        Math.round(rect.height),
+    });
+  }
 
-    updateContainerDimensions();
+  updateContainerDimensions(
+    container,
+  );
 
-    const resizeObserver =
-      new ResizeObserver(
-        updateContainerDimensions,
+  const resizeObserver =
+    new ResizeObserver(() => {
+      updateContainerDimensions(
+        container,
       );
+    });
 
-    resizeObserver.observe(
-      container,
-    );
+  resizeObserver.observe(
+    container,
+  );
 
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, []);
+  return () => {
+    resizeObserver.disconnect();
+  };
+}, []);
 
   useEffect(() => {
     if (
