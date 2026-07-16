@@ -23,12 +23,12 @@ Mot de passe : flascam_minio_local_password_2026
 
 ** Execution d'un script
 
-psql -U postgres -d flascam_db -f "database\migrations\014_association_news_workflow.sql
+psql -U postgres -d flascam_db -f "database\migrations\015_association_news_permissions.sql
 
 
 cd /opt/apps/flascam/repo
 
-sudo -u postgres psql -d flascam_db  -f database/migrations/014_association_news_workflow.sql
+sudo -u postgres psql -d flascam_db  -f database/migrations/015_association_news_permissions.sql
 
 
 ** Build l'appli
