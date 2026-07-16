@@ -15,20 +15,20 @@ import {
   NEWS_CONTENT_TYPES,
 } from './upsert-news-article.dto';
 
-export class AdminNewsQueryDto {
+export class AssociationNewsQueryDto {
   @IsOptional()
   @IsIn(NEWS_CONTENT_TYPES)
   contentType?: string;
 
   @IsOptional()
-@IsIn([
-  'DRAFT',
-  'PENDING_REVIEW',
-  'REJECTED',
-  'PUBLISHED',
-  'ARCHIVED',
-])
-status?: string;
+  @IsIn([
+    'DRAFT',
+    'PENDING_REVIEW',
+    'REJECTED',
+    'PUBLISHED',
+    'ARCHIVED',
+  ])
+  status?: string;
 
   @IsOptional()
   @IsString()

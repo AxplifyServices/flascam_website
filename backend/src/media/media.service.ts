@@ -198,10 +198,11 @@ try {
   }
 
 
-  async uploadPublicNewsMedia(
-    file: Express.Multer.File,
-    user: AuthUser,
-  ) {
+async uploadPublicNewsMedia(
+  file: Express.Multer.File,
+  user: AuthUser,
+  folder = 'news',
+) {
     if (!file) {
       throw new BadRequestException(
         'Aucun fichier reçu.',
@@ -285,8 +286,8 @@ try {
     const storedFilename =
       `${randomUUID()}${extension}`;
 
-    const objectKey =
-      `news/${storedFilename}`;
+const objectKey =
+  `${folder}/${storedFilename}`;
 
     const checksum =
       createHash('sha256')

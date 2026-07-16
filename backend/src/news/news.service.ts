@@ -41,6 +41,10 @@ import {
 } from './dto/admin-news-query.dto';
 
 import {
+  AssociationNewsQueryDto,
+} from './dto/association-news-query.dto';
+
+import {
   PublicNewsQueryDto,
 } from './dto/public-news-query.dto';
 
@@ -55,6 +59,10 @@ import {
 import {
   UpsertNewsArticleDto,
 } from './dto/upsert-news-article.dto';
+
+import {
+  RejectNewsArticleDto,
+} from './dto/reject-news-article.dto';
 
 type NewsArticleRecord = {
   id: string;
@@ -72,6 +80,11 @@ type NewsArticleRecord = {
   seo_description: string | null;
   published_at: Date | null;
   scheduled_at: Date | null;
+  regional_association_id: string | null;
+  submitted_at: Date | null;
+  reviewed_at: Date | null;
+  reviewed_by_user_id: string | null;
+  rejection_reason: string | null;
   created_at: Date;
   updated_at: Date;
 };
@@ -240,6 +253,862 @@ export class NewsService {
     );
   }
 
+  async getAssociationNews(
+    query: AssociationNewsQueryDto,
+    user: AuthUser,
+  ) {
+    const associationId =
+      this.getRequiredAssociationId(
+        user,
+      );
+
+    const page =
+      query.page;
+
+    const limit =
+      query.limit;
+
+    const skip =
+      (page - 1) *
+      limit;
+
+    const where:
+      Prisma.news_articlesWhereInput = {
+      regional_association_id:
+        associationId,
+
+      deleted_at:
+        null,
+
+      ...(query.contentType
+        ? {
+            content_type:
+              query.contentType,
+          }
+        : {}),
+
+      ...(query.status
+        ? {
+            status:
+              query.status,
+          }
+        : {}),
+
+      ...(query.search?.trim()
+        ? {
+            OR: [
+              {
+                title: {
+                  contains:
+                    query.search.trim(),
+
+                  mode:
+                    'insensitive',
+                },
+              },
+              {
+                excerpt: {
+                  contains:
+                    query.search.trim(),
+
+                  mode:
+                    'insensitive',
+                },
+              },
+              {
+                body: {
+                  contains:
+                    query.search.trim(),
+
+                  mode:
+                    'insensitive',
+                },
+              },
+            ],
+          }
+        : {}),
+    };
+
+    const [
+      articles,
+      total,
+    ] =
+      await Promise.all([
+        this.prisma.news_articles.findMany({
+          where,
+
+          orderBy: [
+            {
+              updated_at:
+                'desc',
+            },
+            {
+              created_at:
+                'desc',
+            },
+          ],
+
+          skip,
+          take:
+            limit,
+        }),
+
+        this.prisma.news_articles.count({
+          where,
+        }),
+      ]);
+
+    return {
+      items:
+        await this.formatArticles(
+          articles,
+        ),
+
+      pagination: {
+        page,
+        limit,
+        total,
+
+        totalPages:
+          Math.ceil(
+            total /
+              limit,
+          ),
+      },
+    };
+  }
+
+  async getAssociationNewsById(
+    id: string,
+    user: AuthUser,
+  ) {
+    const associationId =
+      this.getRequiredAssociationId(
+        user,
+      );
+
+    const article =
+      await this.prisma.news_articles.findFirst({
+        where: {
+          id,
+
+          regional_association_id:
+            associationId,
+
+          deleted_at:
+            null,
+        },
+      });
+
+    if (
+      !article
+    ) {
+      throw new NotFoundException(
+        'Publication introuvable.',
+      );
+    }
+
+    return this.formatArticle(
+      article,
+    );
+  }
+
+  async createAssociationNews(
+    dto: UpsertNewsArticleDto,
+    user: AuthUser,
+    request: Request,
+  ) {
+    const associationId =
+      this.getRequiredAssociationId(
+        user,
+      );
+
+    await this.validatePayload(
+      dto,
+      null,
+    );
+
+    const article =
+      await this.prisma.$transaction(
+        async (
+          tx,
+        ) => {
+          const created =
+            await tx.news_articles.create({
+              data: {
+                content_type:
+                  dto.contentType,
+
+                event_category:
+                  dto.contentType ===
+                  'EVENT'
+                    ? dto.eventCategory
+                    : null,
+
+                status:
+                  'DRAFT',
+
+                title:
+                  dto.title.trim(),
+
+                slug:
+                  dto.slug.trim(),
+
+                excerpt:
+                  dto.excerpt?.trim() ||
+                  null,
+
+                body:
+                  dto.body?.trim() ||
+                  null,
+
+                event_start_at:
+                  dto.contentType ===
+                    'EVENT' &&
+                  dto.eventStartAt
+                    ? new Date(
+                        dto.eventStartAt,
+                      )
+                    : null,
+
+                event_end_at:
+                  dto.contentType ===
+                    'EVENT' &&
+                  dto.eventEndAt
+                    ? new Date(
+                        dto.eventEndAt,
+                      )
+                    : null,
+
+                event_location:
+                  dto.contentType ===
+                  'EVENT'
+                    ? dto.eventLocation?.trim() ||
+                      null
+                    : null,
+
+                seo_title:
+                  dto.seoTitle?.trim() ||
+                  null,
+
+                seo_description:
+                  dto.seoDescription?.trim() ||
+                  null,
+
+                published_at:
+                  null,
+
+                scheduled_at:
+                  null,
+
+                regional_association_id:
+                  associationId,
+
+                submitted_at:
+                  null,
+
+                reviewed_at:
+                  null,
+
+                reviewed_by_user_id:
+                  null,
+
+                rejection_reason:
+                  null,
+
+                created_by_user_id:
+                  user.id,
+
+                updated_by_user_id:
+                  user.id,
+              },
+            });
+
+          await this.replaceMedia(
+            tx,
+            created.id,
+            dto.media ??
+              [],
+          );
+
+          return created;
+        },
+      );
+
+    await this.auditLogs.log({
+      userId:
+        user.id,
+
+      action:
+        'ASSOCIATION_NEWS_CREATED',
+
+      entityType:
+        'NEWS_ARTICLE',
+
+      entityId:
+        article.id,
+
+      description:
+        `Publication d’association créée : ${article.title}.`,
+
+      metadata: {
+        regionalAssociationId:
+          associationId,
+
+        contentType:
+          article.content_type,
+      },
+
+      ipAddress:
+        request.ip,
+
+      userAgent:
+        request.get(
+          'user-agent',
+        ),
+    });
+
+    return this.getAssociationNewsById(
+      article.id,
+      user,
+    );
+  }
+
+  async updateAssociationNews(
+    id: string,
+    dto: UpsertNewsArticleDto,
+    user: AuthUser,
+    request: Request,
+  ) {
+    const associationId =
+      this.getRequiredAssociationId(
+        user,
+      );
+
+    const existing =
+      await this.prisma.news_articles.findFirst({
+        where: {
+          id,
+
+          regional_association_id:
+            associationId,
+
+          deleted_at:
+            null,
+        },
+      });
+
+    if (
+      !existing
+    ) {
+      throw new NotFoundException(
+        'Publication introuvable.',
+      );
+    }
+
+    if (
+      ![
+        'DRAFT',
+        'REJECTED',
+      ].includes(
+        existing.status,
+      )
+    ) {
+      throw new BadRequestException(
+        existing.status ===
+          'PENDING_REVIEW'
+          ? 'La publication ne peut pas être modifiée pendant sa validation.'
+          : 'Dépubliez cette publication avant de la modifier.',
+      );
+    }
+
+    await this.validatePayload(
+      dto,
+      id,
+    );
+
+    const article =
+      await this.prisma.$transaction(
+        async (
+          tx,
+        ) => {
+          const updated =
+            await tx.news_articles.update({
+              where: {
+                id,
+              },
+
+              data: {
+                content_type:
+                  dto.contentType,
+
+                event_category:
+                  dto.contentType ===
+                  'EVENT'
+                    ? dto.eventCategory
+                    : null,
+
+                status:
+                  'DRAFT',
+
+                title:
+                  dto.title.trim(),
+
+                slug:
+                  dto.slug.trim(),
+
+                excerpt:
+                  dto.excerpt?.trim() ||
+                  null,
+
+                body:
+                  dto.body?.trim() ||
+                  null,
+
+                event_start_at:
+                  dto.contentType ===
+                    'EVENT' &&
+                  dto.eventStartAt
+                    ? new Date(
+                        dto.eventStartAt,
+                      )
+                    : null,
+
+                event_end_at:
+                  dto.contentType ===
+                    'EVENT' &&
+                  dto.eventEndAt
+                    ? new Date(
+                        dto.eventEndAt,
+                      )
+                    : null,
+
+                event_location:
+                  dto.contentType ===
+                  'EVENT'
+                    ? dto.eventLocation?.trim() ||
+                      null
+                    : null,
+
+                seo_title:
+                  dto.seoTitle?.trim() ||
+                  null,
+
+                seo_description:
+                  dto.seoDescription?.trim() ||
+                  null,
+
+                published_at:
+                  null,
+
+                scheduled_at:
+                  null,
+
+                submitted_at:
+                  null,
+
+                reviewed_at:
+                  null,
+
+                reviewed_by_user_id:
+                  null,
+
+                rejection_reason:
+                  null,
+
+                updated_by_user_id:
+                  user.id,
+
+                updated_at:
+                  new Date(),
+              },
+            });
+
+          await this.replaceMedia(
+            tx,
+            updated.id,
+            dto.media ??
+              [],
+          );
+
+          return updated;
+        },
+      );
+
+    await this.auditLogs.log({
+      userId:
+        user.id,
+
+      action:
+        'ASSOCIATION_NEWS_UPDATED',
+
+      entityType:
+        'NEWS_ARTICLE',
+
+      entityId:
+        article.id,
+
+      description:
+        `Publication d’association modifiée : ${article.title}.`,
+
+      metadata: {
+        regionalAssociationId:
+          associationId,
+      },
+
+      ipAddress:
+        request.ip,
+
+      userAgent:
+        request.get(
+          'user-agent',
+        ),
+    });
+
+    return this.getAssociationNewsById(
+      article.id,
+      user,
+    );
+  }
+
+  async submitAssociationNews(
+    id: string,
+    user: AuthUser,
+    request: Request,
+  ) {
+    const associationId =
+      this.getRequiredAssociationId(
+        user,
+      );
+
+    const article =
+      await this.prisma.news_articles.findFirst({
+        where: {
+          id,
+
+          regional_association_id:
+            associationId,
+
+          deleted_at:
+            null,
+        },
+      });
+
+    if (
+      !article
+    ) {
+      throw new NotFoundException(
+        'Publication introuvable.',
+      );
+    }
+
+    if (
+      ![
+        'DRAFT',
+        'REJECTED',
+      ].includes(
+        article.status,
+      )
+    ) {
+      throw new BadRequestException(
+        'Seul un brouillon ou une publication refusée peut être soumis.',
+      );
+    }
+
+    this.ensureArticleCanBePublished(
+      article,
+    );
+
+    const submittedAt =
+      new Date();
+
+    const updated =
+      await this.prisma.news_articles.update({
+        where: {
+          id,
+        },
+
+        data: {
+          status:
+            'PENDING_REVIEW',
+
+          published_at:
+            null,
+
+          scheduled_at:
+            null,
+
+          submitted_at:
+            submittedAt,
+
+          reviewed_at:
+            null,
+
+          reviewed_by_user_id:
+            null,
+
+          rejection_reason:
+            null,
+
+          updated_by_user_id:
+            user.id,
+
+          updated_at:
+            submittedAt,
+        },
+      });
+
+    await this.auditLogs.log({
+      userId:
+        user.id,
+
+      action:
+        'ASSOCIATION_NEWS_SUBMITTED',
+
+      entityType:
+        'NEWS_ARTICLE',
+
+      entityId:
+        updated.id,
+
+      description:
+        `Publication soumise à validation : ${updated.title}.`,
+
+      metadata: {
+        regionalAssociationId:
+          associationId,
+
+        submittedAt:
+          submittedAt.toISOString(),
+      },
+
+      ipAddress:
+        request.ip,
+
+      userAgent:
+        request.get(
+          'user-agent',
+        ),
+    });
+
+    return this.getAssociationNewsById(
+      updated.id,
+      user,
+    );
+  }
+
+  async unpublishAssociationNews(
+    id: string,
+    user: AuthUser,
+    request: Request,
+  ) {
+    const associationId =
+      this.getRequiredAssociationId(
+        user,
+      );
+
+    const article =
+      await this.prisma.news_articles.findFirst({
+        where: {
+          id,
+
+          regional_association_id:
+            associationId,
+
+          deleted_at:
+            null,
+        },
+      });
+
+    if (
+      !article
+    ) {
+      throw new NotFoundException(
+        'Publication introuvable.',
+      );
+    }
+
+    if (
+      article.status !==
+      'PUBLISHED'
+    ) {
+      throw new BadRequestException(
+        'Seule une publication publiée peut être dépubliée.',
+      );
+    }
+
+    const updatedAt =
+      new Date();
+
+    const updated =
+      await this.prisma.news_articles.update({
+        where: {
+          id,
+        },
+
+        data: {
+          status:
+            'DRAFT',
+
+          published_at:
+            null,
+
+          scheduled_at:
+            null,
+
+          submitted_at:
+            null,
+
+          reviewed_at:
+            null,
+
+          reviewed_by_user_id:
+            null,
+
+          rejection_reason:
+            null,
+
+          updated_by_user_id:
+            user.id,
+
+          updated_at:
+            updatedAt,
+        },
+      });
+
+    await this.auditLogs.log({
+      userId:
+        user.id,
+
+      action:
+        'ASSOCIATION_NEWS_UNPUBLISHED',
+
+      entityType:
+        'NEWS_ARTICLE',
+
+      entityId:
+        updated.id,
+
+      description:
+        `Publication dépubliée par l’association : ${updated.title}.`,
+
+      metadata: {
+        regionalAssociationId:
+          associationId,
+      },
+
+      ipAddress:
+        request.ip,
+
+      userAgent:
+        request.get(
+          'user-agent',
+        ),
+    });
+
+    return this.getAssociationNewsById(
+      updated.id,
+      user,
+    );
+  }
+
+  async deleteAssociationNews(
+    id: string,
+    user: AuthUser,
+    request: Request,
+  ) {
+    const associationId =
+      this.getRequiredAssociationId(
+        user,
+      );
+
+    const article =
+      await this.prisma.news_articles.findFirst({
+        where: {
+          id,
+
+          regional_association_id:
+            associationId,
+
+          deleted_at:
+            null,
+        },
+      });
+
+    if (
+      !article
+    ) {
+      throw new NotFoundException(
+        'Publication introuvable.',
+      );
+    }
+
+    if (
+      ![
+        'DRAFT',
+        'REJECTED',
+      ].includes(
+        article.status,
+      )
+    ) {
+      throw new BadRequestException(
+        'Seul un brouillon ou une publication refusée peut être supprimé.',
+      );
+    }
+
+    await this.prisma.news_articles.update({
+      where: {
+        id,
+      },
+
+      data: {
+        deleted_at:
+          new Date(),
+
+        updated_by_user_id:
+          user.id,
+
+        updated_at:
+          new Date(),
+      },
+    });
+
+    await this.auditLogs.log({
+      userId:
+        user.id,
+
+      action:
+        'ASSOCIATION_NEWS_DELETED',
+
+      entityType:
+        'NEWS_ARTICLE',
+
+      entityId:
+        article.id,
+
+      description:
+        `Publication d’association supprimée : ${article.title}.`,
+
+      metadata: {
+        regionalAssociationId:
+          associationId,
+      },
+
+      ipAddress:
+        request.ip,
+
+      userAgent:
+        request.get(
+          'user-agent',
+        ),
+    });
+
+    return {
+      success:
+        true,
+    };
+  }  
+
   async getAdminNews(
     query: AdminNewsQueryDto,
     user: AuthUser,
@@ -319,7 +1188,16 @@ export class NewsService {
       await Promise.all([
         this.prisma.news_articles.findMany({
           where,
-
+include: {
+  regional_associations: {
+    select: {
+      id: true,
+      name: true,
+      acronym: true,
+      slug: true,
+    },
+  },
+},
           orderBy: [
             {
               updated_at:
@@ -844,6 +1722,245 @@ export class NewsService {
     );
   }
 
+  async approveAssociationNews(
+    id: string,
+    user: AuthUser,
+    request: Request,
+  ) {
+    this.ensureFlascamAdmin(
+      user,
+    );
+
+    const article =
+      await this.prisma.news_articles.findFirst({
+        where: {
+          id,
+
+          regional_association_id: {
+            not:
+              null,
+          },
+
+          deleted_at:
+            null,
+        },
+      });
+
+    if (
+      !article
+    ) {
+      throw new NotFoundException(
+        'Publication d’association introuvable.',
+      );
+    }
+
+    if (
+      article.status !==
+      'PENDING_REVIEW'
+    ) {
+      throw new BadRequestException(
+        'Seule une publication en attente de validation peut être approuvée.',
+      );
+    }
+
+    this.ensureArticleCanBePublished(
+      article,
+    );
+
+    const reviewedAt =
+      new Date();
+
+    const updated =
+      await this.prisma.news_articles.update({
+        where: {
+          id,
+        },
+
+        data: {
+          status:
+            'PUBLISHED',
+
+          published_at:
+            reviewedAt,
+
+          scheduled_at:
+            null,
+
+          reviewed_at:
+            reviewedAt,
+
+          reviewed_by_user_id:
+            user.id,
+
+          rejection_reason:
+            null,
+
+          updated_by_user_id:
+            user.id,
+
+          updated_at:
+            reviewedAt,
+        },
+      });
+
+    await this.auditLogs.log({
+      userId:
+        user.id,
+
+      action:
+        'ASSOCIATION_NEWS_APPROVED',
+
+      entityType:
+        'NEWS_ARTICLE',
+
+      entityId:
+        updated.id,
+
+      description:
+        `Publication d’association validée : ${updated.title}.`,
+
+      metadata: {
+        regionalAssociationId:
+          updated.regional_association_id,
+
+        reviewedAt:
+          reviewedAt.toISOString(),
+      },
+
+      ipAddress:
+        request.ip,
+
+      userAgent:
+        request.get(
+          'user-agent',
+        ),
+    });
+
+    return this.getAdminNewsById(
+      updated.id,
+      user,
+    );
+  }
+
+  async rejectAssociationNews(
+    id: string,
+    dto: RejectNewsArticleDto,
+    user: AuthUser,
+    request: Request,
+  ) {
+    this.ensureFlascamAdmin(
+      user,
+    );
+
+    const article =
+      await this.prisma.news_articles.findFirst({
+        where: {
+          id,
+
+          regional_association_id: {
+            not:
+              null,
+          },
+
+          deleted_at:
+            null,
+        },
+      });
+
+    if (
+      !article
+    ) {
+      throw new NotFoundException(
+        'Publication d’association introuvable.',
+      );
+    }
+
+    if (
+      article.status !==
+      'PENDING_REVIEW'
+    ) {
+      throw new BadRequestException(
+        'Seule une publication en attente de validation peut être refusée.',
+      );
+    }
+
+    const reason =
+      dto.reason.trim();
+
+    const reviewedAt =
+      new Date();
+
+    const updated =
+      await this.prisma.news_articles.update({
+        where: {
+          id,
+        },
+
+        data: {
+          status:
+            'REJECTED',
+
+          published_at:
+            null,
+
+          scheduled_at:
+            null,
+
+          reviewed_at:
+            reviewedAt,
+
+          reviewed_by_user_id:
+            user.id,
+
+          rejection_reason:
+            reason,
+
+          updated_by_user_id:
+            user.id,
+
+          updated_at:
+            reviewedAt,
+        },
+      });
+
+    await this.auditLogs.log({
+      userId:
+        user.id,
+
+      action:
+        'ASSOCIATION_NEWS_REJECTED',
+
+      entityType:
+        'NEWS_ARTICLE',
+
+      entityId:
+        updated.id,
+
+      description:
+        `Publication d’association refusée : ${updated.title}.`,
+
+      metadata: {
+        regionalAssociationId:
+          updated.regional_association_id,
+
+        reason,
+      },
+
+      ipAddress:
+        request.ip,
+
+      userAgent:
+        request.get(
+          'user-agent',
+        ),
+    });
+
+    return this.getAdminNewsById(
+      updated.id,
+      user,
+    );
+  }  
+
   async scheduleNewsPublication(
     id: string,
     dto: ScheduleNewsPublicationDto,
@@ -871,6 +1988,14 @@ export class NewsService {
         'Actualité introuvable.',
       );
     }
+
+if (
+  article.regional_association_id
+) {
+  throw new BadRequestException(
+    'Une publication d’association doit être validée avant publication et ne peut pas être programmée.',
+  );
+}    
 
     if (
       article.status ===
@@ -1916,78 +3041,93 @@ export class NewsService {
     );
   }
 
-  private formatArticleData(
-    article: NewsArticleRecord,
-    media: ReturnType<
-      NewsService['formatMedia']
-    >[],
-  ) {
-    return {
-      id:
-        article.id,
+private formatArticleData(
+  article: NewsArticleRecord,
+  media: ReturnType<
+    NewsService['formatMedia']
+  >[],
+) {
+  return {
+    id:
+      article.id,
 
-      contentType:
+    contentType:
+      article.content_type,
+
+    eventCategory:
+      article.event_category,
+
+    status:
+      article.status,
+
+    title:
+      article.title,
+
+    slug:
+      article.slug,
+
+    excerpt:
+      article.excerpt,
+
+    body:
+      article.body,
+
+    eventStartAt:
+      article.event_start_at,
+
+    eventEndAt:
+      article.event_end_at,
+
+    eventLocation:
+      article.event_location,
+
+    eventPeriod:
+      this.getEventPeriod(
         article.content_type,
-
-      eventCategory:
-        article.event_category,
-
-      status:
-        article.status,
-
-      title:
-        article.title,
-
-      slug:
-        article.slug,
-
-      excerpt:
-        article.excerpt,
-
-      body:
-        article.body,
-
-      eventStartAt:
         article.event_start_at,
-
-      eventEndAt:
         article.event_end_at,
+      ),
 
-      eventLocation:
-        article.event_location,
+    seoTitle:
+      article.seo_title,
 
-      eventPeriod:
-        this.getEventPeriod(
-          article.content_type,
-          article.event_start_at,
-          article.event_end_at,
-        ),
+    seoDescription:
+      article.seo_description,
 
-      seoTitle:
-        article.seo_title,
+    publishedAt:
+      article.published_at,
 
-      seoDescription:
-        article.seo_description,
+    scheduledAt:
+      article.scheduled_at,
 
-      publishedAt:
-        article.published_at,
+    regionalAssociationId:
+      article.regional_association_id,
 
-      scheduledAt:
-        article.scheduled_at,
+    submittedAt:
+      article.submitted_at,
 
-      createdAt:
-        article.created_at,
+    reviewedAt:
+      article.reviewed_at,
 
-      updatedAt:
-        article.updated_at,
+    reviewedByUserId:
+      article.reviewed_by_user_id,
 
-      media,
+    rejectionReason:
+      article.rejection_reason,
 
-      primaryMedia:
-        media[0] ??
-        null,
-    };
-  }
+    createdAt:
+      article.created_at,
+
+    updatedAt:
+      article.updated_at,
+
+    media,
+
+    primaryMedia:
+      media[0] ??
+      null,
+  };
+}
 
   private formatMedia(
     item: any,
@@ -2075,6 +3215,29 @@ export class NewsService {
     }
 
     return 'ONGOING';
+  }
+
+  private getRequiredAssociationId(
+    user: AuthUser,
+  ) {
+    if (
+      user.role !==
+      'ASSOCIATION_ADMIN'
+    ) {
+      throw new ForbiddenException(
+        'Cette action est réservée aux associations.',
+      );
+    }
+
+    if (
+      !user.regionalAssociationId
+    ) {
+      throw new ForbiddenException(
+        'Aucune association n’est rattachée à ce compte.',
+      );
+    }
+
+    return user.regionalAssociationId;
   }
 
   private ensureFlascamAdmin(

@@ -3,4 +3,5 @@ export type AuthUser = {
   email: string;
   role: string;
   permissions: string[];
+  regionalAssociationId: string | null;
 };

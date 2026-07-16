@@ -77,10 +77,12 @@ export class JwtStrategy
           is_active: true,
           deleted_at: null,
         },
-        select: {
-          id: true,
-          email: true,
-          roles: {
+select: {
+  id: true,
+  email: true,
+  regional_association_id: true,
+
+  roles: {
             select: {
               code: true,
               role_permissions: {
@@ -103,15 +105,24 @@ export class JwtStrategy
       );
     }
 
-    return {
-      id: user.id,
-      email: user.email,
-      role: user.roles.code,
-      permissions:
-        user.roles.role_permissions.map(
-          (item) =>
-            item.permissions.code,
-        ),
-    };
+return {
+  id:
+    user.id,
+
+  email:
+    user.email,
+
+  role:
+    user.roles.code,
+
+  permissions:
+    user.roles.role_permissions.map(
+      (item) =>
+        item.permissions.code,
+    ),
+
+  regionalAssociationId:
+    user.regional_association_id,
+};
   }
 }

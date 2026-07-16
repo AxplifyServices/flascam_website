@@ -3,6 +3,7 @@ import {
   Post,
   UploadedFile,
   UseInterceptors,
+  ForbiddenException,
 } from '@nestjs/common';
 
 import {
@@ -136,5 +137,44 @@ export class MediaController {
       file,
       user,
     );
+  }  
+  @Post('association/news-media')
+  @Roles('ASSOCIATION_ADMIN')
+  @Permissions(
+    'association.media.manage',
+  )
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage:
+        memoryStorage(),
+
+      limits: {
+        fileSize:
+          100 *
+          1024 *
+          1024,
+      },
+    }),
+  )
+  uploadAssociationNewsMedia(
+    @UploadedFile()
+    file: Express.Multer.File,
+    @CurrentUser()
+    user: AuthUser,
+  ) {
+    if (
+      !user.regionalAssociationId
+    ) {
+      throw new ForbiddenException(
+        'Aucune association n’est rattachée à ce compte.',
+      );
+    }
+
+    return this.service
+      .uploadPublicNewsMedia(
+        file,
+        user,
+        `associations/${user.regionalAssociationId}/news`,
+      );
   }  
 }
