@@ -2,12 +2,9 @@
 
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react';
-
-import {
-  AdaptiveImage,
-} from '@/components/site/adaptive-image';
 
 import {
   ChevronLeft,
@@ -22,6 +19,16 @@ type HomepageHeroSliderProps = {
   slides: HomepageHeroSlide[];
 };
 
+type ImageDimensions = {
+  width: number;
+  height: number;
+};
+
+type ContainerDimensions = {
+  width: number;
+  height: number;
+};
+
 const fallbackSlide: HomepageHeroSlide = {
   id: 'fallback-membre-association',
   mediaAssetId: '',
@@ -33,6 +40,8 @@ const fallbackSlide: HomepageHeroSlide = {
   isPublished: true,
 };
 
+const DIMENSION_TOLERANCE = 0.03;
+
 export function HomepageHeroSlider({
   slides,
 }: HomepageHeroSliderProps) {
@@ -41,10 +50,34 @@ export function HomepageHeroSlider({
       ? slides
       : [fallbackSlide];
 
+  const containerRef =
+    useRef<HTMLDivElement | null>(
+      null,
+    );
+
   const [
     activeIndex,
     setActiveIndex,
   ] = useState(0);
+
+  const [
+    containerDimensions,
+    setContainerDimensions,
+  ] =
+    useState<ContainerDimensions>({
+      width: 0,
+      height: 0,
+    });
+
+  const [
+    imageDimensions,
+    setImageDimensions,
+  ] = useState<
+    Record<
+      string,
+      ImageDimensions
+    >
+  >({});
 
   useEffect(() => {
     if (
@@ -71,6 +104,54 @@ export function HomepageHeroSlider({
     availableSlides.length,
   ]);
 
+  useEffect(() => {
+    const container =
+      containerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    function updateContainerDimensions() {
+      const rect =
+        container.getBoundingClientRect();
+
+      setContainerDimensions({
+        width:
+          Math.round(rect.width),
+        height:
+          Math.round(rect.height),
+      });
+    }
+
+    updateContainerDimensions();
+
+    const resizeObserver =
+      new ResizeObserver(
+        updateContainerDimensions,
+      );
+
+    resizeObserver.observe(
+      container,
+    );
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (
+      activeIndex >=
+      availableSlides.length
+    ) {
+      setActiveIndex(0);
+    }
+  }, [
+    activeIndex,
+    availableSlides.length,
+  ]);
+
   function previous() {
     setActiveIndex(
       (current) =>
@@ -93,68 +174,221 @@ export function HomepageHeroSlider({
     );
   }
 
+  function saveImageDimensions(
+    slideId: string,
+    image: HTMLImageElement,
+  ) {
+    const width =
+      image.naturalWidth;
+
+    const height =
+      image.naturalHeight;
+
+    if (
+      width <= 0 ||
+      height <= 0
+    ) {
+      return;
+    }
+
+    setImageDimensions(
+      (current) => {
+        const existing =
+          current[slideId];
+
+        if (
+          existing?.width ===
+            width &&
+          existing?.height ===
+            height
+        ) {
+          return current;
+        }
+
+        return {
+          ...current,
+          [slideId]: {
+            width,
+            height,
+          },
+        };
+      },
+    );
+  }
+
+  function calculateRenderedSize(
+    slideId: string,
+  ) {
+    const sourceDimensions =
+      imageDimensions[slideId];
+
+    if (
+      !sourceDimensions ||
+      containerDimensions.width <=
+        0 ||
+      containerDimensions.height <=
+        0
+    ) {
+      return {
+        width: '100%',
+        height: '100%',
+      };
+    }
+
+    const widthRatio =
+      containerDimensions.width /
+      sourceDimensions.width;
+
+    const heightRatio =
+      containerDimensions.height /
+      sourceDimensions.height;
+
+    const calculatedScale =
+      Math.min(
+        widthRatio,
+        heightRatio,
+      );
+
+    const isAlreadyWithinTolerance =
+      Math.abs(
+        calculatedScale - 1,
+      ) <= DIMENSION_TOLERANCE;
+
+    const finalScale =
+      isAlreadyWithinTolerance
+        ? 1
+        : calculatedScale;
+
+    return {
+      width: `${Math.round(
+        sourceDimensions.width *
+          finalScale,
+      )}px`,
+      height: `${Math.round(
+        sourceDimensions.height *
+          finalScale,
+      )}px`,
+    };
+  }
+
   return (
-    <div className="relative h-full min-h-[320px] overflow-hidden sm:min-h-[430px] lg:min-h-[610px]">
+    <div
+      ref={containerRef}
+      className="
+        relative
+        h-full
+        min-h-[320px]
+        overflow-hidden
+        bg-[#e9f0f5]
+        sm:min-h-[430px]
+        lg:min-h-[610px]
+      "
+    >
       {availableSlides.map(
         (
           slide,
           index,
-        ) => (
-          <div
-            key={slide.id}
-            aria-hidden={
-              index !== activeIndex
-            }
-            className={`
-              absolute
-              inset-0
-              transition
-              duration-700
-              ease-out
-              ${
-                index === activeIndex
-                  ? 'scale-100 opacity-100'
-                  : 'pointer-events-none scale-[1.03] opacity-0'
-              }
-            `}
-          >
-<AdaptiveImage
-  src={slide.imageUrl}
-  alt={slide.altText}
-  loading={
-    index === 0
-      ? 'eager'
-      : 'lazy'
-  }
-  fetchPriority={
-    index === 0
-      ? 'high'
-      : 'auto'
-  }
-  fit="cover"
-  position="center"
-  imageClassName="
-    transition
-    duration-700
-  "
-/>
+        ) => {
+          const renderedSize =
+            calculateRenderedSize(
+              slide.id,
+            );
 
+          return (
             <div
-              aria-hidden="true"
-              className="
+              key={slide.id}
+              aria-hidden={
+                index !==
+                activeIndex
+              }
+              className={`
                 absolute
                 inset-0
-                bg-gradient-to-t
-                from-[#07355d]/45
-                via-transparent
-                to-transparent
-              "
-            />
-          </div>
-        ),
+                flex
+                items-center
+                justify-center
+                overflow-hidden
+                transition
+                duration-700
+                ease-out
+                ${
+                  index ===
+                  activeIndex
+                    ? `
+                      scale-100
+                      opacity-100
+                    `
+                    : `
+                      pointer-events-none
+                      scale-[1.015]
+                      opacity-0
+                    `
+                }
+              `}
+            >
+              <img
+                src={
+                  slide.imageUrl
+                }
+                alt={
+                  slide.altText
+                }
+                loading={
+                  index === 0
+                    ? 'eager'
+                    : 'lazy'
+                }
+                fetchPriority={
+                  index === 0
+                    ? 'high'
+                    : 'auto'
+                }
+                onLoad={(
+                  event,
+                ) => {
+                  saveImageDimensions(
+                    slide.id,
+                    event.currentTarget,
+                  );
+                }}
+                style={{
+                  width:
+                    renderedSize.width,
+                  height:
+                    renderedSize.height,
+                  maxWidth: 'none',
+                  maxHeight:
+                    'none',
+                }}
+                className="
+                  block
+                  flex-none
+                  object-contain
+                  transition-[width,height]
+                  duration-300
+                  ease-out
+                "
+              />
+
+              <div
+                aria-hidden="true"
+                className="
+                  pointer-events-none
+                  absolute
+                  inset-0
+                  bg-gradient-to-t
+                  from-[#07355d]/35
+                  via-transparent
+                  to-transparent
+                "
+              />
+            </div>
+          );
+        },
       )}
 
-      {availableSlides.length > 1 && (
+      {availableSlides.length >
+        1 && (
         <>
           <button
             type="button"
@@ -218,14 +452,25 @@ export function HomepageHeroSlider({
             />
           </button>
 
-          <div className="absolute bottom-6 left-6 z-10 flex gap-2">
+          <div
+            className="
+              absolute
+              bottom-6
+              left-6
+              z-10
+              flex
+              gap-2
+            "
+          >
             {availableSlides.map(
               (
                 slide,
                 index,
               ) => (
                 <button
-                  key={slide.id}
+                  key={
+                    slide.id
+                  }
                   type="button"
                   onClick={() =>
                     setActiveIndex(
@@ -234,7 +479,8 @@ export function HomepageHeroSlider({
                   }
                   aria-label={`Afficher l’image ${index + 1}`}
                   aria-current={
-                    index === activeIndex
+                    index ===
+                    activeIndex
                       ? 'true'
                       : undefined
                   }
@@ -243,9 +489,17 @@ export function HomepageHeroSlider({
                     rounded-full
                     transition-all
                     ${
-                      index === activeIndex
-                        ? 'w-8 bg-white'
-                        : 'w-3 bg-white/50 hover:bg-white/80'
+                      index ===
+                      activeIndex
+                        ? `
+                          w-8
+                          bg-white
+                        `
+                        : `
+                          w-3
+                          bg-white/50
+                          hover:bg-white/80
+                        `
                     }
                   `}
                 />
