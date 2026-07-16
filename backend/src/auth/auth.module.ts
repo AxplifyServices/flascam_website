@@ -1,4 +1,6 @@
-import { Module } from '@nestjs/common';
+import {
+  Module,
+} from '@nestjs/common';
 
 import {
   JwtModule,
@@ -25,13 +27,16 @@ import {
     PassportModule,
     JwtModule.register({}),
   ],
+
   controllers: [
     AuthController,
   ],
+
   providers: [
     AuthService,
     JwtStrategy,
   ],
+
   exports: [
     AuthService,
   ],

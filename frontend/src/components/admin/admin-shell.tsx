@@ -20,6 +20,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Newspaper,
   Settings,
   ShieldCheck,
   X,
@@ -86,6 +87,17 @@ const navItems: AdminNavItem[] = [
     permission:
       'homepage.manage',
   },
+
+  {
+    label: 'Actualités',
+    href: '/admin/news',
+    icon: Newspaper,
+    roles: [
+      'SUPER_ADMIN',
+      'FLASCAM_ADMIN',
+    ],
+  },
+
   {
     label: 'Associations',
     href: '/admin/associations',

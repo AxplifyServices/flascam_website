@@ -58,13 +58,40 @@ export default function AdminLoginPage() {
           },
         );
 
-      if (!response.ok) {
-        setError(
-          'Adresse e-mail ou mot de passe incorrect.',
-        );
+if (!response.ok) {
+  let message =
+    'Impossible de se connecter.';
 
-        return;
-      }
+  try {
+    const data =
+      await response.json() as {
+        message?: string | string[];
+      };
+
+    if (
+      Array.isArray(
+        data.message,
+      )
+    ) {
+      message =
+        data.message.join(
+          ' ',
+        );
+    } else if (
+      data.message
+    ) {
+      message =
+        data.message;
+    }
+  } catch {
+    message =
+      `Erreur HTTP ${response.status}.`;
+  }
+
+  setError(message);
+
+  return;
+}
 
       router.replace('/admin');
       router.refresh();

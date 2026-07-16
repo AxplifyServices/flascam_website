@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   ShieldCheck,
   Building2,
+  Newspaper,
 } from 'lucide-react';
 
 const dashboardCards = [
@@ -28,7 +29,19 @@ const dashboardCards = [
     status: 'Bientôt',
     icon: ShieldCheck,
   },
+  {
+    title:
+      'Actualités',
 
+    description:
+      'Module disponible pour gérer les actualités, événements, communiqués officiels, publications réglementaires et revues de presse.',
+
+    status:
+      'Actif',
+
+    icon:
+      Newspaper,
+  },
   {
   title: 'Associations',
   description:

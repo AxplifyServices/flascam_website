@@ -29,6 +29,10 @@ import {
   MediaService,
 } from './media.service';
 
+import {
+  Roles,
+} from '../auth/decorators/roles.decorator';
+
 @Controller('media')
 export class MediaController {
   constructor(
@@ -106,4 +110,31 @@ export class MediaController {
       'homepage/hero',
     );
   }
+
+  @Post('admin/news-media')
+  @Roles(
+    'SUPER_ADMIN',
+    'FLASCAM_ADMIN',
+  )
+  @Permissions('news.manage')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: {
+        fileSize:
+          100 * 1024 * 1024,
+      },
+    }),
+  )
+  uploadNewsMedia(
+    @UploadedFile()
+    file: Express.Multer.File,
+    @CurrentUser()
+    user: AuthUser,
+  ) {
+    return this.service.uploadPublicNewsMedia(
+      file,
+      user,
+    );
+  }  
 }

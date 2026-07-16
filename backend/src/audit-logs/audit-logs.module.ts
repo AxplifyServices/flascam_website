@@ -9,7 +9,11 @@ import {
 
 @Global()
 @Module({
-  providers: [AuditLogsService],
-  exports: [AuditLogsService],
+  providers: [
+    AuditLogsService,
+  ],
+  exports: [
+    AuditLogsService,
+  ],
 })
 export class AuditLogsModule {}

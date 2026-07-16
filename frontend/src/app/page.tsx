@@ -26,6 +26,10 @@ import {
   AssociationCard,
 } from '@/components/site/association-card';
 
+import {
+  LatestNewsSection,
+} from '@/components/site/latest-news-section';
+
 export const dynamic =
   'force-dynamic';
 
@@ -376,6 +380,7 @@ export default function Home() {
       <main>
         <HeroSection />
         <FederationPreview />
+        <LatestNewsSection />
         <AssociationsPreview />
       </main>
 

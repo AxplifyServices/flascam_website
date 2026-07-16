@@ -14,9 +14,11 @@ import {
   controllers: [
     InstitutionalController,
   ],
+
   providers: [
     InstitutionalService,
   ],
+
   exports: [
     InstitutionalService,
   ],
