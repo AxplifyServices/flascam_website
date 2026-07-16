@@ -365,20 +365,46 @@ export type PublicNewsFilters = {
 async function publicNewsFetch<T>(
   path: string,
 ): Promise<T> {
-  const response =
-    await apiFetch(
-      path,
-      {
-        cache: 'no-store',
-      },
+  let response:
+    Response;
+
+  try {
+    response =
+      await apiFetch(
+        path,
+        {
+          cache:
+            'no-store',
+
+          next: {
+            revalidate:
+              0,
+          },
+        },
+      );
+  } catch (
+    caughtError
+  ) {
+    const details =
+      caughtError instanceof
+        Error
+        ? caughtError.message
+        : 'Erreur réseau inconnue.';
+
+    throw new Error(
+      `API des actualités inaccessible : ${details}`,
     );
+  }
 
   if (!response.ok) {
-    throw new Error(
+    const message =
       await readErrorMessage(
         response,
         'Impossible de charger les actualités.',
-      ),
+      );
+
+    throw new Error(
+      `${message} HTTP ${response.status}.`,
     );
   }
 

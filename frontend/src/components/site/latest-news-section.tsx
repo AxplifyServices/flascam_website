@@ -18,8 +18,62 @@ export async function LatestNewsSection() {
   try {
     articles =
       await getLatestPublicNews();
-  } catch {
-    return null;
+  } catch (
+    caughtError
+  ) {
+    console.error(
+      '[LatestNewsSection] Impossible de charger les dernières actualités',
+      caughtError,
+    );
+
+    return (
+      <section
+        className="
+          bg-white
+          py-16
+          sm:py-24
+        "
+      >
+        <div
+          className="
+            site-container
+          "
+        >
+          <div
+            className="
+              rounded-3xl
+              border
+              border-red-200
+              bg-red-50
+              p-6
+            "
+          >
+            <h2
+              className="
+                text-xl
+                font-extrabold
+                text-red-900
+              "
+            >
+              Actualités temporairement
+              indisponibles
+            </h2>
+
+            <p
+              className="
+                mt-2
+                text-sm
+                leading-7
+                text-red-800
+              "
+            >
+              La connexion avec le service
+              d’actualités a échoué.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   if (

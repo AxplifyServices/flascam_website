@@ -222,6 +222,8 @@ export default async function ActualitesPage({
     );
 
   let result;
+  let loadingError =
+    '';
 
   try {
     result =
@@ -231,7 +233,20 @@ export default async function ActualitesPage({
         contentType,
         eventPeriod,
       });
-  } catch {
+  } catch (
+    caughtError
+  ) {
+    loadingError =
+      caughtError instanceof
+        Error
+        ? caughtError.message
+        : 'Impossible de charger les actualités.';
+
+    console.error(
+      '[ActualitesPage] Erreur de chargement',
+      caughtError,
+    );
+
     result = {
       items: [],
       pagination: {
@@ -622,7 +637,41 @@ export default async function ActualitesPage({
               </p>
             </div>
 
-            {items.length ===
+            {loadingError ? (
+              <div
+                className="
+                  mt-10
+                  rounded-[1.5rem]
+                  border
+                  border-red-200
+                  bg-red-50
+                  px-6
+                  py-10
+                "
+              >
+                <h2
+                  className="
+                    text-xl
+                    font-extrabold
+                    text-red-900
+                  "
+                >
+                  Impossible de charger
+                  les actualités
+                </h2>
+
+                <p
+                  className="
+                    mt-3
+                    text-sm
+                    leading-7
+                    text-red-800
+                  "
+                >
+                  {loadingError}
+                </p>
+              </div>
+            ) : items.length ===
             0 ? (
               <div
                 className="

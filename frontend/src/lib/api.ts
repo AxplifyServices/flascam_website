@@ -1,43 +1,79 @@
-const BROWSER_API_URL =
-  process.env
-    .NEXT_PUBLIC_API_URL ??
+const browserApiUrl =
+  process.env.NEXT_PUBLIC_API_URL?.trim() ||
   '/api';
 
-const SERVER_API_URL =
-  process.env
-    .SERVER_API_URL ??
-  'http://localhost:3000/api';
+const configuredServerApiUrl =
+  process.env.SERVER_API_URL?.trim();
+
+const serverApiUrl =
+  configuredServerApiUrl ||
+  (
+    browserApiUrl.startsWith(
+      'http://',
+    ) ||
+    browserApiUrl.startsWith(
+      'https://',
+    )
+      ? browserApiUrl
+      : 'http://localhost:3000/api'
+  );
+
+function removeTrailingSlash(
+  value: string,
+) {
+  return value.replace(
+    /\/+$/,
+    '',
+  );
+}
 
 export const API_URL =
-  typeof window === 'undefined'
-    ? SERVER_API_URL
-    : BROWSER_API_URL;
+  removeTrailingSlash(
+    typeof window ===
+      'undefined'
+      ? serverApiUrl
+      : browserApiUrl,
+  );
 
 export async function apiFetch(
   path: string,
   init: RequestInit = {},
 ) {
+  const normalizedPath =
+    path.startsWith('/')
+      ? path
+      : `/${path}`;
+
   const isFormData =
-    init.body instanceof FormData;
+    typeof FormData !==
+      'undefined' &&
+    init.body instanceof
+      FormData;
 
-  return fetch(
-    `${API_URL}${path}`,
-    {
-      ...init,
+  const url =
+    `${API_URL}${normalizedPath}`;
 
-      credentials:
-        'include',
+  const response =
+    await fetch(
+      url,
+      {
+        ...init,
 
-      headers: {
-        ...(isFormData
-          ? {}
-          : {
-              'Content-Type':
-                'application/json',
-            }),
+        credentials:
+          'include',
 
-        ...init.headers,
+        headers: {
+          ...(isFormData
+            ? {}
+            : {
+                'Content-Type':
+                  'application/json',
+              }),
+
+          ...init.headers,
+        },
       },
-    },
-  );
+    );
+
+  return response;
 }
