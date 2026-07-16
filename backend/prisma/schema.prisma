@@ -1,7 +1,8 @@
 generator client {
-  provider     = "prisma-client"
-  output       = "../src/generated/prisma"
-  moduleFormat = "cjs"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["partialIndexes"]
+  moduleFormat    = "cjs"
 }
 
 datasource db {
@@ -74,27 +75,29 @@ model roles {
 }
 
 model users {
-  id                      String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  role_id                 String                 @db.Uuid
-  email                   String                 @unique(map: "users_email_unique") @db.VarChar(255)
-  password_hash           String
-  first_name              String?                @db.VarChar(100)
-  last_name               String?                @db.VarChar(100)
-  phone                   String?                @db.VarChar(30)
-  is_active               Boolean                @default(true)
-  is_email_verified       Boolean                @default(false)
-  last_login_at           DateTime?              @db.Timestamptz(6)
-  password_changed_at     DateTime?              @db.Timestamptz(6)
-  created_at              DateTime               @default(now()) @db.Timestamptz(6)
-  updated_at              DateTime               @default(now()) @db.Timestamptz(6)
-  deleted_at              DateTime?              @db.Timestamptz(6)
-  regional_association_id String?                @db.Uuid
-  audit_logs              audit_logs[]
-  contact_messages        contact_messages[]
-  media_assets            media_assets[]
-  refresh_tokens          refresh_tokens[]
-  regional_associations   regional_associations? @relation(fields: [regional_association_id], references: [id], onUpdate: NoAction)
-  roles                   roles                  @relation(fields: [role_id], references: [id], onUpdate: NoAction)
+  id                                                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role_id                                               String                 @db.Uuid
+  email                                                 String                 @unique(map: "users_email_unique") @db.VarChar(255)
+  password_hash                                         String
+  first_name                                            String?                @db.VarChar(100)
+  last_name                                             String?                @db.VarChar(100)
+  phone                                                 String?                @db.VarChar(30)
+  is_active                                             Boolean                @default(true)
+  is_email_verified                                     Boolean                @default(false)
+  last_login_at                                         DateTime?              @db.Timestamptz(6)
+  password_changed_at                                   DateTime?              @db.Timestamptz(6)
+  created_at                                            DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                                            DateTime               @default(now()) @db.Timestamptz(6)
+  deleted_at                                            DateTime?              @db.Timestamptz(6)
+  regional_association_id                               String?                @db.Uuid
+  audit_logs                                            audit_logs[]
+  contact_messages                                      contact_messages[]
+  media_assets                                          media_assets[]
+  news_articles_news_articles_created_by_user_idTousers news_articles[]        @relation("news_articles_created_by_user_idTousers")
+  news_articles_news_articles_updated_by_user_idTousers news_articles[]        @relation("news_articles_updated_by_user_idTousers")
+  refresh_tokens                                        refresh_tokens[]
+  regional_associations                                 regional_associations? @relation(fields: [regional_association_id], references: [id], onUpdate: NoAction)
+  roles                                                 roles                  @relation(fields: [role_id], references: [id], onUpdate: NoAction)
 
   @@index([deleted_at])
   @@index([is_active])
@@ -135,6 +138,7 @@ model media_assets {
   association_posts       association_posts[]
   homepage_hero_slides    homepage_hero_slides?
   users                   users?                    @relation(fields: [uploaded_by_user_id], references: [id], onUpdate: NoAction)
+  news_article_media      news_article_media[]
   regional_associations   regional_associations[]
 
   @@unique([bucket_name, object_key], map: "media_assets_bucket_object_unique")
@@ -384,4 +388,53 @@ model homepage_hero_slides {
   media_assets   media_assets @relation(fields: [media_asset_id], references: [id], onUpdate: NoAction)
 
   @@index([is_published, display_order, created_at], map: "homepage_hero_slides_public_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model news_article_media {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  news_article_id String        @db.Uuid
+  media_asset_id  String        @db.Uuid
+  display_order   Int           @default(0)
+  alt_text        String?       @db.VarChar(255)
+  caption         String?
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime      @default(now()) @db.Timestamptz(6)
+  news_articles   news_articles @relation(fields: [news_article_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "news_article_media_article_fk")
+  media_assets    media_assets  @relation(fields: [media_asset_id], references: [id], onUpdate: NoAction, map: "news_article_media_asset_fk")
+
+  @@unique([news_article_id, media_asset_id], map: "news_article_media_article_asset_unique")
+  @@index([news_article_id, display_order, created_at], map: "news_article_media_order_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model news_articles {
+  id                                            String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content_type                                  String               @db.VarChar(40)
+  event_category                                String?              @db.VarChar(60)
+  status                                        String               @default("DRAFT") @db.VarChar(30)
+  title                                         String               @db.VarChar(255)
+  slug                                          String               @unique(map: "news_articles_slug_unique") @db.VarChar(180)
+  excerpt                                       String?
+  body                                          String?
+  event_start_at                                DateTime?            @db.Timestamptz(6)
+  event_end_at                                  DateTime?            @db.Timestamptz(6)
+  event_location                                String?              @db.VarChar(255)
+  seo_title                                     String?              @db.VarChar(255)
+  seo_description                               String?              @db.VarChar(320)
+  published_at                                  DateTime?            @db.Timestamptz(6)
+  created_by_user_id                            String?              @db.Uuid
+  updated_by_user_id                            String?              @db.Uuid
+  created_at                                    DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at                                    DateTime             @default(now()) @db.Timestamptz(6)
+  deleted_at                                    DateTime?            @db.Timestamptz(6)
+  news_article_media                            news_article_media[]
+  users_news_articles_created_by_user_idTousers users?               @relation("news_articles_created_by_user_idTousers", fields: [created_by_user_id], references: [id], onUpdate: NoAction, map: "news_articles_created_by_user_fk")
+  users_news_articles_updated_by_user_idTousers users?               @relation("news_articles_updated_by_user_idTousers", fields: [updated_by_user_id], references: [id], onUpdate: NoAction, map: "news_articles_updated_by_user_fk")
+
+  @@index([content_type, status, published_at(sort: Desc)], map: "news_articles_content_type_idx", where: raw("(deleted_at IS NULL)"))
+  @@index([created_at(sort: Desc)])
+  @@index([deleted_at])
+  @@index([event_start_at], map: "news_articles_event_start_idx", where: raw("((deleted_at IS NULL) AND ((content_type)::text = 'EVENT'::text))"))
+  @@index([status, published_at(sort: Desc)], map: "news_articles_publication_idx", where: raw("(deleted_at IS NULL)"))
 }
