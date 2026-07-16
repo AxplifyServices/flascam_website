@@ -23,12 +23,12 @@ Mot de passe : flascam_minio_local_password_2026
 
 ** Execution d'un script 
 
-psql -U postgres -d flascam_db -f "database\migrations\010_assign_news_permission.sql
+psql -U postgres -d flascam_db -f "database\migrations\011_fix_news_publication.sql
 
 
 cd /opt/apps/flascam/repo
 
-sudo -u postgres psql -d flascam_db  -f database/migrations/010_assign_news_permission.sql
+sudo -u postgres psql -d flascam_db  -f database/migrations/011_fix_news_publication.sql
 
 
 ** Build l'appli
