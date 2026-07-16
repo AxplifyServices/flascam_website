@@ -380,8 +380,8 @@ export default function Home() {
       <main>
         <HeroSection />
         <FederationPreview />
-        <LatestNewsSection />
         <AssociationsPreview />
+        <LatestNewsSection />
       </main>
 
       <PublicFooter />

@@ -23,10 +23,13 @@ import type {
 type NewsCardProps = {
   article: NewsArticle;
   priority?: boolean;
+  compact?: boolean;
 };
 
 export function NewsCard({
   article,
+  priority = false,
+  compact = false,
 }: NewsCardProps) {
   const media =
     article.primaryMedia ??
@@ -66,13 +69,23 @@ export function NewsCard({
     >
       <Link
         href={`/actualites/${article.slug}`}
-        className="
+        className={`
           relative
           block
-          aspect-[16/10]
           overflow-hidden
           bg-[#eaf5ff]
-        "
+          ${
+            compact
+              ? `
+                h-[180px]
+                sm:h-[220px]
+                lg:h-[250px]
+              `
+              : `
+                aspect-[16/10]
+              `
+          }
+        `}
         aria-label={`Lire ${article.title}`}
       >
         {media?.mediaType ===
@@ -83,7 +96,16 @@ export function NewsCard({
               media.altText ??
               article.title
             }
-            loading="lazy"
+            loading={
+              priority
+                ? 'eager'
+                : 'lazy'
+            }
+            fetchPriority={
+              priority
+                ? 'high'
+                : 'auto'
+            }
             className="
               h-full
               w-full

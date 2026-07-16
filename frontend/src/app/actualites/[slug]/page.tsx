@@ -9,7 +9,6 @@ import {
   CalendarDays,
   Clock3,
   MapPin,
-  PlayCircle,
 } from 'lucide-react';
 
 import {
@@ -35,6 +34,10 @@ import {
   newsEventCategoryLabels,
   newsEventPeriodLabels,
 } from '@/lib/news-content';
+
+import {
+  NewsMediaGallery,
+} from '@/components/site/news-media-gallery';
 
 type NewsDetailPageProps = {
   params:
@@ -524,123 +527,15 @@ export default async function NewsDetailPage({
                 site-container
               "
             >
-              {article.media.length >
-                0 && (
-                <section
-                  className="
-                    grid
-                    gap-5
-                    lg:grid-cols-2
-                  "
-                  aria-label="Médias de la publication"
-                >
-                  {article.media.map(
-                    (
-                      media,
-                      index,
-                    ) => (
-                      <figure
-                        key={
-                          media.id
-                        }
-                        className={`
-                          overflow-hidden
-                          rounded-[1.25rem]
-                          border
-                          border-[#dbe5ef]
-                          bg-[#f5f9fc]
-                          ${
-                            index ===
-                              0
-                              ? 'lg:col-span-2'
-                              : ''
-                          }
-                        `}
-                      >
-                        {media.mediaType ===
-                        'IMAGE' ? (
-                          <img
-                            src={
-                              media.url
-                            }
-                            alt={
-                              media.altText ??
-                              article.title
-                            }
-                            loading={
-                              index ===
-                              0
-                                ? 'eager'
-                                : 'lazy'
-                            }
-                            className={`
-                              w-full
-                              object-cover
-                              ${
-                                index ===
-                                  0
-                                  ? `
-                                    max-h-[42rem]
-                                    min-h-64
-                                  `
-                                  : `
-                                    aspect-video
-                                  `
-                              }
-                            `}
-                          />
-                        ) : (
-                          <div
-                            className="
-                              relative
-                              bg-slate-950
-                            "
-                          >
-                            <video
-                              src={
-                                media.url
-                              }
-                              controls
-                              playsInline
-                              preload="metadata"
-                              className="
-                                aspect-video
-                                w-full
-                                bg-slate-950
-                                object-contain
-                              "
-                            />
-
-                            <span
-                              className="sr-only"
-                            >
-                              <PlayCircle />
-
-                              Vidéo
-                            </span>
-                          </div>
-                        )}
-
-                        {media.caption && (
-                          <figcaption
-                            className="
-                              px-4
-                              py-3
-                              text-sm
-                              leading-6
-                              text-[#536273]
-                            "
-                          >
-                            {
-                              media.caption
-                            }
-                          </figcaption>
-                        )}
-                      </figure>
-                    ),
-                  )}
-                </section>
-              )}
+{article.media.length >
+  0 && (
+  <NewsMediaGallery
+    media={article.media}
+    articleTitle={
+      article.title
+    }
+  />
+)}
 
               <section
                 className="

@@ -204,22 +204,31 @@ export async function LatestNewsSection() {
           </Link>
         </div>
 
-        <div
-          className="
-            mt-10
-            grid
-            gap-6
-            lg:grid-cols-[1.15fr_0.85fr]
-          "
-        >
-          <div>
-            <NewsCard
-              article={
-                mainArticle
-              }
-              priority
-            />
-          </div>
+<div
+  className={`
+    mt-10
+    grid
+    gap-6
+    ${
+      secondaryArticles.length > 0
+        ? `
+          lg:grid-cols-[1.15fr_0.85fr]
+        `
+        : `
+          lg:grid-cols-1
+        `
+    }
+  `}
+>
+<div>
+  <NewsCard
+    article={
+      mainArticle
+    }
+    priority
+    compact
+  />
+</div>
 
           {secondaryArticles.length >
             0 && (

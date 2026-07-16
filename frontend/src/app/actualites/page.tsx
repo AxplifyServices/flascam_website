@@ -434,13 +434,13 @@ export default async function ActualitesPage({
                   font-extrabold
                   transition
                   ${
-                    !contentType &&
-                    !eventPeriod
-                      ? `
-                        border-[#07355d]
-                        bg-[#07355d]
-                        text-white
-                      `
+!contentType &&
+!eventPeriod
+  ? `
+    border-[#07355d]
+    bg-[#07355d]
+    !text-white
+  `
                       : `
                         border-[#dbe5ef]
                         bg-white
@@ -492,12 +492,12 @@ export default async function ActualitesPage({
                         font-extrabold
                         transition
                         ${
-                          active
-                            ? `
-                              border-[#07355d]
-                              bg-[#07355d]
-                              text-white
-                            `
+active
+  ? `
+    border-[#07355d]
+    bg-[#07355d]
+    !text-white
+  `
                             : `
                               border-[#dbe5ef]
                               bg-white
@@ -537,13 +537,13 @@ export default async function ActualitesPage({
                   font-extrabold
                   transition
                   ${
-                    eventPeriod ===
-                    'UPCOMING'
-                      ? `
-                        border-[#c96f4a]
-                        bg-[#c96f4a]
-                        text-white
-                      `
+eventPeriod ===
+'UPCOMING'
+  ? `
+    border-[#c96f4a]
+    bg-[#c96f4a]
+    !text-white
+  `
                       : `
                         border-[#c96f4a]/30
                         bg-[#f8ede8]
@@ -723,21 +723,25 @@ export default async function ActualitesPage({
 
                 <Link
                   href="/actualites"
-                  className="
-                    mt-6
-                    inline-flex
-                    min-h-12
-                    items-center
-                    justify-center
-                    rounded-md
-                    bg-[#07355d]
-                    px-5
-                    text-sm
-                    font-extrabold
-                    text-white
-                    transition
-                    hover:bg-[#0f5f9f]
-                  "
+className="
+  inline-flex
+  min-h-12
+  items-center
+  justify-center
+  rounded-md
+  bg-[#c96f4a]
+  px-5
+  text-sm
+  font-extrabold
+  !text-white
+  shadow-[0_14px_32px_rgba(201,111,74,0.22)]
+  transition
+  hover:bg-[#ad5838]
+  focus-visible:outline-none
+  focus-visible:ring-2
+  focus-visible:ring-[#c96f4a]
+  focus-visible:ring-offset-4
+"
                 >
                   Voir toutes les actualités
                 </Link>
