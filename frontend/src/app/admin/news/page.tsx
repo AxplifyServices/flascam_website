@@ -601,26 +601,24 @@ export default function AdminNewsPage() {
     setEditorError('');
   }
 
-  function handleTitleChange(
-    value: string,
-  ) {
-    setForm(
-      (current) => ({
-        ...current,
+function handleTitleChange(
+  value: string,
+) {
+  setForm(
+    (current) => ({
+      ...current,
 
-        title:
-          value,
+      title:
+        value,
 
-        slug:
-          selectedArticle ||
-          current.slug
-            ? current.slug
-            : slugify(
-                value,
-              ),
-      }),
-    );
-  }
+      slug:
+        slugify(value).slice(
+          0,
+          180,
+        ),
+    }),
+  );
+}
 
   function handleTypeChange(
     value:
@@ -848,19 +846,17 @@ export default function AdminNewsPage() {
       return 'Le titre est obligatoire.';
     }
 
-    if (
-      !form.slug.trim()
-    ) {
-      return 'Le slug est obligatoire.';
-    }
+const generatedSlug =
+  slugify(
+    form.title,
+  ).slice(
+    0,
+    180,
+  );
 
-    if (
-      !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(
-        form.slug.trim(),
-      )
-    ) {
-      return 'Le slug peut contenir uniquement des lettres minuscules, des chiffres et des tirets.';
-    }
+if (!generatedSlug) {
+  return 'Le titre doit contenir au moins une lettre ou un chiffre.';
+}
 
     if (
       isEvent &&
@@ -885,14 +881,29 @@ export default function AdminNewsPage() {
     return '';
   }
 
-  async function saveArticle(
-    event:
-      FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
+async function saveArticle(
+  event:
+    React.FormEvent<HTMLFormElement>,
+) {
+  event.preventDefault();
 
-    const validationError =
-      validateForm();
+  const generatedSlug =
+    slugify(
+      form.title,
+    ).slice(
+      0,
+      180,
+    );
+
+  const formToSave:
+    NewsFormState = {
+      ...form,
+      slug:
+        generatedSlug,
+  };
+
+  const validationError =
+    validateForm();
 
     if (
       validationError
@@ -911,18 +922,17 @@ export default function AdminNewsPage() {
       if (
         selectedArticle
       ) {
-        await updateNews(
-          selectedArticle.id,
-          form,
-        );
-
+await updateNews(
+  selectedArticle.id,
+  formToSave,
+);
         setSuccess(
           'La publication a été mise à jour.',
         );
       } else {
-        await createNews(
-          form,
-        );
+await createNews(
+  formToSave,
+);
 
         setSuccess(
           'Le brouillon a été créé.',
@@ -2366,39 +2376,7 @@ export default function AdminNewsPage() {
                       />
                     </Field>
 
-                    <Field
-                      label="Adresse URL"
-                      description="Exemple : flascam-participe-au-salon-2026"
-                      required
-                      className="lg:col-span-2"
-                    >
-                      <input
-                        type="text"
-                        value={
-                          form.slug
-                        }
-                        onChange={(
-                          event,
-                        ) =>
-                          setForm(
-                            (
-                              current,
-                            ) => ({
-                              ...current,
 
-                              slug:
-                                slugify(
-                                  event.target.value,
-                                ),
-                            }),
-                          )
-                        }
-                        maxLength={
-                          180
-                        }
-                        className={inputClass}
-                      />
-                    </Field>
 
                     <Field
                       label="Résumé"

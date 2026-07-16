@@ -428,6 +428,7 @@ model news_articles {
   created_at                                    DateTime             @default(now()) @db.Timestamptz(6)
   updated_at                                    DateTime             @default(now()) @db.Timestamptz(6)
   deleted_at                                    DateTime?            @db.Timestamptz(6)
+  scheduled_at                                  DateTime?            @db.Timestamptz(6)
   news_article_media                            news_article_media[]
   users_news_articles_created_by_user_idTousers users?               @relation("news_articles_created_by_user_idTousers", fields: [created_by_user_id], references: [id], onUpdate: NoAction, map: "news_articles_created_by_user_fk")
   users_news_articles_updated_by_user_idTousers users?               @relation("news_articles_updated_by_user_idTousers", fields: [updated_by_user_id], references: [id], onUpdate: NoAction, map: "news_articles_updated_by_user_fk")
@@ -437,4 +438,6 @@ model news_articles {
   @@index([deleted_at])
   @@index([event_start_at], map: "news_articles_event_start_idx", where: raw("((deleted_at IS NULL) AND ((content_type)::text = 'EVENT'::text))"))
   @@index([status, published_at(sort: Desc)], map: "news_articles_publication_idx", where: raw("(deleted_at IS NULL)"))
+  @@index([published_at(sort: Desc), created_at(sort: Desc)], map: "news_articles_public_visible_idx", where: raw("(((status)::text = 'PUBLISHED'::text) AND (published_at IS NOT NULL) AND (deleted_at IS NULL))"))
+  @@index([scheduled_at], map: "news_articles_scheduled_publication_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'DRAFT'::text) AND (scheduled_at IS NOT NULL))"))
 }
