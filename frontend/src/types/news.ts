@@ -62,6 +62,7 @@ export type NewsArticle = {
   seoTitle?: string | null;
   seoDescription?: string | null;
   publishedAt?: string | null;
+  scheduledAt?: string | null;
   createdAt: string;
   updatedAt: string;
   media: NewsMedia[];

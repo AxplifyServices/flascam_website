@@ -317,6 +317,50 @@ export async function updateNewsStatus(
   );
 }
 
+export async function scheduleNewsPublication(
+  id: string,
+  scheduledAt: string,
+) {
+  const parsedDate =
+    new Date(
+      scheduledAt,
+    );
+
+  if (
+    Number.isNaN(
+      parsedDate.getTime(),
+    )
+  ) {
+    throw new Error(
+      'La date de publication programmée est invalide.',
+    );
+  }
+
+  return await adminFetch<NewsArticle>(
+    `/news/admin/${id}/schedule`,
+    {
+      method: 'PATCH',
+
+      body:
+        JSON.stringify({
+          scheduledAt:
+            parsedDate.toISOString(),
+        }),
+    },
+  );
+}
+
+export async function cancelNewsPublicationSchedule(
+  id: string,
+) {
+  return await adminFetch<NewsArticle>(
+    `/news/admin/${id}/schedule`,
+    {
+      method: 'DELETE',
+    },
+  );
+}
+
 export async function deleteNews(
   id: string,
 ) {
@@ -353,6 +397,7 @@ export async function uploadNewsMedia(
 export type PublicNewsFilters = {
   page?: number;
   limit?: number;
+  search?: string;
   contentType?: NewsContentType | '';
   eventCategory?: string;
   eventPeriod?:
@@ -430,6 +475,15 @@ export async function getPublicNews(
       filters.limit ?? 12,
     ),
   );
+
+  if (
+    filters.search?.trim()
+  ) {
+    params.set(
+      'search',
+      filters.search.trim(),
+    );
+  }
 
   if (
     filters.contentType

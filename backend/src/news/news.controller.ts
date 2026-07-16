@@ -55,6 +55,10 @@ import {
   NewsService,
 } from './news.service';
 
+import {
+  ScheduleNewsPublicationDto,
+} from './dto/schedule-news-publication.dto';
+
 @Controller('news')
 export class NewsController {
   constructor(
@@ -205,6 +209,51 @@ export class NewsController {
         request,
       );
   }
+
+  @Patch('admin/:id/schedule')
+  @Roles(
+    'SUPER_ADMIN',
+    'FLASCAM_ADMIN',
+  )
+  @Permissions('news.manage')
+  scheduleNewsPublication(
+    @Param('id')
+    id: string,
+    @Body()
+    dto: ScheduleNewsPublicationDto,
+    @CurrentUser()
+    user: AuthUser,
+    @Req()
+    request: Request,
+  ) {
+    return this.service.scheduleNewsPublication(
+      id,
+      dto,
+      user,
+      request,
+    );
+  }
+
+  @Delete('admin/:id/schedule')
+  @Roles(
+    'SUPER_ADMIN',
+    'FLASCAM_ADMIN',
+  )
+  @Permissions('news.manage')
+  cancelNewsPublicationSchedule(
+    @Param('id')
+    id: string,
+    @CurrentUser()
+    user: AuthUser,
+    @Req()
+    request: Request,
+  ) {
+    return this.service.cancelNewsPublicationSchedule(
+      id,
+      user,
+      request,
+    );
+  }  
 
   @Delete('admin/:id')
   @Roles(

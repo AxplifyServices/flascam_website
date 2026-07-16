@@ -9,6 +9,8 @@ import {
   ArrowRight,
   CalendarDays,
   Newspaper,
+  Search,
+  X,
 } from 'lucide-react';
 
 import {
@@ -38,39 +40,13 @@ import type {
 export const dynamic =
   'force-dynamic';
 
-export const metadata: Metadata = {
-  title:
-    'Actualités et événements',
-
-  description:
-    'Retrouvez les actualités, événements, communiqués officiels, publications réglementaires et revues de presse de la FLASCAM.',
-
-  alternates: {
-    canonical:
-      '/actualites',
-  },
-
-  openGraph: {
-    title:
-      'Actualités et événements de la FLASCAM',
-
-    description:
-      'Suivez les actualités officielles, événements et communiqués de la Fédération des loueurs automobiles sans chauffeur au Maroc.',
-
-    type:
-      'website',
-
-    locale:
-      'fr_MA',
-  },
-};
-
 type ActualitesPageProps = {
   searchParams:
     Promise<{
       page?: string;
       type?: string;
       periode?: string;
+      recherche?: string;
     }>;
 };
 
@@ -150,20 +126,38 @@ function readPeriod(
   return '';
 }
 
+function readSearch(
+  value?: string,
+) {
+  return (
+    value
+      ?.trim()
+      .slice(
+        0,
+        100,
+      ) ?? ''
+  );
+}
+
 function buildPageUrl({
   page,
   contentType,
   eventPeriod,
+  search,
 }: {
   page?: number;
+
   contentType?:
     | NewsContentType
     | '';
+
   eventPeriod?:
     | 'UPCOMING'
     | 'ONGOING'
     | 'PAST'
     | '';
+
+  search?: string;
 }) {
   const params =
     new URLSearchParams();
@@ -178,17 +172,30 @@ function buildPageUrl({
     );
   }
 
-  if (contentType) {
+  if (
+    contentType
+  ) {
     params.set(
       'type',
       contentType,
     );
   }
 
-  if (eventPeriod) {
+  if (
+    eventPeriod
+  ) {
     params.set(
       'periode',
       eventPeriod,
+    );
+  }
+
+  if (
+    search?.trim()
+  ) {
+    params.set(
+      'recherche',
+      search.trim(),
     );
   }
 
@@ -198,6 +205,69 @@ function buildPageUrl({
   return query
     ? `/actualites?${query}`
     : '/actualites';
+}
+
+export async function generateMetadata({
+  searchParams,
+}: ActualitesPageProps): Promise<Metadata> {
+  const params =
+    await searchParams;
+
+  const hasFilters =
+    Boolean(
+      params.recherche?.trim() ||
+      params.type ||
+      params.periode ||
+      (
+        params.page &&
+        params.page !==
+          '1'
+      ),
+    );
+
+  return {
+    title:
+      'Actualités et événements',
+
+    description:
+      'Retrouvez les actualités, événements, communiqués officiels, publications réglementaires et revues de presse de la FLASCAM.',
+
+    alternates: {
+      canonical:
+        '/actualites',
+    },
+
+    robots:
+      hasFilters
+        ? {
+            index:
+              false,
+
+            follow:
+              true,
+          }
+        : {
+            index:
+              true,
+
+            follow:
+              true,
+          },
+
+    openGraph: {
+      title:
+        'Actualités et événements de la FLASCAM',
+
+      description:
+        'Suivez les actualités officielles, événements et communiqués de la Fédération des loueurs automobiles sans chauffeur au Maroc.',
+
+      type:
+        'website',
+
+      locale:
+        'fr_MA',
+    },
+  };
 }
 
 export default async function ActualitesPage({
@@ -221,7 +291,13 @@ export default async function ActualitesPage({
       params.periode,
     );
 
+  const search =
+    readSearch(
+      params.recherche,
+    );
+
   let result;
+
   let loadingError =
     '';
 
@@ -230,6 +306,7 @@ export default async function ActualitesPage({
       await getPublicNews({
         page,
         limit: 12,
+        search,
         contentType,
         eventPeriod,
       });
@@ -249,6 +326,7 @@ export default async function ActualitesPage({
 
     result = {
       items: [],
+
       pagination: {
         page,
         limit: 12,
@@ -270,16 +348,20 @@ export default async function ActualitesPage({
           1,
           page - 1,
         ),
+
       contentType,
       eventPeriod,
+      search,
     });
 
   const nextUrl =
     buildPageUrl({
       page:
         page + 1,
+
       contentType,
       eventPeriod,
+      search,
     });
 
   return (
@@ -410,6 +492,163 @@ export default async function ActualitesPage({
               sm:py-6
             "
           >
+            <form
+              action="/actualites"
+              method="get"
+              role="search"
+              className="
+                mb-5
+                flex
+                flex-col
+                gap-3
+                sm:flex-row
+              "
+            >
+              {contentType && (
+                <input
+                  type="hidden"
+                  name="type"
+                  value={
+                    contentType
+                  }
+                />
+              )}
+
+              {eventPeriod && (
+                <input
+                  type="hidden"
+                  name="periode"
+                  value={
+                    eventPeriod
+                  }
+                />
+              )}
+
+              <label
+                className="
+                  relative
+                  block
+                  min-w-0
+                  flex-1
+                "
+              >
+                <span
+                  className="sr-only"
+                >
+                  Rechercher dans les actualités
+                </span>
+
+                <Search
+                  aria-hidden="true"
+                  size={19}
+                  className="
+                    pointer-events-none
+                    absolute
+                    left-4
+                    top-1/2
+                    -translate-y-1/2
+                    text-[#657789]
+                  "
+                />
+
+                <input
+                  type="search"
+                  name="recherche"
+                  defaultValue={
+                    search
+                  }
+                  maxLength={100}
+                  autoComplete="off"
+                  placeholder="Rechercher une actualité, un événement..."
+                  className="
+                    min-h-12
+                    w-full
+                    rounded-xl
+                    border
+                    border-[#cbd8e4]
+                    bg-white
+                    pl-12
+                    pr-4
+                    text-base
+                    text-[#101820]
+                    outline-none
+                    transition
+                    placeholder:text-[#657789]
+                    focus:border-[#0f5f9f]
+                    focus:ring-4
+                    focus:ring-[#0f5f9f]/10
+                    sm:text-sm
+                  "
+                />
+              </label>
+
+              <button
+                type="submit"
+                className="
+                  inline-flex
+                  min-h-12
+                  items-center
+                  justify-center
+                  gap-2
+                  rounded-xl
+                  bg-[#07355d]
+                  px-6
+                  text-sm
+                  font-extrabold
+                  text-white
+                  transition
+                  hover:bg-[#0f5f9f]
+                  focus-visible:outline-none
+                  focus-visible:ring-2
+                  focus-visible:ring-[#0f5f9f]
+                  focus-visible:ring-offset-2
+                "
+              >
+                <Search
+                  aria-hidden="true"
+                  size={18}
+                />
+
+                Rechercher
+              </button>
+
+              {search && (
+                <Link
+                  href={
+                    buildPageUrl({
+                      contentType,
+                      eventPeriod,
+                    })
+                  }
+                  className="
+                    inline-flex
+                    min-h-12
+                    items-center
+                    justify-center
+                    gap-2
+                    rounded-xl
+                    border
+                    border-[#cbd8e4]
+                    bg-white
+                    px-5
+                    text-sm
+                    font-extrabold
+                    text-[#536273]
+                    transition
+                    hover:border-[#0f5f9f]
+                    hover:text-[#0f5f9f]
+                  "
+                >
+                  <X
+                    aria-hidden="true"
+                    size={18}
+                  />
+
+                  Effacer
+                </Link>
+              )}
+            </form>
+
             <div
               className="
                 flex
@@ -420,7 +659,11 @@ export default async function ActualitesPage({
               "
             >
               <Link
-                href="/actualites"
+                href={
+                  buildPageUrl({
+                    search,
+                  })
+                }
                 className={`
                   inline-flex
                   min-h-11
@@ -434,20 +677,20 @@ export default async function ActualitesPage({
                   font-extrabold
                   transition
                   ${
-!contentType &&
-!eventPeriod
-  ? `
-    border-[#07355d]
-    bg-[#07355d]
-    !text-white
-  `
+                    !contentType &&
+                    !eventPeriod
+                      ? `
+                          border-[#07355d]
+                          bg-[#07355d]
+                          !text-white
+                        `
                       : `
-                        border-[#dbe5ef]
-                        bg-white
-                        text-[#536273]
-                        hover:border-[#0f5f9f]
-                        hover:text-[#0f5f9f]
-                      `
+                          border-[#dbe5ef]
+                          bg-white
+                          text-[#536273]
+                          hover:border-[#0f5f9f]
+                          hover:text-[#0f5f9f]
+                        `
                   }
                 `}
               >
@@ -477,6 +720,8 @@ export default async function ActualitesPage({
                         buildPageUrl({
                           contentType:
                             type,
+
+                          search,
                         })
                       }
                       className={`
@@ -492,19 +737,19 @@ export default async function ActualitesPage({
                         font-extrabold
                         transition
                         ${
-active
-  ? `
-    border-[#07355d]
-    bg-[#07355d]
-    !text-white
-  `
+                          active
+                            ? `
+                                border-[#07355d]
+                                bg-[#07355d]
+                                !text-white
+                              `
                             : `
-                              border-[#dbe5ef]
-                              bg-white
-                              text-[#536273]
-                              hover:border-[#0f5f9f]
-                              hover:text-[#0f5f9f]
-                            `
+                                border-[#dbe5ef]
+                                bg-white
+                                text-[#536273]
+                                hover:border-[#0f5f9f]
+                                hover:text-[#0f5f9f]
+                              `
                         }
                       `}
                     >
@@ -519,8 +764,11 @@ active
                   buildPageUrl({
                     contentType:
                       'EVENT',
+
                     eventPeriod:
                       'UPCOMING',
+
+                    search,
                   })
                 }
                 className={`
@@ -537,19 +785,19 @@ active
                   font-extrabold
                   transition
                   ${
-eventPeriod ===
-'UPCOMING'
-  ? `
-    border-[#c96f4a]
-    bg-[#c96f4a]
-    !text-white
-  `
+                    eventPeriod ===
+                    'UPCOMING'
+                      ? `
+                          border-[#c96f4a]
+                          bg-[#c96f4a]
+                          !text-white
+                        `
                       : `
-                        border-[#c96f4a]/30
-                        bg-[#f8ede8]
-                        text-[#a95235]
-                        hover:border-[#c96f4a]
-                      `
+                          border-[#c96f4a]/30
+                          bg-[#f8ede8]
+                          text-[#a95235]
+                          hover:border-[#c96f4a]
+                        `
                   }
                 `}
               >
@@ -608,14 +856,16 @@ eventPeriod ===
                     sm:text-4xl
                   "
                 >
-                  {contentType
-                    ? newsContentTypeLabels[
-                        contentType
-                      ]
-                    : eventPeriod ===
-                        'UPCOMING'
-                      ? 'Événements à venir'
-                      : 'Toutes les publications'}
+                  {search
+                    ? `Résultats pour « ${search} »`
+                    : contentType
+                      ? newsContentTypeLabels[
+                          contentType
+                        ]
+                      : eventPeriod ===
+                          'UPCOMING'
+                        ? 'Événements à venir'
+                        : 'Toutes les publications'}
                 </h2>
               </div>
 
@@ -716,32 +966,33 @@ eventPeriod ===
                     text-[#536273]
                   "
                 >
-                  Aucun contenu publié ne
-                  correspond actuellement à
-                  ce filtre.
+                  {search
+                    ? `Aucune publication ne correspond à la recherche « ${search} ».`
+                    : 'Aucun contenu publié ne correspond actuellement aux filtres sélectionnés.'}
                 </p>
 
                 <Link
                   href="/actualites"
-className="
-  inline-flex
-  min-h-12
-  items-center
-  justify-center
-  rounded-md
-  bg-[#c96f4a]
-  px-5
-  text-sm
-  font-extrabold
-  !text-white
-  shadow-[0_14px_32px_rgba(201,111,74,0.22)]
-  transition
-  hover:bg-[#ad5838]
-  focus-visible:outline-none
-  focus-visible:ring-2
-  focus-visible:ring-[#c96f4a]
-  focus-visible:ring-offset-4
-"
+                  className="
+                    mt-6
+                    inline-flex
+                    min-h-12
+                    items-center
+                    justify-center
+                    rounded-md
+                    bg-[#c96f4a]
+                    px-5
+                    text-sm
+                    font-extrabold
+                    !text-white
+                    shadow-[0_14px_32px_rgba(201,111,74,0.22)]
+                    transition
+                    hover:bg-[#ad5838]
+                    focus-visible:outline-none
+                    focus-visible:ring-2
+                    focus-visible:ring-[#c96f4a]
+                    focus-visible:ring-offset-4
+                  "
                 >
                   Voir toutes les actualités
                 </Link>

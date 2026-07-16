@@ -77,12 +77,17 @@ import {
   NewsModule,
 } from './news/news.module';
 
+import {
+  ScheduleModule,
+} from '@nestjs/schedule';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
+    ScheduleModule.forRoot(),
 
     ThrottlerModule.forRoot([
       {

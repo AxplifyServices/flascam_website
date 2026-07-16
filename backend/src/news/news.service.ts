@@ -3,16 +3,22 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
-
-import type {
-  Request,
-} from 'express';
 
 import {
   ConfigService,
 } from '@nestjs/config';
+
+import {
+  Cron,
+  CronExpression,
+} from '@nestjs/schedule';
+
+import type {
+  Request,
+} from 'express';
 
 import {
   Prisma,
@@ -39,6 +45,10 @@ import {
 } from './dto/public-news-query.dto';
 
 import {
+  ScheduleNewsPublicationDto,
+} from './dto/schedule-news-publication.dto';
+
+import {
   UpdateNewsStatusDto,
 } from './dto/update-news-status.dto';
 
@@ -46,8 +56,41 @@ import {
   UpsertNewsArticleDto,
 } from './dto/upsert-news-article.dto';
 
+type NewsArticleRecord = {
+  id: string;
+  content_type: string;
+  event_category: string | null;
+  status: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  body: string | null;
+  event_start_at: Date | null;
+  event_end_at: Date | null;
+  event_location: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  published_at: Date | null;
+  scheduled_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+};
+
+type PublishableNewsArticle = {
+  title: string;
+  excerpt: string | null;
+  body: string | null;
+  content_type: string;
+  event_start_at: Date | null;
+};
+
 @Injectable()
 export class NewsService {
+  private readonly logger =
+    new Logger(
+      NewsService.name,
+    );
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditLogs: AuditLogsService,
@@ -57,35 +100,48 @@ export class NewsService {
   async getPublicNews(
     query: PublicNewsQueryDto,
   ) {
-    const page = query.page;
-    const limit = query.limit;
-    const skip = (page - 1) * limit;
+    const page =
+      query.page;
+
+    const limit =
+      query.limit;
+
+    const skip =
+      (page - 1) *
+      limit;
 
     const where =
-      this.buildPublicWhere(query);
+      this.buildPublicWhere(
+        query,
+      );
 
     const [
       articles,
       total,
-    ] = await Promise.all([
-      this.prisma.news_articles.findMany({
-        where,
-        orderBy: [
-          {
-            published_at: 'desc',
-          },
-          {
-            created_at: 'desc',
-          },
-        ],
-        skip,
-        take: limit,
-      }),
+    ] =
+      await Promise.all([
+        this.prisma.news_articles.findMany({
+          where,
 
-      this.prisma.news_articles.count({
-        where,
-      }),
-    ]);
+          orderBy: [
+            {
+              published_at:
+                'desc',
+            },
+            {
+              created_at:
+                'desc',
+            },
+          ],
+
+          skip,
+          take: limit,
+        }),
+
+        this.prisma.news_articles.count({
+          where,
+        }),
+      ]);
 
     const formatted =
       await this.formatArticles(
@@ -93,13 +149,19 @@ export class NewsService {
       );
 
     return {
-      items: formatted,
+      items:
+        formatted,
+
       pagination: {
         page,
         limit,
         total,
+
         totalPages:
-          Math.ceil(total / limit),
+          Math.ceil(
+            total /
+              limit,
+          ),
       },
     };
   }
@@ -108,22 +170,33 @@ export class NewsService {
     const articles =
       await this.prisma.news_articles.findMany({
         where: {
-          status: 'PUBLISHED',
+          status:
+            'PUBLISHED',
+
           published_at: {
-            not: null,
-            lte: new Date(),
+            not:
+              null,
+            lte:
+              new Date(),
           },
-          deleted_at: null,
+
+          deleted_at:
+            null,
         },
+
         orderBy: [
           {
-            published_at: 'desc',
+            published_at:
+              'desc',
           },
           {
-            created_at: 'desc',
+            created_at:
+              'desc',
           },
         ],
-        take: 5,
+
+        take:
+          5,
       });
 
     return this.formatArticles(
@@ -138,16 +211,25 @@ export class NewsService {
       await this.prisma.news_articles.findFirst({
         where: {
           slug,
-          status: 'PUBLISHED',
+
+          status:
+            'PUBLISHED',
+
           published_at: {
-            not: null,
-            lte: new Date(),
+            not:
+              null,
+            lte:
+              new Date(),
           },
-          deleted_at: null,
+
+          deleted_at:
+            null,
         },
       });
 
-    if (!article) {
+    if (
+      !article
+    ) {
       throw new NotFoundException(
         'Actualité introuvable.',
       );
@@ -162,14 +244,24 @@ export class NewsService {
     query: AdminNewsQueryDto,
     user: AuthUser,
   ) {
-    this.ensureFlascamAdmin(user);
+    this.ensureFlascamAdmin(
+      user,
+    );
 
-    const page = query.page;
-    const limit = query.limit;
-    const skip = (page - 1) * limit;
+    const page =
+      query.page;
 
-    const where: Prisma.news_articlesWhereInput = {
-      deleted_at: null,
+    const limit =
+      query.limit;
+
+    const skip =
+      (page - 1) *
+      limit;
+
+    const where:
+      Prisma.news_articlesWhereInput = {
+      deleted_at:
+        null,
 
       ...(query.contentType
         ? {
@@ -192,14 +284,27 @@ export class NewsService {
                 title: {
                   contains:
                     query.search.trim(),
-                  mode: 'insensitive',
+
+                  mode:
+                    'insensitive',
                 },
               },
               {
                 excerpt: {
                   contains:
                     query.search.trim(),
-                  mode: 'insensitive',
+
+                  mode:
+                    'insensitive',
+                },
+              },
+              {
+                body: {
+                  contains:
+                    query.search.trim(),
+
+                  mode:
+                    'insensitive',
                 },
               },
             ],
@@ -210,25 +315,31 @@ export class NewsService {
     const [
       articles,
       total,
-    ] = await Promise.all([
-      this.prisma.news_articles.findMany({
-        where,
-        orderBy: [
-          {
-            updated_at: 'desc',
-          },
-          {
-            created_at: 'desc',
-          },
-        ],
-        skip,
-        take: limit,
-      }),
+    ] =
+      await Promise.all([
+        this.prisma.news_articles.findMany({
+          where,
 
-      this.prisma.news_articles.count({
-        where,
-      }),
-    ]);
+          orderBy: [
+            {
+              updated_at:
+                'desc',
+            },
+            {
+              created_at:
+                'desc',
+            },
+          ],
+
+          skip,
+          take:
+            limit,
+        }),
+
+        this.prisma.news_articles.count({
+          where,
+        }),
+      ]);
 
     const formatted =
       await this.formatArticles(
@@ -236,13 +347,19 @@ export class NewsService {
       );
 
     return {
-      items: formatted,
+      items:
+        formatted,
+
       pagination: {
         page,
         limit,
         total,
+
         totalPages:
-          Math.ceil(total / limit),
+          Math.ceil(
+            total /
+              limit,
+          ),
       },
     };
   }
@@ -251,17 +368,23 @@ export class NewsService {
     id: string,
     user: AuthUser,
   ) {
-    this.ensureFlascamAdmin(user);
+    this.ensureFlascamAdmin(
+      user,
+    );
 
     const article =
       await this.prisma.news_articles.findFirst({
         where: {
           id,
-          deleted_at: null,
+
+          deleted_at:
+            null,
         },
       });
 
-    if (!article) {
+    if (
+      !article
+    ) {
       throw new NotFoundException(
         'Actualité introuvable.',
       );
@@ -277,7 +400,9 @@ export class NewsService {
     user: AuthUser,
     request: Request,
   ) {
-    this.ensureFlascamAdmin(user);
+    this.ensureFlascamAdmin(
+      user,
+    );
 
     await this.validatePayload(
       dto,
@@ -286,7 +411,9 @@ export class NewsService {
 
     const article =
       await this.prisma.$transaction(
-        async (tx) => {
+        async (
+          tx,
+        ) => {
           const created =
             await tx.news_articles.create({
               data: {
@@ -299,7 +426,8 @@ export class NewsService {
                     ? dto.eventCategory
                     : null,
 
-                status: 'DRAFT',
+                status:
+                  'DRAFT',
 
                 title:
                   dto.title.trim(),
@@ -308,10 +436,12 @@ export class NewsService {
                   dto.slug.trim(),
 
                 excerpt:
-                  dto.excerpt?.trim(),
+                  dto.excerpt?.trim() ||
+                  null,
 
                 body:
-                  dto.body?.trim(),
+                  dto.body?.trim() ||
+                  null,
 
                 event_start_at:
                   dto.contentType ===
@@ -334,14 +464,23 @@ export class NewsService {
                 event_location:
                   dto.contentType ===
                   'EVENT'
-                    ? dto.eventLocation?.trim()
+                    ? dto.eventLocation?.trim() ||
+                      null
                     : null,
 
                 seo_title:
-                  dto.seoTitle?.trim(),
+                  dto.seoTitle?.trim() ||
+                  null,
 
                 seo_description:
-                  dto.seoDescription?.trim(),
+                  dto.seoDescription?.trim() ||
+                  null,
+
+                published_at:
+                  null,
+
+                scheduled_at:
+                  null,
 
                 created_by_user_id:
                   user.id,
@@ -354,7 +493,8 @@ export class NewsService {
           await this.replaceMedia(
             tx,
             created.id,
-            dto.media ?? [],
+            dto.media ??
+              [],
           );
 
           return created;
@@ -362,20 +502,29 @@ export class NewsService {
       );
 
     await this.auditLogs.log({
-      userId: user.id,
+      userId:
+        user.id,
+
       action:
         'NEWS_ARTICLE_CREATED',
+
       entityType:
         'NEWS_ARTICLE',
-      entityId: article.id,
+
+      entityId:
+        article.id,
+
       description:
         `Actualité créée : ${article.title}.`,
+
       metadata: {
         contentType:
           article.content_type,
       },
+
       ipAddress:
         request.ip,
+
       userAgent:
         request.get(
           'user-agent',
@@ -394,17 +543,23 @@ export class NewsService {
     user: AuthUser,
     request: Request,
   ) {
-    this.ensureFlascamAdmin(user);
+    this.ensureFlascamAdmin(
+      user,
+    );
 
     const existing =
       await this.prisma.news_articles.findFirst({
         where: {
           id,
-          deleted_at: null,
+
+          deleted_at:
+            null,
         },
       });
 
-    if (!existing) {
+    if (
+      !existing
+    ) {
       throw new NotFoundException(
         'Actualité introuvable.',
       );
@@ -417,12 +572,15 @@ export class NewsService {
 
     const article =
       await this.prisma.$transaction(
-        async (tx) => {
+        async (
+          tx,
+        ) => {
           const updated =
             await tx.news_articles.update({
               where: {
                 id,
               },
+
               data: {
                 content_type:
                   dto.contentType,
@@ -440,10 +598,12 @@ export class NewsService {
                   dto.slug.trim(),
 
                 excerpt:
-                  dto.excerpt?.trim(),
+                  dto.excerpt?.trim() ||
+                  null,
 
                 body:
-                  dto.body?.trim(),
+                  dto.body?.trim() ||
+                  null,
 
                 event_start_at:
                   dto.contentType ===
@@ -466,14 +626,17 @@ export class NewsService {
                 event_location:
                   dto.contentType ===
                   'EVENT'
-                    ? dto.eventLocation?.trim()
+                    ? dto.eventLocation?.trim() ||
+                      null
                     : null,
 
                 seo_title:
-                  dto.seoTitle?.trim(),
+                  dto.seoTitle?.trim() ||
+                  null,
 
                 seo_description:
-                  dto.seoDescription?.trim(),
+                  dto.seoDescription?.trim() ||
+                  null,
 
                 updated_by_user_id:
                   user.id,
@@ -486,7 +649,8 @@ export class NewsService {
           await this.replaceMedia(
             tx,
             id,
-            dto.media ?? [],
+            dto.media ??
+              [],
           );
 
           return updated;
@@ -494,20 +658,29 @@ export class NewsService {
       );
 
     await this.auditLogs.log({
-      userId: user.id,
+      userId:
+        user.id,
+
       action:
         'NEWS_ARTICLE_UPDATED',
+
       entityType:
         'NEWS_ARTICLE',
-      entityId: article.id,
+
+      entityId:
+        article.id,
+
       description:
         `Actualité modifiée : ${article.title}.`,
+
       metadata: {
         contentType:
           article.content_type,
       },
+
       ipAddress:
         request.ip,
+
       userAgent:
         request.get(
           'user-agent',
@@ -526,111 +699,139 @@ export class NewsService {
     user: AuthUser,
     request: Request,
   ) {
-    this.ensureFlascamAdmin(user);
+    this.ensureFlascamAdmin(
+      user,
+    );
 
     const existing =
       await this.prisma.news_articles.findFirst({
         where: {
           id,
-          deleted_at: null,
+
+          deleted_at:
+            null,
         },
       });
 
-    if (!existing) {
+    if (
+      !existing
+    ) {
       throw new NotFoundException(
         'Actualité introuvable.',
       );
     }
 
-if (
-  dto.status === 'PUBLISHED'
-) {
-  await this.ensureArticleCanBePublished(
-    existing,
-  );
-}
+    if (
+      dto.status ===
+      'PUBLISHED'
+    ) {
+      this.ensureArticleCanBePublished(
+        existing,
+      );
+    }
+
+    const now =
+      new Date();
 
     const article =
       await this.prisma.news_articles.update({
         where: {
           id,
         },
+
         data: {
           status:
             dto.status,
 
-published_at:
-  dto.status ===
-  'PUBLISHED'
-    ? new Date()
-    : null,
+          published_at:
+            dto.status ===
+            'PUBLISHED'
+              ? now
+              : null,
+
+          scheduled_at:
+            null,
 
           updated_by_user_id:
             user.id,
 
           updated_at:
-            new Date(),
+            now,
         },
       });
 
-if (
-  dto.status ===
-  'PUBLISHED'
-) {
-  const publiclyVisibleArticle =
-    await this.prisma.news_articles.findFirst({
-      where: {
-        id:
-          article.id,
+    if (
+      dto.status ===
+      'PUBLISHED'
+    ) {
+      const publiclyVisibleArticle =
+        await this.prisma.news_articles.findFirst({
+          where: {
+            id:
+              article.id,
 
-        status:
-          'PUBLISHED',
+            status:
+              'PUBLISHED',
 
-        published_at: {
-          not:
-            null,
+            published_at: {
+              not:
+                null,
 
-          lte:
-            new Date(),
-        },
+              lte:
+                new Date(),
+            },
 
-        deleted_at:
-          null,
-      },
+            deleted_at:
+              null,
+          },
 
-      select: {
-        id:
-          true,
-      },
-    });
+          select: {
+            id:
+              true,
+          },
+        });
 
-  if (
-    !publiclyVisibleArticle
-  ) {
-    throw new BadRequestException(
-      'L’actualité a été publiée, mais elle ne satisfait pas les conditions de visibilité publique.',
-    );
-  }
-}
+      if (
+        !publiclyVisibleArticle
+      ) {
+        throw new BadRequestException(
+          'L’actualité a été publiée, mais elle ne satisfait pas les conditions de visibilité publique.',
+        );
+      }
+    }
 
     await this.auditLogs.log({
-      userId: user.id,
+      userId:
+        user.id,
+
       action:
         'NEWS_ARTICLE_STATUS_UPDATED',
+
       entityType:
         'NEWS_ARTICLE',
+
       entityId:
         article.id,
+
       description:
         `Statut de l’actualité modifié : ${dto.status}.`,
+
       metadata: {
         previousStatus:
           existing.status,
+
         newStatus:
           dto.status,
+
+        previousScheduledAt:
+          existing.scheduled_at
+            ?.toISOString() ??
+          null,
       },
+
       ipAddress:
         request.ip,
+
       userAgent:
         request.get(
           'user-agent',
@@ -643,22 +844,392 @@ if (
     );
   }
 
+  async scheduleNewsPublication(
+    id: string,
+    dto: ScheduleNewsPublicationDto,
+    user: AuthUser,
+    request: Request,
+  ) {
+    this.ensureFlascamAdmin(
+      user,
+    );
+
+    const article =
+      await this.prisma.news_articles.findFirst({
+        where: {
+          id,
+
+          deleted_at:
+            null,
+        },
+      });
+
+    if (
+      !article
+    ) {
+      throw new NotFoundException(
+        'Actualité introuvable.',
+      );
+    }
+
+    if (
+      article.status ===
+      'ARCHIVED'
+    ) {
+      throw new BadRequestException(
+        'Une actualité archivée ne peut pas être programmée.',
+      );
+    }
+
+    this.ensureArticleCanBePublished(
+      article,
+    );
+
+    const scheduledAt =
+      new Date(
+        dto.scheduledAt,
+      );
+
+    if (
+      Number.isNaN(
+        scheduledAt.getTime(),
+      )
+    ) {
+      throw new BadRequestException(
+        'La date de publication programmée est invalide.',
+      );
+    }
+
+    const minimumDate =
+      new Date(
+        Date.now() +
+          60_000,
+      );
+
+    if (
+      scheduledAt <
+      minimumDate
+    ) {
+      throw new BadRequestException(
+        'La publication doit être programmée au moins une minute dans le futur.',
+      );
+    }
+
+    const updated =
+      await this.prisma.news_articles.update({
+        where: {
+          id,
+        },
+
+        data: {
+          status:
+            'DRAFT',
+
+          published_at:
+            null,
+
+          scheduled_at:
+            scheduledAt,
+
+          updated_by_user_id:
+            user.id,
+
+          updated_at:
+            new Date(),
+        },
+      });
+
+    await this.auditLogs.log({
+      userId:
+        user.id,
+
+      action:
+        'NEWS_ARTICLE_SCHEDULED',
+
+      entityType:
+        'NEWS_ARTICLE',
+
+      entityId:
+        updated.id,
+
+      description:
+        `Publication programmée : ${updated.title}.`,
+
+      metadata: {
+        previousScheduledAt:
+          article.scheduled_at
+            ?.toISOString() ??
+          null,
+
+        scheduledAt:
+          scheduledAt.toISOString(),
+      },
+
+      ipAddress:
+        request.ip,
+
+      userAgent:
+        request.get(
+          'user-agent',
+        ),
+    });
+
+    return this.getAdminNewsById(
+      updated.id,
+      user,
+    );
+  }
+
+  async cancelNewsPublicationSchedule(
+    id: string,
+    user: AuthUser,
+    request: Request,
+  ) {
+    this.ensureFlascamAdmin(
+      user,
+    );
+
+    const article =
+      await this.prisma.news_articles.findFirst({
+        where: {
+          id,
+
+          deleted_at:
+            null,
+        },
+      });
+
+    if (
+      !article
+    ) {
+      throw new NotFoundException(
+        'Actualité introuvable.',
+      );
+    }
+
+    if (
+      !article.scheduled_at
+    ) {
+      throw new BadRequestException(
+        'Cette actualité n’est pas programmée.',
+      );
+    }
+
+    const updated =
+      await this.prisma.news_articles.update({
+        where: {
+          id,
+        },
+
+        data: {
+          scheduled_at:
+            null,
+
+          updated_by_user_id:
+            user.id,
+
+          updated_at:
+            new Date(),
+        },
+      });
+
+    await this.auditLogs.log({
+      userId:
+        user.id,
+
+      action:
+        'NEWS_ARTICLE_SCHEDULE_CANCELLED',
+
+      entityType:
+        'NEWS_ARTICLE',
+
+      entityId:
+        updated.id,
+
+      description:
+        `Programmation annulée : ${updated.title}.`,
+
+      metadata: {
+        previousScheduledAt:
+          article.scheduled_at.toISOString(),
+      },
+
+      ipAddress:
+        request.ip,
+
+      userAgent:
+        request.get(
+          'user-agent',
+        ),
+    });
+
+    return this.getAdminNewsById(
+      updated.id,
+      user,
+    );
+  }
+
+  @Cron(
+    CronExpression.EVERY_MINUTE,
+  )
+  async publishScheduledNews() {
+    const now =
+      new Date();
+
+    try {
+      const candidates =
+        await this.prisma.news_articles.findMany({
+          where: {
+            status:
+              'DRAFT',
+
+            scheduled_at: {
+              not:
+                null,
+
+              lte:
+                now,
+            },
+
+            deleted_at:
+              null,
+          },
+
+          orderBy: {
+            scheduled_at:
+              'asc',
+          },
+
+          take:
+            50,
+        });
+
+      for (
+        const article
+        of candidates
+      ) {
+        try {
+          this.ensureArticleCanBePublished(
+            article,
+          );
+
+          const publicationDate =
+            new Date();
+
+          const result =
+            await this.prisma.news_articles.updateMany({
+              where: {
+                id:
+                  article.id,
+
+                status:
+                  'DRAFT',
+
+                scheduled_at: {
+                  not:
+                    null,
+
+                  lte:
+                    publicationDate,
+                },
+
+                deleted_at:
+                  null,
+              },
+
+              data: {
+                status:
+                  'PUBLISHED',
+
+                published_at:
+                  publicationDate,
+
+                scheduled_at:
+                  null,
+
+                updated_at:
+                  publicationDate,
+              },
+            });
+
+          if (
+            result.count ===
+            1
+          ) {
+            this.logger.log(
+              `Actualité publiée automatiquement : ${article.id} - ${article.title}`,
+            );
+
+            await this.auditLogs.log({
+              action:
+                'NEWS_ARTICLE_AUTO_PUBLISHED',
+
+              entityType:
+                'NEWS_ARTICLE',
+
+              entityId:
+                article.id,
+
+              description:
+                `Actualité publiée automatiquement : ${article.title}.`,
+
+              metadata: {
+                publishedAt:
+                  publicationDate.toISOString(),
+              },
+            });
+          }
+        } catch (
+          caughtError
+        ) {
+          const message =
+            caughtError instanceof
+              Error
+              ? caughtError.message
+              : 'Erreur inconnue';
+
+          this.logger.error(
+            `Publication automatique impossible pour ${article.id} : ${message}`,
+          );
+        }
+      }
+    } catch (
+      caughtError
+    ) {
+      const message =
+        caughtError instanceof
+          Error
+          ? caughtError.message
+          : 'Erreur inconnue';
+
+      this.logger.error(
+        `Échec du traitement des publications programmées : ${message}`,
+      );
+    }
+  }
+
   async deleteNews(
     id: string,
     user: AuthUser,
     request: Request,
   ) {
-    this.ensureFlascamAdmin(user);
+    this.ensureFlascamAdmin(
+      user,
+    );
 
     const existing =
       await this.prisma.news_articles.findFirst({
         where: {
           id,
-          deleted_at: null,
+
+          deleted_at:
+            null,
         },
       });
 
-    if (!existing) {
+    if (
+      !existing
+    ) {
       throw new NotFoundException(
         'Actualité introuvable.',
       );
@@ -668,30 +1239,47 @@ if (
       where: {
         id,
       },
+
       data: {
-        status: 'ARCHIVED',
-        published_at: null,
+        status:
+          'ARCHIVED',
+
+        published_at:
+          null,
+
+        scheduled_at:
+          null,
+
         deleted_at:
           new Date(),
+
         updated_by_user_id:
           user.id,
+
         updated_at:
           new Date(),
       },
     });
 
     await this.auditLogs.log({
-      userId: user.id,
+      userId:
+        user.id,
+
       action:
         'NEWS_ARTICLE_DELETED',
+
       entityType:
         'NEWS_ARTICLE',
+
       entityId:
         existing.id,
+
       description:
         `Actualité supprimée : ${existing.title}.`,
+
       ipAddress:
         request.ip,
+
       userAgent:
         request.get(
           'user-agent',
@@ -699,24 +1287,144 @@ if (
     });
 
     return {
-      success: true,
+      success:
+        true,
     };
   }
 
   private buildPublicWhere(
     query: PublicNewsQueryDto,
   ): Prisma.news_articlesWhereInput {
-    const now = new Date();
+    const now =
+      new Date();
 
-    const where: Prisma.news_articlesWhereInput = {
-      status: 'PUBLISHED',
+    const andConditions:
+      Prisma.news_articlesWhereInput[] = [];
+
+    const search =
+      query.search?.trim();
+
+    if (
+      search
+    ) {
+      andConditions.push({
+        OR: [
+          {
+            title: {
+              contains:
+                search,
+
+              mode:
+                'insensitive',
+            },
+          },
+          {
+            excerpt: {
+              contains:
+                search,
+
+              mode:
+                'insensitive',
+            },
+          },
+          {
+            body: {
+              contains:
+                search,
+
+              mode:
+                'insensitive',
+            },
+          },
+          {
+            event_location: {
+              contains:
+                search,
+
+              mode:
+                'insensitive',
+            },
+          },
+        ],
+      });
+    }
+
+    if (
+      query.eventPeriod ===
+      'UPCOMING'
+    ) {
+      andConditions.push({
+        event_start_at: {
+          gt:
+            now,
+        },
+      });
+    }
+
+    if (
+      query.eventPeriod ===
+      'ONGOING'
+    ) {
+      andConditions.push({
+        event_start_at: {
+          lte:
+            now,
+        },
+
+        OR: [
+          {
+            event_end_at: {
+              gte:
+                now,
+            },
+          },
+          {
+            event_end_at:
+              null,
+          },
+        ],
+      });
+    }
+
+    if (
+      query.eventPeriod ===
+      'PAST'
+    ) {
+      andConditions.push({
+        OR: [
+          {
+            event_end_at: {
+              lt:
+                now,
+            },
+          },
+          {
+            event_end_at:
+              null,
+
+            event_start_at: {
+              lt:
+                now,
+            },
+          },
+        ],
+      });
+    }
+
+    return {
+      status:
+        'PUBLISHED',
 
       published_at: {
-        not: null,
-        lte: now,
+        not:
+          null,
+
+        lte:
+          now,
       },
 
-      deleted_at: null,
+      deleted_at:
+        null,
 
       ...(query.contentType
         ? {
@@ -729,70 +1437,26 @@ if (
         ? {
             content_type:
               'EVENT',
+
             event_category:
               query.eventCategory,
           }
         : {}),
+
+      ...(query.eventPeriod
+        ? {
+            content_type:
+              'EVENT',
+          }
+        : {}),
+
+      ...(andConditions.length
+        ? {
+            AND:
+              andConditions,
+          }
+        : {}),
     };
-
-    if (
-      query.eventPeriod ===
-      'UPCOMING'
-    ) {
-      where.content_type =
-        'EVENT';
-
-      where.event_start_at = {
-        gt: now,
-      };
-    }
-
-    if (
-      query.eventPeriod ===
-      'ONGOING'
-    ) {
-      where.content_type =
-        'EVENT';
-
-      where.event_start_at = {
-        lte: now,
-      };
-
-      where.OR = [
-        {
-          event_end_at: {
-            gte: now,
-          },
-        },
-        {
-          event_end_at: null,
-        },
-      ];
-    }
-
-    if (
-      query.eventPeriod ===
-      'PAST'
-    ) {
-      where.content_type =
-        'EVENT';
-
-      where.OR = [
-        {
-          event_end_at: {
-            lt: now,
-          },
-        },
-        {
-          event_end_at: null,
-          event_start_at: {
-            lt: now,
-          },
-        },
-      ];
-    }
-
-    return where;
   }
 
   private async validatePayload(
@@ -805,13 +1469,17 @@ if (
     const slug =
       dto.slug.trim();
 
-    if (!title) {
+    if (
+      !title
+    ) {
       throw new BadRequestException(
         'Le titre est obligatoire.',
       );
     }
 
-    if (!slug) {
+    if (
+      !slug
+    ) {
       throw new BadRequestException(
         'Le slug est obligatoire.',
       );
@@ -854,6 +1522,32 @@ if (
 
     if (
       dto.eventStartAt &&
+      Number.isNaN(
+        new Date(
+          dto.eventStartAt,
+        ).getTime(),
+      )
+    ) {
+      throw new BadRequestException(
+        'La date de début de l’événement est invalide.',
+      );
+    }
+
+    if (
+      dto.eventEndAt &&
+      Number.isNaN(
+        new Date(
+          dto.eventEndAt,
+        ).getTime(),
+      )
+    ) {
+      throw new BadRequestException(
+        'La date de fin de l’événement est invalide.',
+      );
+    }
+
+    if (
+      dto.eventStartAt &&
       dto.eventEndAt &&
       new Date(
         dto.eventEndAt,
@@ -871,30 +1565,37 @@ if (
       await this.prisma.news_articles.findFirst({
         where: {
           slug,
-          deleted_at: null,
+
+          deleted_at:
+            null,
 
           ...(articleId
             ? {
                 NOT: {
-                  id: articleId,
+                  id:
+                    articleId,
                 },
               }
             : {}),
         },
 
         select: {
-          id: true,
+          id:
+            true,
         },
       });
 
-    if (slugOwner) {
+    if (
+      slugOwner
+    ) {
       throw new ConflictException(
         'Une autre actualité utilise déjà ce slug.',
       );
     }
 
     await this.validateMedia(
-      dto.media ?? [],
+      dto.media ??
+        [],
     );
   }
 
@@ -903,20 +1604,27 @@ if (
       UpsertNewsArticleDto['media'],
   ) {
     const items =
-      media ?? [];
+      media ??
+      [];
 
-    if (!items.length) {
+    if (
+      !items.length
+    ) {
       return;
     }
 
     const assetIds =
       items.map(
-        (item) =>
+        (
+          item,
+        ) =>
           item.mediaAssetId,
       );
 
     const uniqueAssetIds =
-      new Set(assetIds);
+      new Set(
+        assetIds,
+      );
 
     if (
       uniqueAssetIds.size !==
@@ -929,12 +1637,16 @@ if (
 
     const orders =
       items.map(
-        (item) =>
+        (
+          item,
+        ) =>
           item.displayOrder,
       );
 
     const uniqueOrders =
-      new Set(orders);
+      new Set(
+        orders,
+      );
 
     if (
       uniqueOrders.size !==
@@ -949,10 +1661,12 @@ if (
       await this.prisma.media_assets.findMany({
         where: {
           id: {
-            in: assetIds,
+            in:
+              assetIds,
           },
 
-          deleted_at: null,
+          deleted_at:
+            null,
 
           status:
             'PUBLISHED',
@@ -969,7 +1683,8 @@ if (
         },
 
         select: {
-          id: true,
+          id:
+            true,
         },
       });
 
@@ -983,43 +1698,43 @@ if (
     }
   }
 
-private ensureArticleCanBePublished(
-  article: {
-    title: string;
-    excerpt: string | null;
-    body: string | null;
-    content_type: string;
-    event_start_at: Date | null;
-  },
-) {
-  if (!article.title.trim()) {
-    throw new BadRequestException(
-      'Le titre est obligatoire avant publication.',
-    );
-  }
-
-  if (!article.excerpt?.trim()) {
-    throw new BadRequestException(
-      'Le résumé est obligatoire avant publication.',
-    );
-  }
-
-  if (!article.body?.trim()) {
-    throw new BadRequestException(
-      'Le contenu est obligatoire avant publication.',
-    );
-  }
-
-  if (
-    article.content_type ===
-      'EVENT' &&
-    !article.event_start_at
+  private ensureArticleCanBePublished(
+    article: PublishableNewsArticle,
   ) {
-    throw new BadRequestException(
-      'La date de début est obligatoire avant la publication d’un événement.',
-    );
+    if (
+      !article.title.trim()
+    ) {
+      throw new BadRequestException(
+        'Le titre est obligatoire avant publication.',
+      );
+    }
+
+    if (
+      !article.excerpt?.trim()
+    ) {
+      throw new BadRequestException(
+        'Le résumé est obligatoire avant publication.',
+      );
+    }
+
+    if (
+      !article.body?.trim()
+    ) {
+      throw new BadRequestException(
+        'Le contenu est obligatoire avant publication.',
+      );
+    }
+
+    if (
+      article.content_type ===
+        'EVENT' &&
+      !article.event_start_at
+    ) {
+      throw new BadRequestException(
+        'La date de début est obligatoire avant la publication d’un événement.',
+      );
+    }
   }
-}
 
   private async replaceMedia(
     tx: Prisma.TransactionClient,
@@ -1036,14 +1751,18 @@ private ensureArticleCanBePublished(
       },
     });
 
-    if (!media.length) {
+    if (
+      !media.length
+    ) {
       return;
     }
 
     await tx.news_article_media.createMany({
       data:
         media.map(
-          (item) => ({
+          (
+            item,
+          ) => ({
             news_article_id:
               articleId,
 
@@ -1054,10 +1773,12 @@ private ensureArticleCanBePublished(
               item.displayOrder,
 
             alt_text:
-              item.altText?.trim(),
+              item.altText?.trim() ||
+              null,
 
             caption:
-              item.caption?.trim(),
+              item.caption?.trim() ||
+              null,
 
             updated_at:
               new Date(),
@@ -1067,32 +1788,19 @@ private ensureArticleCanBePublished(
   }
 
   private async formatArticles(
-    articles: Array<{
-      id: string;
-      content_type: string;
-      event_category: string | null;
-      status: string;
-      title: string;
-      slug: string;
-      excerpt: string | null;
-      body: string | null;
-      event_start_at: Date | null;
-      event_end_at: Date | null;
-      event_location: string | null;
-      seo_title: string | null;
-      seo_description: string | null;
-      published_at: Date | null;
-      created_at: Date;
-      updated_at: Date;
-    }>,
+    articles: NewsArticleRecord[],
   ) {
-    if (!articles.length) {
+    if (
+      !articles.length
+    ) {
       return [];
     }
 
     const articleIds =
       articles.map(
-        (article) =>
+        (
+          article,
+        ) =>
           article.id,
       );
 
@@ -1100,12 +1808,14 @@ private ensureArticleCanBePublished(
       await this.prisma.news_article_media.findMany({
         where: {
           news_article_id: {
-            in: articleIds,
+            in:
+              articleIds,
           },
         },
 
         include: {
-          media_assets: true,
+          media_assets:
+            true,
         },
 
         orderBy: [
@@ -1121,15 +1831,22 @@ private ensureArticleCanBePublished(
       });
 
     const mediaByArticle =
-      new Map<string, any[]>();
+      new Map<
+        string,
+        ReturnType<
+          NewsService['formatMedia']
+        >[]
+      >();
 
     for (
-      const item of media
+      const item
+      of media
     ) {
       const current =
         mediaByArticle.get(
           item.news_article_id,
-        ) ?? [];
+        ) ??
+        [];
 
       current.push(
         this.formatMedia(
@@ -1144,35 +1861,22 @@ private ensureArticleCanBePublished(
     }
 
     return articles.map(
-      (article) =>
+      (
+        article,
+      ) =>
         this.formatArticleData(
           article,
+
           mediaByArticle.get(
             article.id,
-          ) ?? [],
+          ) ??
+            [],
         ),
     );
   }
 
   private async formatArticle(
-    article: {
-      id: string;
-      content_type: string;
-      event_category: string | null;
-      status: string;
-      title: string;
-      slug: string;
-      excerpt: string | null;
-      body: string | null;
-      event_start_at: Date | null;
-      event_end_at: Date | null;
-      event_location: string | null;
-      seo_title: string | null;
-      seo_description: string | null;
-      published_at: Date | null;
-      created_at: Date;
-      updated_at: Date;
-    },
+    article: NewsArticleRecord,
   ) {
     const media =
       await this.prisma.news_article_media.findMany({
@@ -1182,7 +1886,8 @@ private ensureArticleCanBePublished(
         },
 
         include: {
-          media_assets: true,
+          media_assets:
+            true,
         },
 
         orderBy: [
@@ -1199,8 +1904,11 @@ private ensureArticleCanBePublished(
 
     return this.formatArticleData(
       article,
+
       media.map(
-        (item) =>
+        (
+          item,
+        ) =>
           this.formatMedia(
             item,
           ),
@@ -1209,25 +1917,10 @@ private ensureArticleCanBePublished(
   }
 
   private formatArticleData(
-    article: {
-      id: string;
-      content_type: string;
-      event_category: string | null;
-      status: string;
-      title: string;
-      slug: string;
-      excerpt: string | null;
-      body: string | null;
-      event_start_at: Date | null;
-      event_end_at: Date | null;
-      event_location: string | null;
-      seo_title: string | null;
-      seo_description: string | null;
-      published_at: Date | null;
-      created_at: Date;
-      updated_at: Date;
-    },
-    media: any[],
+    article: NewsArticleRecord,
+    media: ReturnType<
+      NewsService['formatMedia']
+    >[],
   ) {
     return {
       id:
@@ -1279,6 +1972,9 @@ private ensureArticleCanBePublished(
       publishedAt:
         article.published_at,
 
+      scheduledAt:
+        article.scheduled_at,
+
       createdAt:
         article.created_at,
 
@@ -1288,7 +1984,8 @@ private ensureArticleCanBePublished(
       media,
 
       primaryMedia:
-        media[0] ?? null,
+        media[0] ??
+        null,
     };
   }
 
@@ -1406,7 +2103,9 @@ private ensureArticleCanBePublished(
         '',
       );
 
-    if (!baseUrl) {
+    if (
+      !baseUrl
+    ) {
       return objectKey;
     }
 
