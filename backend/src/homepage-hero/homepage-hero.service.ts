@@ -106,13 +106,21 @@ export class HomepageHeroService {
 
     const slide =
       await this.prisma.homepage_hero_slides.create({
-        data: {
-          media_asset_id: dto.mediaAssetId,
-          title: dto.title?.trim() || null,
-          alt_text: dto.altText.trim(),
-          display_order: dto.displayOrder ?? 0,
-          is_published: dto.isPublished ?? true,
-        },
+data: {
+  media_asset_id: dto.mediaAssetId,
+  title: dto.title?.trim() || null,
+  alt_text: dto.altText.trim(),
+  display_order: dto.displayOrder ?? 0,
+  is_published: dto.isPublished ?? true,
+  desktop_position_x:
+    dto.desktopPositionX ?? 50,
+  desktop_position_y:
+    dto.desktopPositionY ?? 50,
+  mobile_position_x:
+    dto.mobilePositionX ?? 50,
+  mobile_position_y:
+    dto.mobilePositionY ?? 50,
+},
         include: {
           media_assets: true,
         },
@@ -168,6 +176,32 @@ export class HomepageHeroService {
                   dto.isPublished,
               }
             : {}),
+
+...(dto.desktopPositionX !== undefined
+  ? {
+      desktop_position_x:
+        dto.desktopPositionX,
+    }
+  : {}),
+...(dto.desktopPositionY !== undefined
+  ? {
+      desktop_position_y:
+        dto.desktopPositionY,
+    }
+  : {}),
+...(dto.mobilePositionX !== undefined
+  ? {
+      mobile_position_x:
+        dto.mobilePositionX,
+    }
+  : {}),
+...(dto.mobilePositionY !== undefined
+  ? {
+      mobile_position_y:
+        dto.mobilePositionY,
+    }
+  : {}),
+
           updated_at: new Date(),
         },
         include: {
@@ -269,8 +303,12 @@ export class HomepageHeroService {
       media_asset_id: string;
       title: string | null;
       alt_text: string;
-      display_order: number;
-      is_published: boolean;
+display_order: number;
+is_published: boolean;
+desktop_position_x: number;
+desktop_position_y: number;
+mobile_position_x: number;
+mobile_position_y: number;
 
       media_assets: {
         object_key: string;
@@ -288,8 +326,16 @@ export class HomepageHeroService {
       altText: slide.alt_text,
       displayOrder:
         slide.display_order,
-      isPublished:
-        slide.is_published,
+isPublished:
+  slide.is_published,
+desktopPositionX:
+  slide.desktop_position_x,
+desktopPositionY:
+  slide.desktop_position_y,
+mobilePositionX:
+  slide.mobile_position_x,
+mobilePositionY:
+  slide.mobile_position_y,
     };
   }
 

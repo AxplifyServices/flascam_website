@@ -8,8 +8,6 @@ import {
   useState,
 } from 'react';
 
-import Image from 'next/image';
-
 import {
   ArrowDown,
   ArrowUp,
@@ -25,6 +23,13 @@ import {
   X,
 } from 'lucide-react';
 
+import {
+  HomepageHeroPositionEditor,
+} from '@/components/admin/homepage-hero-position-editor';
+
+import type {
+  HeroImagePositions,
+} from '@/components/admin/homepage-hero-position-editor';
 
 import {
   createHomepageHeroSlide,
@@ -43,13 +48,21 @@ type SlideFormState = {
   title: string;
   altText: string;
   isPublished: boolean;
+  positions: HeroImagePositions;
 };
 
-const emptyForm: SlideFormState = {
-  title: '',
-  altText: '',
-  isPublished: true,
-};
+const createEmptyForm =
+  (): SlideFormState => ({
+    title: '',
+    altText: '',
+    isPublished: true,
+    positions: {
+      desktopPositionX: 50,
+      desktopPositionY: 50,
+      mobilePositionX: 50,
+      mobilePositionY: 50,
+    },
+  });
 
 function sortSlides(
   slides: HomepageHeroSlide[],
@@ -121,8 +134,8 @@ export default function AdminHomepagePage() {
     form,
     setForm,
   ] = useState<SlideFormState>(
-    emptyForm,
-  );
+  createEmptyForm,
+);
 
   const [
     error,
@@ -220,7 +233,9 @@ export default function AdminHomepagePage() {
     setEditingSlide(null);
     setSelectedFile(null);
     setPreviewUrl(null);
-    setForm(emptyForm);
+    setForm(
+  createEmptyForm(),
+);
   }
 
   function handleFileChange(
@@ -307,14 +322,24 @@ export default function AdminHomepagePage() {
     setPreviewUrl(null);
     setEditingSlide(slide);
 
-    setForm({
-      title:
-        slide.title ?? '',
-      altText:
-        slide.altText,
-      isPublished:
-        slide.isPublished,
-    });
+setForm({
+  title:
+    slide.title ?? '',
+  altText:
+    slide.altText,
+  isPublished:
+    slide.isPublished,
+  positions: {
+    desktopPositionX:
+      slide.desktopPositionX,
+    desktopPositionY:
+      slide.desktopPositionY,
+    mobilePositionX:
+      slide.mobilePositionX,
+    mobilePositionY:
+      slide.mobilePositionY,
+  },
+});
 
     window.scrollTo({
       top: 0,
@@ -356,13 +381,14 @@ export default function AdminHomepagePage() {
         const updated =
           await updateHomepageHeroSlide(
             editingSlide.id,
-            {
-              title:
-                form.title.trim(),
-              altText,
-              isPublished:
-                form.isPublished,
-            },
+{
+  title:
+    form.title.trim(),
+  altText,
+  isPublished:
+    form.isPublished,
+  ...form.positions,
+},
           );
 
         setSlides(
@@ -398,8 +424,9 @@ export default function AdminHomepagePage() {
               altText,
               displayOrder:
                 orderedSlides.length,
-              isPublished:
-                form.isPublished,
+isPublished:
+  form.isPublished,
+...form.positions,
             },
           );
 
@@ -839,120 +866,145 @@ export default function AdminHomepagePage() {
             )}
           </div>
 
-          {!editingSlide && (
-            <label
-              className="
-                mt-5
-                flex
-                min-h-52
-                cursor-pointer
-                flex-col
-                items-center
-                justify-center
-                overflow-hidden
-                rounded-2xl
-                border-2
-                border-dashed
-                border-[#b9d5e8]
-                bg-[#f8fbff]
-                text-center
-                transition
-                hover:border-[var(--flascam-blue)]
-              "
-            >
-              {previewUrl ? (
-                <div
-                  className="
-                    relative
-                    h-52
-                    w-full
-                  "
-                >
-                  <Image
-                    src={previewUrl}
-                    alt="Aperçu de l’image sélectionnée"
-                    fill
-                    unoptimized
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="px-6 py-8">
-                  <div
-                    className="
-                      mx-auto
-                      grid
-                      size-14
-                      place-items-center
-                      rounded-2xl
-                      bg-[#eaf5ff]
-                      text-[var(--flascam-blue)]
-                    "
-                  >
-                    <ImagePlus
-                      size={25}
-                    />
-                  </div>
+{!editingSlide && (
+  <label
+    className="
+      mt-5
+      flex
+      min-h-52
+      cursor-pointer
+      flex-col
+      items-center
+      justify-center
+      overflow-hidden
+      rounded-2xl
+      border-2
+      border-dashed
+      border-[#b9d5e8]
+      bg-[#f8fbff]
+      text-center
+      transition
+      hover:border-[var(--flascam-blue)]
+    "
+  >
+    {previewUrl ? (
+      <div
+        className="
+          relative
+          h-52
+          w-full
+          overflow-hidden
+        "
+      >
+        <img
+          src={previewUrl}
+          alt="Aperçu de l’image sélectionnée"
+          className="
+            absolute
+            inset-0
+            size-full
+            object-cover
+          "
+        />
 
-                  <p
-                    className="
-                      mt-4
-                      text-sm
-                      font-extrabold
-                      text-slate-900
-                    "
-                  >
-                    Sélectionner une image
-                  </p>
+        <div
+          className="
+            absolute
+            inset-x-0
+            bottom-0
+            bg-[#07355d]/75
+            px-4
+            py-2
+            text-xs
+            font-bold
+            text-white
+            backdrop-blur-sm
+          "
+        >
+          Appuyez pour choisir une autre image
+        </div>
+      </div>
+    ) : (
+      <div className="px-6 py-8">
+        <div
+          className="
+            mx-auto
+            grid
+            size-14
+            place-items-center
+            rounded-2xl
+            bg-[#eaf5ff]
+            text-[var(--flascam-blue)]
+          "
+        >
+          <ImagePlus
+            size={25}
+          />
+        </div>
 
-                  <p
-                    className="
-                      mt-1
-                      text-xs
-                      text-[var(--flascam-slate)]
-                    "
-                  >
-                    Appuyez ici pour parcourir vos
-                    fichiers
-                  </p>
-                </div>
-              )}
+        <p
+          className="
+            mt-4
+            text-sm
+            font-extrabold
+            text-slate-900
+          "
+        >
+          Sélectionner une image
+        </p>
 
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/svg+xml"
-                onChange={
-                  handleFileChange
-                }
-                className="sr-only"
-              />
-            </label>
-          )}
+        <p
+          className="
+            mt-1
+            text-xs
+            text-[var(--flascam-slate)]
+          "
+        >
+          Appuyez ici pour parcourir vos fichiers
+        </p>
+      </div>
+    )}
 
-          {editingSlide && (
-            <div
-              className="
-                relative
-                mt-5
-                aspect-[16/9]
-                overflow-hidden
-                rounded-2xl
-                bg-slate-100
-              "
-            >
-              <Image
-                src={
-                  editingSlide.imageUrl
-                }
-                alt={
-                  editingSlide.altText
-                }
-                fill
-                sizes="380px"
-                className="object-cover"
-              />
-            </div>
-          )}
+    <input
+      type="file"
+      accept="image/jpeg,image/png,image/webp,image/svg+xml"
+      onChange={
+        handleFileChange
+      }
+      className="sr-only"
+    />
+  </label>
+)}
+
+{(
+  previewUrl ||
+  editingSlide
+) && (
+  <HomepageHeroPositionEditor
+    imageUrl={
+      previewUrl ??
+      editingSlide!.imageUrl
+    }
+    altText={
+      form.altText ||
+      editingSlide?.altText ||
+      'Aperçu du cadrage'
+    }
+    value={
+      form.positions
+    }
+    onChange={(
+      positions,
+    ) => {
+      setForm(
+        (current) => ({
+          ...current,
+          positions,
+        }),
+      );
+    }}
+  />
+)}          
 
           <label
             className="
@@ -1318,17 +1370,20 @@ export default function AdminHomepagePage() {
                           bg-slate-100
                         "
                       >
-                        <Image
-                          src={
-                            slide.imageUrl
-                          }
-                          alt={
-                            slide.altText
-                          }
-                          fill
-                          sizes="160px"
-                          className="object-cover"
-                        />
+<img
+  src={slide.imageUrl}
+  alt={slide.altText}
+  style={{
+    objectPosition:
+      `${slide.desktopPositionX}% ${slide.desktopPositionY}%`,
+  }}
+  className="
+    absolute
+    inset-0
+    size-full
+    object-cover
+  "
+/>
 
                         <span
                           className="

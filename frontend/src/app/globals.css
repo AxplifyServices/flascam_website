@@ -427,3 +427,19 @@ summary::-webkit-details-marker {
     transition-duration: 0.01ms !important;
   }
 }
+
+.homepage-hero-image {
+  object-position: var(
+    --hero-position-mobile,
+    50% 50%
+  );
+}
+
+@media (min-width: 640px) {
+  .homepage-hero-image {
+    object-position: var(
+      --hero-position-desktop,
+      50% 50%
+    );
+  }
+}

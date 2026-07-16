@@ -2,7 +2,6 @@
 
 import {
   useEffect,
-  useRef,
   useState,
 } from 'react';
 
@@ -19,16 +18,6 @@ type HomepageHeroSliderProps = {
   slides: HomepageHeroSlide[];
 };
 
-type ImageDimensions = {
-  width: number;
-  height: number;
-};
-
-type ContainerDimensions = {
-  width: number;
-  height: number;
-};
-
 const fallbackSlide: HomepageHeroSlide = {
   id: 'fallback-membre-association',
   mediaAssetId: '',
@@ -38,9 +27,11 @@ const fallbackSlide: HomepageHeroSlide = {
     'Membres et représentants de la FLASCAM réunis lors d’un événement professionnel',
   displayOrder: 0,
   isPublished: true,
+  desktopPositionX: 50,
+  desktopPositionY: 50,
+  mobilePositionX: 50,
+  mobilePositionY: 50,
 };
-
-const DIMENSION_TOLERANCE = 0.03;
 
 export function HomepageHeroSlider({
   slides,
@@ -50,34 +41,10 @@ export function HomepageHeroSlider({
       ? slides
       : [fallbackSlide];
 
-  const containerRef =
-    useRef<HTMLDivElement | null>(
-      null,
-    );
-
   const [
     activeIndex,
     setActiveIndex,
   ] = useState(0);
-
-  const [
-    containerDimensions,
-    setContainerDimensions,
-  ] =
-    useState<ContainerDimensions>({
-      width: 0,
-      height: 0,
-    });
-
-  const [
-    imageDimensions,
-    setImageDimensions,
-  ] = useState<
-    Record<
-      string,
-      ImageDimensions
-    >
-  >({});
 
   useEffect(() => {
     if (
@@ -103,48 +70,6 @@ export function HomepageHeroSlider({
   }, [
     availableSlides.length,
   ]);
-
-useEffect(() => {
-  const container =
-    containerRef.current;
-
-  if (!container) {
-    return;
-  }
-
-  function updateContainerDimensions(
-    element: HTMLDivElement,
-  ) {
-    const rect =
-      element.getBoundingClientRect();
-
-    setContainerDimensions({
-      width:
-        Math.round(rect.width),
-      height:
-        Math.round(rect.height),
-    });
-  }
-
-  updateContainerDimensions(
-    container,
-  );
-
-  const resizeObserver =
-    new ResizeObserver(() => {
-      updateContainerDimensions(
-        container,
-      );
-    });
-
-  resizeObserver.observe(
-    container,
-  );
-
-  return () => {
-    resizeObserver.disconnect();
-  };
-}, []);
 
   useEffect(() => {
     if (
@@ -180,106 +105,8 @@ useEffect(() => {
     );
   }
 
-  function saveImageDimensions(
-    slideId: string,
-    image: HTMLImageElement,
-  ) {
-    const width =
-      image.naturalWidth;
-
-    const height =
-      image.naturalHeight;
-
-    if (
-      width <= 0 ||
-      height <= 0
-    ) {
-      return;
-    }
-
-    setImageDimensions(
-      (current) => {
-        const existing =
-          current[slideId];
-
-        if (
-          existing?.width ===
-            width &&
-          existing?.height ===
-            height
-        ) {
-          return current;
-        }
-
-        return {
-          ...current,
-          [slideId]: {
-            width,
-            height,
-          },
-        };
-      },
-    );
-  }
-
-  function calculateRenderedSize(
-    slideId: string,
-  ) {
-    const sourceDimensions =
-      imageDimensions[slideId];
-
-    if (
-      !sourceDimensions ||
-      containerDimensions.width <=
-        0 ||
-      containerDimensions.height <=
-        0
-    ) {
-      return {
-        width: '100%',
-        height: '100%',
-      };
-    }
-
-    const widthRatio =
-      containerDimensions.width /
-      sourceDimensions.width;
-
-    const heightRatio =
-      containerDimensions.height /
-      sourceDimensions.height;
-
-    const calculatedScale =
-      Math.min(
-        widthRatio,
-        heightRatio,
-      );
-
-    const isAlreadyWithinTolerance =
-      Math.abs(
-        calculatedScale - 1,
-      ) <= DIMENSION_TOLERANCE;
-
-    const finalScale =
-      isAlreadyWithinTolerance
-        ? 1
-        : calculatedScale;
-
-    return {
-      width: `${Math.round(
-        sourceDimensions.width *
-          finalScale,
-      )}px`,
-      height: `${Math.round(
-        sourceDimensions.height *
-          finalScale,
-      )}px`,
-    };
-  }
-
   return (
     <div
-      ref={containerRef}
       className="
         relative
         h-full
@@ -294,44 +121,43 @@ useEffect(() => {
         (
           slide,
           index,
-        ) => {
-          const renderedSize =
-            calculateRenderedSize(
-              slide.id,
-            );
-
-          return (
-            <div
-              key={slide.id}
-              aria-hidden={
-                index !==
+        ) => (
+          <div
+            key={slide.id}
+            aria-hidden={
+              index !==
+              activeIndex
+            }
+            className={`
+              absolute
+              inset-0
+              overflow-hidden
+              transition
+              duration-700
+              ease-out
+              ${
+                index ===
                 activeIndex
+                  ? `
+                    scale-100
+                    opacity-100
+                  `
+                  : `
+                    pointer-events-none
+                    scale-[1.015]
+                    opacity-0
+                  `
               }
-              className={`
-                absolute
-                inset-0
-                flex
-                items-center
-                justify-center
-                overflow-hidden
-                transition
-                duration-700
-                ease-out
-                ${
-                  index ===
-                  activeIndex
-                    ? `
-                      scale-100
-                      opacity-100
-                    `
-                    : `
-                      pointer-events-none
-                      scale-[1.015]
-                      opacity-0
-                    `
+            `}
+          >
+            <picture>
+              <source
+                media="(max-width: 639px)"
+                srcSet={
+                  slide.imageUrl
                 }
-              `}
-            >
+              />
+
               <img
                 src={
                   slide.imageUrl
@@ -349,48 +175,36 @@ useEffect(() => {
                     ? 'high'
                     : 'auto'
                 }
-                onLoad={(
-                  event,
-                ) => {
-                  saveImageDimensions(
-                    slide.id,
-                    event.currentTarget,
-                  );
-                }}
                 style={{
-                  width:
-                    renderedSize.width,
-                  height:
-                    renderedSize.height,
-                  maxWidth: 'none',
-                  maxHeight:
-                    'none',
-                }}
+                  '--hero-position-mobile':
+                    `${slide.mobilePositionX}% ${slide.mobilePositionY}%`,
+                  '--hero-position-desktop':
+                    `${slide.desktopPositionX}% ${slide.desktopPositionY}%`,
+                } as React.CSSProperties}
                 className="
-                  block
-                  flex-none
-                  object-contain
-                  transition-[width,height]
-                  duration-300
-                  ease-out
-                "
-              />
-
-              <div
-                aria-hidden="true"
-                className="
-                  pointer-events-none
+                  homepage-hero-image
                   absolute
                   inset-0
-                  bg-gradient-to-t
-                  from-[#07355d]/35
-                  via-transparent
-                  to-transparent
+                  size-full
+                  object-cover
                 "
               />
-            </div>
-          );
-        },
+            </picture>
+
+            <div
+              aria-hidden="true"
+              className="
+                pointer-events-none
+                absolute
+                inset-0
+                bg-gradient-to-t
+                from-[#07355d]/35
+                via-transparent
+                to-transparent
+              "
+            />
+          </div>
+        ),
       )}
 
       {availableSlides.length >
@@ -461,10 +275,11 @@ useEffect(() => {
           <div
             className="
               absolute
-              bottom-6
-              left-6
+              bottom-5
+              left-5
               z-10
               flex
+              items-center
               gap-2
             "
           >
@@ -491,8 +306,10 @@ useEffect(() => {
                       : undefined
                   }
                   className={`
-                    h-1.5
+                    h-2.5
                     rounded-full
+                    border
+                    border-white/70
                     transition-all
                     ${
                       index ===
@@ -502,9 +319,9 @@ useEffect(() => {
                           bg-white
                         `
                         : `
-                          w-3
-                          bg-white/50
-                          hover:bg-white/80
+                          w-2.5
+                          bg-white/40
+                          hover:bg-white/70
                         `
                     }
                   `}

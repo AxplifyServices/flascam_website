@@ -6,4 +6,8 @@ export type HomepageHeroSlideResponse = {
   altText: string;
   displayOrder: number;
   isPublished: boolean;
+  desktopPositionX: number;
+  desktopPositionY: number;
+  mobilePositionX: number;
+  mobilePositionY: number;
 };

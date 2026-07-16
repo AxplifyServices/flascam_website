@@ -13,6 +13,10 @@ export type CreateHomepageHeroSlidePayload = {
   altText: string;
   displayOrder?: number;
   isPublished?: boolean;
+  desktopPositionX?: number;
+  desktopPositionY?: number;
+  mobilePositionX?: number;
+  mobilePositionY?: number;
 };
 
 export type UpdateHomepageHeroSlidePayload = {
@@ -20,6 +24,10 @@ export type UpdateHomepageHeroSlidePayload = {
   altText?: string;
   displayOrder?: number;
   isPublished?: boolean;
+  desktopPositionX?: number;
+  desktopPositionY?: number;
+  mobilePositionX?: number;
+  mobilePositionY?: number;
 };
 
 export type UploadedHomepageImage = {
