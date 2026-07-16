@@ -15,6 +15,10 @@ type AssociationCardProps = {
   association: AssociationSummary;
 };
 
+import {
+  AdaptiveImage,
+} from '@/components/site/adaptive-image';
+
 function AssociationLogo({
   association,
 }: {
@@ -55,11 +59,20 @@ export function AssociationCard({
       <div className="relative h-36 overflow-hidden bg-gradient-to-br from-[#07355d] via-[#0a487b] to-[#0f5f9f]">
         {association.coverImageUrl ? (
           <>
-            <img
-              src={association.coverImageUrl}
-              alt=""
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-            />
+<AdaptiveImage
+  src={
+    association.coverImageUrl
+  }
+  alt={`Couverture de ${association.name}`}
+  imageClassName="
+    transition
+    duration-500
+    group-hover:scale-[1.025]
+  "
+  backdropClassName="
+    opacity-45
+  "
+/>
 
             <div
               aria-hidden="true"

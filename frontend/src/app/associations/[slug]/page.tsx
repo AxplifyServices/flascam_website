@@ -32,6 +32,10 @@ import {
   getPublicAssociationBySlug,
 } from '@/lib/associations-api';
 
+import {
+  AdaptiveImage,
+} from '@/components/site/adaptive-image';
+
 type PageProps = {
   params: Promise<{
     slug: string;
@@ -246,35 +250,82 @@ export default async function AssociationDetailPage({
 
       <main>
 <section
-  className="relative min-h-[280px] overflow-hidden bg-gradient-to-br from-[#07355d] via-[#0a487b] to-[#0f5f9f] sm:min-h-[360px] lg:min-h-[430px]"
-  style={
-    association.coverImageUrl
-      ? {
-          backgroundImage: `url("${association.coverImageUrl}")`,
-          backgroundPosition: 'center',
-          backgroundSize: 'cover',
-        }
-      : undefined
-  }
+  className="
+    relative
+    h-[280px]
+    overflow-hidden
+    bg-gradient-to-br
+    from-[#07355d]
+    via-[#0a487b]
+    to-[#0f5f9f]
+    sm:h-[360px]
+    lg:h-[430px]
+  "
 >
-  {!association.coverImageUrl && (
+  {association.coverImageUrl ? (
+    <AdaptiveImage
+      src={
+        association.coverImageUrl
+      }
+      alt={`Bannière de ${association.name}`}
+      loading="eager"
+      fetchPriority="high"
+      imageClassName="
+        p-0
+      "
+      backdropClassName="
+        opacity-50
+      "
+    />
+  ) : (
     <>
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-[0.12]"
+        className="
+          pointer-events-none
+          absolute
+          inset-0
+          opacity-[0.12]
+        "
         style={{
           backgroundImage:
             'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)',
-          backgroundSize: '22px 22px',
+          backgroundSize:
+            '22px 22px',
         }}
       />
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-36 -top-48 h-[32rem] w-[32rem] rounded-full border border-white/10"
+        className="
+          pointer-events-none
+          absolute
+          -right-36
+          -top-48
+          h-[32rem]
+          w-[32rem]
+          rounded-full
+          border
+          border-white/10
+        "
       />
     </>
   )}
+
+  <div
+    aria-hidden="true"
+    className="
+      pointer-events-none
+      absolute
+      inset-x-0
+      bottom-0
+      z-20
+      h-20
+      bg-gradient-to-t
+      from-[#07355d]/40
+      to-transparent
+    "
+  />
 </section>
 
 <section className="border-b border-[#dbe5ef] bg-white">
@@ -463,11 +514,16 @@ export default async function AssociationDetailPage({
                       >
                         <div className="relative h-48 overflow-hidden bg-[#eaf5ff]">
                           {post.coverUrl ? (
-                            <img
-                              src={post.coverUrl}
-                              alt={post.title}
-                              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                            />
+<AdaptiveImage
+  src={post.coverUrl}
+  alt={post.title}
+  imageClassName="
+    p-2
+    transition
+    duration-500
+    group-hover:scale-[1.025]
+  "
+/>
                           ) : (
                             <div className="grid h-full place-items-center text-sm font-bold text-[#0f5f9f]">
                               Actualité FLASCAM
@@ -519,11 +575,21 @@ export default async function AssociationDetailPage({
                         className="group relative overflow-hidden bg-[#eaf5ff]"
                       >
                         {photo.url && (
-                          <img
-                            src={photo.url}
-                            alt={photo.title || 'Photo association'}
-                            className="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-105"
-                          />
+<div className="aspect-[4/3] w-full">
+  <AdaptiveImage
+    src={photo.url}
+    alt={
+      photo.title ||
+      `Photo de ${association.name}`
+    }
+    imageClassName="
+      p-1
+      transition
+      duration-500
+      group-hover:scale-[1.025]
+    "
+  />
+</div>
                         )}
 
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#07355d]/55 via-transparent to-transparent opacity-0 transition duration-300 group-hover:opacity-100" />

@@ -121,8 +121,8 @@ async function HeroSection() {
       </p>
 
       <h1 className="mt-6 max-w-4xl text-[2.4rem] font-extrabold leading-[1.08] tracking-[-0.045em] text-white sm:text-[3.4rem] lg:text-[4.15rem]">
-        Unir, défendre et professionnaliser les loueurs automobiles sans
-        chauffeur au Maroc.
+          Quelle que soit notre force individuelle, notre vrai puissance est dans
+          l'union
       </h1>
 
       <p className="mt-7 max-w-3xl text-base leading-8 text-white/80 sm:text-lg sm:leading-9">

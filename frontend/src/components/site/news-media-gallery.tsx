@@ -17,6 +17,10 @@ import type {
   NewsMedia,
 } from '@/types/news';
 
+import {
+  AdaptiveImage,
+} from '@/components/site/adaptive-image';
+
 type NewsMediaGalleryProps = {
   media: NewsMedia[];
   articleTitle: string;
@@ -219,40 +223,45 @@ export function NewsMediaGallery({
                     articleTitle
                   }`}
                 >
-                  <img
-                    src={item.url}
-                    alt={
-                      item.altText ??
-                      articleTitle
-                    }
-                    loading={
-                      index === 0
-                        ? 'eager'
-                        : 'lazy'
-                    }
-                    fetchPriority={
-                      index === 0
-                        ? 'high'
-                        : 'auto'
-                    }
-                    className={`
-                      w-full
-                      object-cover
-                      transition
-                      duration-500
-                      group-hover/image:scale-[1.02]
-                      ${
-                        index === 0
-                          ? `
-                            max-h-[42rem]
-                            min-h-64
-                          `
-                          : `
-                            aspect-video
-                          `
-                      }
-                    `}
-                  />
+<div
+  className={`
+    w-full
+    ${
+      index === 0
+        ? `
+          h-[clamp(17rem,65vw,42rem)]
+        `
+        : `
+          aspect-video
+        `
+    }
+  `}
+>
+  <AdaptiveImage
+    src={item.url}
+    alt={
+      item.altText ??
+      articleTitle
+    }
+    loading={
+      index === 0
+        ? 'eager'
+        : 'lazy'
+    }
+    fetchPriority={
+      index === 0
+        ? 'high'
+        : 'auto'
+    }
+    imageClassName="
+      p-2
+      transition
+      duration-500
+      group-hover/image:scale-[1.015]
+      sm:p-4
+    "
+  />
+</div>
 
                   <span
                     className="

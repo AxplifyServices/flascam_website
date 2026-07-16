@@ -188,6 +188,18 @@ export default async function NewsDetailPage({
         ]
       : null;
 
+const articleImages =
+  article.media
+    .filter(
+      (media) =>
+        media.mediaType ===
+        'IMAGE',
+    )
+    .map(
+      (media) =>
+        media.url,
+    );
+
   const jsonLd = {
     '@context':
       'https://schema.org',
@@ -213,17 +225,12 @@ export default async function NewsDetailPage({
     dateModified:
       article.updatedAt,
 
-    image:
-      article.media
-        .filter(
-          (media) =>
-            media.mediaType ===
-            'IMAGE',
-        )
-        .map(
-          (media) =>
-            media.url,
-        ),
+...(articleImages.length > 0
+  ? {
+      image:
+        articleImages,
+    }
+  : {}),
 
     mainEntityOfPage:
       `https://flascam.axplitest.com/actualites/${article.slug}`,
@@ -537,14 +544,22 @@ export default async function NewsDetailPage({
   />
 )}
 
-              <section
-                className="
-                  mx-auto
-                  mt-10
-                  max-w-3xl
-                  sm:mt-14
-                "
-              >
+<section
+  className={`
+    mx-auto
+    max-w-3xl
+    ${
+      article.media.length > 0
+        ? `
+          mt-10
+          sm:mt-14
+        `
+        : `
+          mt-0
+        `
+    }
+  `}
+>
                 {article.body ? (
                   <div
                     className="

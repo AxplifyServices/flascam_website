@@ -4,7 +4,6 @@ import {
   ArrowRight,
   CalendarDays,
   Clock3,
-  ImageIcon,
   MapPin,
   Play,
 } from 'lucide-react';
@@ -19,6 +18,10 @@ import {
 import type {
   NewsArticle,
 } from '@/types/news';
+
+import {
+  AdaptiveImage,
+} from '@/components/site/adaptive-image';
 
 type NewsCardProps = {
   article: NewsArticle;
@@ -35,6 +38,9 @@ export function NewsCard({
     article.primaryMedia ??
     article.media[0] ??
     null;
+
+  const hasMedia =
+    media !== null;
 
   const publicationDate =
     formatNewsDate(
@@ -67,182 +73,237 @@ export function NewsCard({
         hover:shadow-[0_24px_70px_rgba(7,53,93,0.13)]
       "
     >
-      <Link
-        href={`/actualites/${article.slug}`}
-        className={`
-          relative
-          block
-          overflow-hidden
-          bg-[#eaf5ff]
-          ${
-            compact
-              ? `
-                h-[180px]
-                sm:h-[220px]
-                lg:h-[250px]
-              `
-              : `
-                aspect-[16/10]
-              `
-          }
-        `}
-        aria-label={`Lire ${article.title}`}
-      >
-        {media?.mediaType ===
-        'IMAGE' ? (
-          <img
-            src={media.url}
-            alt={
-              media.altText ??
-              article.title
-            }
-            loading={
-              priority
-                ? 'eager'
-                : 'lazy'
-            }
-            fetchPriority={
-              priority
-                ? 'high'
-                : 'auto'
-            }
-            className="
-              h-full
-              w-full
-              object-cover
-              transition
-              duration-500
-              group-hover:scale-[1.04]
-            "
-          />
-        ) : media?.mediaType ===
-          'VIDEO' ? (
-          <>
-            <video
-              src={media.url}
-              muted
-              playsInline
-              preload="metadata"
-              className="
-                h-full
-                w-full
-                object-cover
-                transition
-                duration-500
-                group-hover:scale-[1.04]
-              "
-            />
-
-            <span
-              className="
-                absolute
-                inset-0
-                grid
-                place-items-center
-                bg-slate-950/15
-              "
-            >
-              <span
-                className="
-                  grid
-                  size-14
-                  place-items-center
-                  rounded-full
-                  bg-white/95
-                  text-[#07355d]
-                  shadow-xl
-                "
-              >
-                <Play
-                  size={22}
-                  fill="currentColor"
-                />
-              </span>
-            </span>
-          </>
-        ) : (
-          <span
-            className="
-              grid
-              h-full
-              place-items-center
-              text-[#0f5f9f]/30
-            "
-          >
-            <ImageIcon
-              size={48}
-            />
-          </span>
-        )}
+{hasMedia && (
+  <Link
+    href={`/actualites/${article.slug}`}
+    className={`
+      relative
+      block
+      overflow-hidden
+      bg-[#eaf5ff]
+      ${
+        compact
+          ? `
+            h-[180px]
+            sm:h-[220px]
+            lg:h-[250px]
+          `
+          : `
+            aspect-[16/10]
+          `
+      }
+    `}
+    aria-label={`Lire ${article.title}`}
+  >
+    {media?.mediaType ===
+    'IMAGE' ? (
+      <AdaptiveImage
+        src={media.url}
+        alt={
+          media.altText ??
+          article.title
+        }
+        loading={
+          priority
+            ? 'eager'
+            : 'lazy'
+        }
+        fetchPriority={
+          priority
+            ? 'high'
+            : 'auto'
+        }
+        imageClassName="
+          p-2
+          transition
+          duration-500
+          group-hover:scale-[1.025]
+          sm:p-3
+        "
+      />
+    ) : media?.mediaType ===
+      'VIDEO' ? (
+      <>
+        <video
+          src={media.url}
+          muted
+          playsInline
+          preload="metadata"
+          className="
+            h-full
+            w-full
+            object-cover
+            transition
+            duration-500
+            group-hover:scale-[1.04]
+          "
+        />
 
         <span
           className="
             absolute
-            left-4
-            top-4
+            inset-0
+            grid
+            place-items-center
+            bg-slate-950/15
+          "
+        >
+          <span
+            className="
+              grid
+              size-14
+              place-items-center
+              rounded-full
+              bg-white/95
+              text-[#07355d]
+              shadow-xl
+            "
+          >
+            <Play
+              size={22}
+              fill="currentColor"
+            />
+          </span>
+        </span>
+      </>
+    ) : null}
+
+    <span
+      className="
+        absolute
+        left-4
+        top-4
+        rounded-full
+        bg-white/95
+        px-3
+        py-1.5
+        text-[0.68rem]
+        font-extrabold
+        uppercase
+        tracking-[0.12em]
+        text-[#07355d]
+        shadow-sm
+        backdrop-blur
+      "
+    >
+      {
+        newsContentTypeLabels[
+          article.contentType
+        ]
+      }
+    </span>
+
+    {article.eventPeriod && (
+      <span
+        className="
+          absolute
+          bottom-4
+          left-4
+          rounded-full
+          bg-[#c96f4a]
+          px-3
+          py-1.5
+          text-[0.68rem]
+          font-extrabold
+          uppercase
+          tracking-[0.12em]
+          text-white
+        "
+      >
+        {
+          newsEventPeriodLabels[
+            article.eventPeriod
+          ]
+        }
+      </span>
+    )}
+  </Link>
+)}
+
+<div
+  className={`
+    flex
+    flex-1
+    flex-col
+    p-5
+    sm:p-6
+    ${
+      !hasMedia
+        ? `
+          border-t-4
+          border-[#0f5f9f]
+          bg-gradient-to-br
+          from-white
+          to-[#f5f9fc]
+        `
+        : ''
+    }
+  `}
+>
+  {!hasMedia && (
+    <div
+      className="
+        mb-5
+        flex
+        flex-wrap
+        items-center
+        gap-2
+      "
+    >
+      <span
+        className="
+          inline-flex
+          rounded-full
+          bg-[#e8f2fa]
+          px-3
+          py-1.5
+          text-[0.68rem]
+          font-extrabold
+          uppercase
+          tracking-[0.12em]
+          text-[#07355d]
+        "
+      >
+        {
+          newsContentTypeLabels[
+            article.contentType
+          ]
+        }
+      </span>
+
+      {article.eventPeriod && (
+        <span
+          className="
+            inline-flex
             rounded-full
-            bg-white/95
+            bg-[#c96f4a]
             px-3
             py-1.5
             text-[0.68rem]
             font-extrabold
             uppercase
             tracking-[0.12em]
-            text-[#07355d]
-            shadow-sm
-            backdrop-blur
+            text-white
           "
         >
           {
-            newsContentTypeLabels[
-              article.contentType
+            newsEventPeriodLabels[
+              article.eventPeriod
             ]
           }
         </span>
+      )}
+    </div>
+  )}
 
-        {article.eventPeriod && (
-          <span
-            className="
-              absolute
-              bottom-4
-              left-4
-              rounded-full
-              bg-[#c96f4a]
-              px-3
-              py-1.5
-              text-[0.68rem]
-              font-extrabold
-              uppercase
-              tracking-[0.12em]
-              text-white
-            "
-          >
-            {
-              newsEventPeriodLabels[
-                article.eventPeriod
-              ]
-            }
-          </span>
-        )}
-      </Link>
-
-      <div
-        className="
-          flex
-          flex-1
-          flex-col
-          p-5
-          sm:p-6
-        "
-      >
-        <div
-          className="
-            space-y-2
-            text-xs
-            font-semibold
-            text-[#536273]
-          "
-        >
+  <div
+    className="
+      space-y-2
+      text-xs
+      font-semibold
+      text-[#536273]
+    "
+  >
           {article.contentType ===
             'EVENT' &&
           eventDate ? (

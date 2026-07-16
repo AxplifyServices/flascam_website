@@ -542,14 +542,13 @@ export class NewsService {
       );
     }
 
-    if (
-      dto.status === 'PUBLISHED'
-    ) {
-      await this.ensureArticleCanBePublished(
-        id,
-        existing,
-      );
-    }
+if (
+  dto.status === 'PUBLISHED'
+) {
+  await this.ensureArticleCanBePublished(
+    existing,
+  );
+}
 
     const article =
       await this.prisma.news_articles.update({
@@ -984,60 +983,43 @@ if (
     }
   }
 
-  private async ensureArticleCanBePublished(
-    articleId: string,
-    article: {
-      title: string;
-      excerpt: string | null;
-      body: string | null;
-      seo_title: string | null;
-      seo_description: string | null;
-      content_type: string;
-      event_start_at: Date | null;
-    },
-  ) {
-    if (!article.title.trim()) {
-      throw new BadRequestException(
-        'Le titre est obligatoire avant publication.',
-      );
-    }
-
-    if (!article.excerpt?.trim()) {
-      throw new BadRequestException(
-        'Le résumé est obligatoire avant publication.',
-      );
-    }
-
-    if (!article.body?.trim()) {
-      throw new BadRequestException(
-        'Le contenu est obligatoire avant publication.',
-      );
-    }
-
-    if (
-      article.content_type ===
-        'EVENT' &&
-      !article.event_start_at
-    ) {
-      throw new BadRequestException(
-        'La date de début est obligatoire avant la publication d’un événement.',
-      );
-    }
-
-    const mediaCount =
-      await this.prisma.news_article_media.count({
-        where: {
-          news_article_id:
-            articleId,
-        },
-      });
-
-    if (mediaCount < 1) {
-      throw new BadRequestException(
-        'Au moins une photo ou une vidéo est obligatoire avant publication.',
-      );
-    }
+private ensureArticleCanBePublished(
+  article: {
+    title: string;
+    excerpt: string | null;
+    body: string | null;
+    content_type: string;
+    event_start_at: Date | null;
+  },
+) {
+  if (!article.title.trim()) {
+    throw new BadRequestException(
+      'Le titre est obligatoire avant publication.',
+    );
   }
+
+  if (!article.excerpt?.trim()) {
+    throw new BadRequestException(
+      'Le résumé est obligatoire avant publication.',
+    );
+  }
+
+  if (!article.body?.trim()) {
+    throw new BadRequestException(
+      'Le contenu est obligatoire avant publication.',
+    );
+  }
+
+  if (
+    article.content_type ===
+      'EVENT' &&
+    !article.event_start_at
+  ) {
+    throw new BadRequestException(
+      'La date de début est obligatoire avant la publication d’un événement.',
+    );
+  }
+}
 
   private async replaceMedia(
     tx: Prisma.TransactionClient,

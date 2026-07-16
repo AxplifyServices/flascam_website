@@ -5,7 +5,9 @@ import {
   useState,
 } from 'react';
 
-import Image from 'next/image';
+import {
+  AdaptiveImage,
+} from '@/components/site/adaptive-image';
 
 import {
   ChevronLeft,
@@ -116,17 +118,28 @@ export function HomepageHeroSlider({
               }
             `}
           >
-            <Image
-              src={slide.imageUrl}
-              alt={slide.altText}
-              fill
-              priority={index === 0}
-              sizes="
-                (max-width: 1023px) 100vw,
-                50vw
-              "
-              className="object-cover object-center"
-            />
+<AdaptiveImage
+  src={slide.imageUrl}
+  alt={slide.altText}
+  loading={
+    index === 0
+      ? 'eager'
+      : 'lazy'
+  }
+  fetchPriority={
+    index === 0
+      ? 'high'
+      : 'auto'
+  }
+  imageClassName="
+    p-0
+    transition
+    duration-700
+  "
+  backdropClassName="
+    opacity-45
+  "
+/>
 
             <div
               aria-hidden="true"
