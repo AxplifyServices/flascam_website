@@ -34,10 +34,12 @@ import {
 } from 'lucide-react';
 
 import {
+  cancelNewsPublicationSchedule,
   createNews,
   deleteNews,
   getAdminNews,
   getAdminNewsById,
+  scheduleNewsPublication,
   updateNews,
   updateNewsStatus,
   uploadNewsMedia,
@@ -405,6 +407,11 @@ export default function AdminNewsPage() {
   >(null);
 
   const [
+    scheduledAt,
+    setScheduledAt,
+  ] = useState('');
+
+  const [
     form,
     setForm,
   ] = useState<
@@ -539,6 +546,8 @@ export default function AdminNewsPage() {
       null,
     );
 
+    setScheduledAt('');
+
     setForm({
       ...emptyForm,
       media: [],
@@ -568,6 +577,12 @@ export default function AdminNewsPage() {
         details,
       );
 
+      setScheduledAt(
+        dateTimeLocalValue(
+          details.scheduledAt,
+        ),
+      );
+
       setForm(
         formFromArticle(
           details,
@@ -595,9 +610,12 @@ export default function AdminNewsPage() {
     }
 
     setEditorOpen(false);
+
     setSelectedArticle(
       null,
     );
+
+    setScheduledAt('');
     setEditorError('');
   }
 
@@ -881,29 +899,30 @@ if (!generatedSlug) {
     return '';
   }
 
-async function saveArticle(
-  event:
-    React.FormEvent<HTMLFormElement>,
-) {
-  event.preventDefault();
+  async function saveArticle(
+    event:
+      React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
 
-  const generatedSlug =
-    slugify(
-      form.title,
-    ).slice(
-      0,
-      180,
-    );
+    const generatedSlug =
+      slugify(
+        form.title,
+      ).slice(
+        0,
+        180,
+      );
 
-  const formToSave:
-    NewsFormState = {
+    const formToSave:
+      NewsFormState = {
       ...form,
+
       slug:
         generatedSlug,
-  };
+    };
 
-  const validationError =
-    validateForm();
+    const validationError =
+      validateForm();
 
     if (
       validationError
@@ -911,6 +930,7 @@ async function saveArticle(
       setEditorError(
         validationError,
       );
+
       return;
     }
 
@@ -922,26 +942,134 @@ async function saveArticle(
       if (
         selectedArticle
       ) {
-await updateNews(
-  selectedArticle.id,
-  formToSave,
-);
+        await updateNews(
+          selectedArticle.id,
+          formToSave,
+        );
+
         setSuccess(
           'La publication a été mise à jour.',
         );
       } else {
-await createNews(
-  formToSave,
-);
+        await createNews(
+          formToSave,
+        );
 
         setSuccess(
-          'Le brouillon a été créé.',
+          'Le brouillon a été créé. Rouvrez sa fiche pour programmer sa publication.',
         );
       }
 
       setEditorOpen(false);
+
       setSelectedArticle(
         null,
+      );
+
+      setScheduledAt('');
+
+      await loadArticles();
+    } catch (
+      caughtError
+    ) {
+      setEditorError(
+        caughtError instanceof
+          Error
+          ? caughtError.message
+          : 'Impossible d’enregistrer cette publication.',
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function schedulePublication() {
+    if (
+      !selectedArticle
+    ) {
+      setEditorError(
+        'Enregistrez d’abord le brouillon avant de programmer sa publication.',
+      );
+
+      return;
+    }
+
+    if (
+      selectedArticle.status ===
+      'ARCHIVED'
+    ) {
+      setEditorError(
+        'Une publication archivée ne peut pas être programmée.',
+      );
+
+      return;
+    }
+
+    if (
+      !scheduledAt
+    ) {
+      setEditorError(
+        'Sélectionnez une date et une heure de publication.',
+      );
+
+      return;
+    }
+
+    const selectedDate =
+      new Date(
+        scheduledAt,
+      );
+
+    if (
+      Number.isNaN(
+        selectedDate.getTime(),
+      )
+    ) {
+      setEditorError(
+        'La date de publication sélectionnée est invalide.',
+      );
+
+      return;
+    }
+
+    if (
+      selectedDate.getTime() <=
+      Date.now() +
+        60_000
+    ) {
+      setEditorError(
+        'La publication doit être programmée au moins une minute dans le futur.',
+      );
+
+      return;
+    }
+
+    setActionId(
+      selectedArticle.id,
+    );
+
+    setEditorError('');
+    setSuccess('');
+
+    try {
+      const updated =
+        await scheduleNewsPublication(
+          selectedArticle.id,
+          scheduledAt,
+        );
+
+      setSelectedArticle(
+        updated,
+      );
+
+      setScheduledAt(
+        dateTimeLocalValue(
+          updated.scheduledAt,
+        ),
+      );
+
+      setSuccess(
+        'La publication a été programmée.',
       );
 
       await loadArticles();
@@ -949,12 +1077,68 @@ await createNews(
       caughtError
     ) {
       setEditorError(
-        caughtError instanceof Error
+        caughtError instanceof
+          Error
           ? caughtError.message
-          : 'Impossible d’enregistrer cette publication.',
+          : 'Impossible de programmer la publication.',
       );
     } finally {
-      setSaving(false);
+      setActionId('');
+    }
+  }
+
+  async function cancelSchedule() {
+    if (
+      !selectedArticle
+    ) {
+      return;
+    }
+
+    if (
+      !selectedArticle.scheduledAt
+    ) {
+      setEditorError(
+        'Cette publication n’est pas programmée.',
+      );
+
+      return;
+    }
+
+    setActionId(
+      selectedArticle.id,
+    );
+
+    setEditorError('');
+    setSuccess('');
+
+    try {
+      const updated =
+        await cancelNewsPublicationSchedule(
+          selectedArticle.id,
+        );
+
+      setSelectedArticle(
+        updated,
+      );
+
+      setScheduledAt('');
+
+      setSuccess(
+        'La programmation a été annulée.',
+      );
+
+      await loadArticles();
+    } catch (
+      caughtError
+    ) {
+      setEditorError(
+        caughtError instanceof
+          Error
+          ? caughtError.message
+          : 'Impossible d’annuler la programmation.',
+      );
+    } finally {
+      setActionId('');
     }
   }
 
@@ -1635,6 +1819,33 @@ await createNews(
                         }
                       </span>
 
+                      {article.status ===
+                        'DRAFT' &&
+                        article.scheduledAt && (
+                          <span
+                            className="
+                              inline-flex
+                              items-center
+                              gap-1
+                              rounded-full
+                              bg-blue-600
+                              px-3
+                              py-1
+                              text-[0.68rem]
+                              font-extrabold
+                              uppercase
+                              tracking-wide
+                              text-white
+                            "
+                          >
+                            <Clock3
+                              size={12}
+                            />
+
+                            Programmée
+                          </span>
+                        )}                      
+
                       {article.primaryMedia?.mediaType ===
                         'VIDEO' && (
                         <span
@@ -1735,10 +1946,33 @@ await createNews(
                           size={15}
                         />
 
-                        {formatDate(
-                          article.publishedAt,
-                        )}
+                        {article.publishedAt
+                          ? `Publié le ${formatDate(
+                              article.publishedAt,
+                            )}`
+                          : 'Non publié'}
                       </p>
+
+                      {article.scheduledAt && (
+                        <p
+                          className="
+                            flex
+                            items-center
+                            gap-2
+                            font-semibold
+                            text-blue-700
+                          "
+                        >
+                          <CalendarDays
+                            size={15}
+                          />
+
+                          Publication prévue le{' '}
+                          {formatDate(
+                            article.scheduledAt,
+                          )}
+                        </p>
+                      )}
 
                       {article.contentType ===
                         'EVENT' &&
@@ -1882,7 +2116,9 @@ await createNews(
                             )
                           }
                           disabled={
-                            busy
+                            busy ||
+                            article.status ===
+                              'ARCHIVED'
                           }
                           className="
                             inline-flex
@@ -3019,6 +3255,268 @@ await createNews(
                       p-5
                     "
                   >
+                  <section
+                    className="
+                      mt-8
+                      rounded-3xl
+                      border
+                      border-blue-100
+                      bg-blue-50/60
+                      p-5
+                      sm:p-6
+                    "
+                    aria-labelledby="news-scheduling-title"
+                  >
+                    <div
+                      className="
+                        flex
+                        items-start
+                        gap-3
+                      "
+                    >
+                      <div
+                        className="
+                          grid
+                          size-10
+                          shrink-0
+                          place-items-center
+                          rounded-xl
+                          bg-blue-100
+                          text-[var(--flascam-blue)]
+                        "
+                      >
+                        <Clock3
+                          size={20}
+                        />
+                      </div>
+
+                      <div>
+                        <h3
+                          id="news-scheduling-title"
+                          className="
+                            text-lg
+                            font-extrabold
+                            text-slate-950
+                          "
+                        >
+                          Publication programmée
+                        </h3>
+
+                        <p
+                          className="
+                            mt-1
+                            text-sm
+                            leading-6
+                            text-[var(--flascam-slate)]
+                          "
+                        >
+                          La publication restera en brouillon jusqu’à la date choisie, puis elle sera publiée automatiquement.
+                        </p>
+                      </div>
+                    </div>
+
+                    {!selectedArticle ? (
+                      <div
+                        className="
+                          mt-5
+                          rounded-2xl
+                          border
+                          border-amber-200
+                          bg-amber-50
+                          px-4
+                          py-3
+                          text-sm
+                          font-semibold
+                          leading-6
+                          text-amber-900
+                        "
+                      >
+                        Créez d’abord le brouillon. Rouvrez ensuite sa fiche pour programmer sa publication.
+                      </div>
+                    ) : selectedArticle.status ===
+                      'ARCHIVED' ? (
+                      <div
+                        className="
+                          mt-5
+                          rounded-2xl
+                          border
+                          border-slate-200
+                          bg-slate-100
+                          px-4
+                          py-3
+                          text-sm
+                          font-semibold
+                          leading-6
+                          text-slate-700
+                        "
+                      >
+                        Une publication archivée ne peut pas être programmée.
+                      </div>
+                    ) : (
+                      <div
+                        className="
+                          mt-5
+                          grid
+                          gap-3
+                          lg:grid-cols-[minmax(0,1fr)_auto]
+                        "
+                      >
+                        <Field
+                          label="Date et heure de publication"
+                          description="La date est interprétée selon le fuseau horaire de votre appareil."
+                        >
+                          <input
+                            type="datetime-local"
+                            value={
+                              scheduledAt
+                            }
+                            min={
+                              dateTimeLocalValue(
+                                new Date(
+                                  Date.now() +
+                                    120_000,
+                                ).toISOString(),
+                              )
+                            }
+                            onChange={(
+                              event,
+                            ) =>
+                              setScheduledAt(
+                                event.target.value,
+                              )
+                            }
+                            className={
+                              inputClass
+                            }
+                          />
+                        </Field>
+
+                        <div
+                          className="
+                            flex
+                            flex-col
+                            gap-2
+                            lg:self-end
+                          "
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void schedulePublication()
+                            }
+                            disabled={
+                              !scheduledAt ||
+                              actionId ===
+                                selectedArticle.id
+                            }
+                            className="
+                              inline-flex
+                              min-h-12
+                              items-center
+                              justify-center
+                              gap-2
+                              rounded-2xl
+                              bg-[var(--flascam-blue)]
+                              px-5
+                              text-sm
+                              font-extrabold
+                              text-white
+                              transition
+                              hover:brightness-110
+                              disabled:cursor-not-allowed
+                              disabled:opacity-50
+                            "
+                          >
+                            {actionId ===
+                            selectedArticle.id ? (
+                              <Loader2
+                                size={18}
+                                className="animate-spin"
+                              />
+                            ) : (
+                              <Clock3
+                                size={18}
+                              />
+                            )}
+
+                            {selectedArticle.scheduledAt
+                              ? 'Modifier la programmation'
+                              : 'Programmer la publication'}
+                          </button>
+
+                          {selectedArticle.scheduledAt && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void cancelSchedule()
+                              }
+                              disabled={
+                                actionId ===
+                                selectedArticle.id
+                              }
+                              className="
+                                inline-flex
+                                min-h-11
+                                items-center
+                                justify-center
+                                rounded-2xl
+                                border
+                                border-red-200
+                                bg-white
+                                px-4
+                                text-sm
+                                font-extrabold
+                                text-red-700
+                                transition
+                                hover:bg-red-50
+                                disabled:opacity-50
+                              "
+                            >
+                              Annuler la programmation
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedArticle?.scheduledAt && (
+                      <div
+                        className="
+                          mt-4
+                          flex
+                          items-start
+                          gap-3
+                          rounded-2xl
+                          border
+                          border-blue-200
+                          bg-white
+                          px-4
+                          py-3
+                          text-sm
+                          font-semibold
+                          leading-6
+                          text-blue-900
+                        "
+                      >
+                        <CalendarDays
+                          className="
+                            mt-0.5
+                            shrink-0
+                          "
+                          size={17}
+                        />
+
+                        <span>
+                          Publication prévue le{' '}
+                          {formatDate(
+                            selectedArticle.scheduledAt,
+                          )}
+                          .
+                        </span>
+                      </div>
+                    )}
+                  </section>
+
                     <h3
                       className="
                         flex
