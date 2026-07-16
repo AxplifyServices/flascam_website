@@ -237,30 +237,33 @@ export function NewsMediaGallery({
     }
   `}
 >
-  <AdaptiveImage
-    src={item.url}
-    alt={
-      item.altText ??
-      articleTitle
-    }
-    loading={
-      index === 0
-        ? 'eager'
-        : 'lazy'
-    }
-    fetchPriority={
-      index === 0
-        ? 'high'
-        : 'auto'
-    }
-    imageClassName="
-      p-2
-      transition
-      duration-500
-      group-hover/image:scale-[1.015]
-      sm:p-4
-    "
-  />
+<AdaptiveImage
+  src={item.url}
+  alt={
+    item.altText ??
+    articleTitle
+  }
+  loading={
+    index === 0
+      ? 'eager'
+      : 'lazy'
+  }
+  fetchPriority={
+    index === 0
+      ? 'high'
+      : 'auto'
+  }
+  fit="contain"
+  position="center"
+  containerClassName="
+    bg-[#eef3f7]
+  "
+  imageClassName="
+    transition
+    duration-500
+    group-hover/image:scale-[1.01]
+  "
+/>
 </div>
 
                   <span

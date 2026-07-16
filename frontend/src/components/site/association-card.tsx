@@ -64,13 +64,12 @@ export function AssociationCard({
     association.coverImageUrl
   }
   alt={`Couverture de ${association.name}`}
+  fit="cover"
+  position="center"
   imageClassName="
     transition
     duration-500
-    group-hover:scale-[1.025]
-  "
-  backdropClassName="
-    opacity-45
+    group-hover:scale-105
   "
 />
 

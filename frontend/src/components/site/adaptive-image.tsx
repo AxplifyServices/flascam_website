@@ -1,7 +1,3 @@
-import type {
-  HTMLAttributes,
-} from 'react';
-
 type AdaptiveImageProps = {
   src: string;
   alt: string;
@@ -10,67 +6,37 @@ type AdaptiveImageProps = {
     | 'high'
     | 'low'
     | 'auto';
+  fit?: 'cover' | 'contain';
+  position?: string;
   containerClassName?: string;
   imageClassName?: string;
-  backdropClassName?: string;
-} & Pick<
-  HTMLAttributes<HTMLDivElement>,
-  'aria-hidden'
->;
+};
 
 export function AdaptiveImage({
   src,
   alt,
   loading = 'lazy',
   fetchPriority = 'auto',
+  fit = 'cover',
+  position = 'center',
   containerClassName = '',
   imageClassName = '',
-  backdropClassName = '',
 }: AdaptiveImageProps) {
   return (
     <div
       className={`
         relative
-        isolate
         h-full
         w-full
         overflow-hidden
-        bg-[#eef4f8]
+        ${
+          fit === 'contain'
+            ? 'bg-[#eef3f7]'
+            : 'bg-[#dfe8f0]'
+        }
         ${containerClassName}
       `}
     >
-      {/*
-        Arrière-plan volontairement flouté.
-
-        Il remplit l’espace disponible sans laisser de grandes bandes
-        blanches, mais il ne porte aucune information accessible.
-      */}
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        loading={loading}
-        fetchPriority={
-          fetchPriority
-        }
-        className={`
-          pointer-events-none
-          absolute
-          inset-0
-          h-full
-          w-full
-          scale-110
-          object-cover
-          opacity-30
-          blur-xl
-          ${backdropClassName}
-        `}
-      />
-
-      {/*
-        L’image principale reste entièrement visible grâce à object-contain.
-        Elle n’est jamais découpée, quel que soit son format.
-      */}
       <img
         src={src}
         alt={alt}
@@ -78,12 +44,18 @@ export function AdaptiveImage({
         fetchPriority={
           fetchPriority
         }
+        style={{
+          objectPosition:
+            position,
+        }}
         className={`
-          relative
-          z-10
           h-full
           w-full
-          object-contain
+          ${
+            fit === 'contain'
+              ? 'object-contain'
+              : 'object-cover'
+          }
           ${imageClassName}
         `}
       />

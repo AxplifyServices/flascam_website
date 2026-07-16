@@ -76,51 +76,56 @@ export function NewsCard({
 {hasMedia && (
   <Link
     href={`/actualites/${article.slug}`}
-    className={`
-      relative
-      block
-      overflow-hidden
-      bg-[#eaf5ff]
-      ${
-        compact
-          ? `
-            h-[180px]
-            sm:h-[220px]
-            lg:h-[250px]
-          `
-          : `
-            aspect-[16/10]
-          `
-      }
-    `}
+className={`
+  relative
+  block
+  overflow-hidden
+  bg-[#eaf5ff]
+  ${
+    compact
+      ? `
+        h-[180px]
+        sm:h-[210px]
+        lg:h-[230px]
+      `
+      : `
+        h-[210px]
+        sm:h-[240px]
+        lg:h-[270px]
+      `
+  }
+`}
     aria-label={`Lire ${article.title}`}
   >
     {media?.mediaType ===
     'IMAGE' ? (
-      <AdaptiveImage
-        src={media.url}
-        alt={
-          media.altText ??
-          article.title
-        }
-        loading={
-          priority
-            ? 'eager'
-            : 'lazy'
-        }
-        fetchPriority={
-          priority
-            ? 'high'
-            : 'auto'
-        }
-        imageClassName="
-          p-2
-          transition
-          duration-500
-          group-hover:scale-[1.025]
-          sm:p-3
-        "
-      />
+<AdaptiveImage
+  src={media.url}
+  alt={
+    media.altText ??
+    article.title
+  }
+  loading={
+    priority
+      ? 'eager'
+      : 'lazy'
+  }
+  fetchPriority={
+    priority
+      ? 'high'
+      : 'auto'
+  }
+  fit="contain"
+  position="center"
+  containerClassName="
+    bg-[#dfe8ef]
+  "
+  imageClassName="
+    transition
+    duration-500
+    group-hover:scale-[1.015]
+  "
+/>
     ) : media?.mediaType ===
       'VIDEO' ? (
       <>

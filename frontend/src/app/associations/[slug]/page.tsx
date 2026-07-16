@@ -263,20 +263,20 @@ export default async function AssociationDetailPage({
   "
 >
   {association.coverImageUrl ? (
-    <AdaptiveImage
-      src={
-        association.coverImageUrl
-      }
-      alt={`Bannière de ${association.name}`}
-      loading="eager"
-      fetchPriority="high"
-      imageClassName="
-        p-0
-      "
-      backdropClassName="
-        opacity-50
-      "
-    />
+<AdaptiveImage
+  src={
+    association.coverImageUrl
+  }
+  alt={`Bannière de ${association.name}`}
+  loading="eager"
+  fetchPriority="high"
+  fit="cover"
+  position="center"
+  imageClassName="
+    transition
+    duration-700
+  "
+/>
   ) : (
     <>
       <div
@@ -517,11 +517,12 @@ export default async function AssociationDetailPage({
 <AdaptiveImage
   src={post.coverUrl}
   alt={post.title}
+  fit="cover"
+  position="center"
   imageClassName="
-    p-2
     transition
     duration-500
-    group-hover:scale-[1.025]
+    group-hover:scale-105
   "
 />
                           ) : (
@@ -576,19 +577,20 @@ export default async function AssociationDetailPage({
                       >
                         {photo.url && (
 <div className="aspect-[4/3] w-full">
-  <AdaptiveImage
-    src={photo.url}
-    alt={
-      photo.title ||
-      `Photo de ${association.name}`
-    }
-    imageClassName="
-      p-1
-      transition
-      duration-500
-      group-hover:scale-[1.025]
-    "
-  />
+<AdaptiveImage
+  src={photo.url}
+  alt={
+    photo.title ||
+    `Photo de ${association.name}`
+  }
+  fit="cover"
+  position="center"
+  imageClassName="
+    transition
+    duration-500
+    group-hover:scale-105
+  "
+/>
 </div>
                         )}
 

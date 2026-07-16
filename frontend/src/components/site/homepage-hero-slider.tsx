@@ -131,13 +131,11 @@ export function HomepageHeroSlider({
       ? 'high'
       : 'auto'
   }
+  fit="cover"
+  position="center"
   imageClassName="
-    p-0
     transition
     duration-700
-  "
-  backdropClassName="
-    opacity-45
   "
 />
 
