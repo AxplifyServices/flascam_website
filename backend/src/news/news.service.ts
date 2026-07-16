@@ -560,14 +560,11 @@ export class NewsService {
           status:
             dto.status,
 
-          published_at:
-            dto.status ===
-            'PUBLISHED'
-              ? (
-                  existing.published_at ??
-                  new Date()
-                )
-              : null,
+published_at:
+  dto.status ===
+  'PUBLISHED'
+    ? new Date()
+    : null,
 
           updated_by_user_id:
             user.id,
@@ -576,6 +573,46 @@ export class NewsService {
             new Date(),
         },
       });
+
+if (
+  dto.status ===
+  'PUBLISHED'
+) {
+  const publiclyVisibleArticle =
+    await this.prisma.news_articles.findFirst({
+      where: {
+        id:
+          article.id,
+
+        status:
+          'PUBLISHED',
+
+        published_at: {
+          not:
+            null,
+
+          lte:
+            new Date(),
+        },
+
+        deleted_at:
+          null,
+      },
+
+      select: {
+        id:
+          true,
+      },
+    });
+
+  if (
+    !publiclyVisibleArticle
+  ) {
+    throw new BadRequestException(
+      'L’actualité a été publiée, mais elle ne satisfait pas les conditions de visibilité publique.',
+    );
+  }
+}
 
     await this.auditLogs.log({
       userId: user.id,
