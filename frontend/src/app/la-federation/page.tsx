@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   ArrowRight,
   BadgeCheck,
+  BriefcaseBusiness,
   Building2,
   Car,
   FileText,
@@ -16,7 +17,6 @@ import {
   MapPin,
   Phone,
   ShieldCheck,
-  TrendingUp,
   UsersRound,
 } from 'lucide-react';
 
@@ -100,7 +100,7 @@ const keyFigures = [
 
 const sectorItems = [
   {
-    icon: TrendingUp,
+    icon: BriefcaseBusiness,
     title: 'Un secteur économique important',
     description:
       'La location automobile sans chauffeur joue un rôle direct dans l’activité automobile, le tourisme, la mobilité professionnelle et les déplacements des particuliers.',
