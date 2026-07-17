@@ -2,6 +2,7 @@
 
 import {
   PointerEvent,
+  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -51,6 +52,23 @@ const MIN_ZOOM = 25;
 const MAX_ZOOM = 200;
 const ZOOM_STEP = 5;
 
+/**
+ * Dimensions utilisées par le slider public.
+ *
+ * Desktop :
+ * largeur = 50vw + 0.5rem
+ * hauteur minimale = 610px
+ *
+ * Mobile :
+ * largeur = largeur de l’écran
+ * hauteur minimale = 320px
+ */
+const DESKTOP_FRAME_HEIGHT = 610;
+const DESKTOP_EXTRA_WIDTH = 8;
+
+const MOBILE_PREVIEW_WIDTH = 390;
+const MOBILE_FRAME_HEIGHT = 320;
+
 function clampPosition(
   value: number,
 ) {
@@ -88,13 +106,75 @@ export function HomepageHeroPositionEditor({
     'desktop',
   );
 
+const [
+  viewportWidth,
+  setViewportWidth,
+] = useState(1536);  
+
   const dragStateRef =
     useRef<DragState | null>(
       null,
     );
 
+useEffect(() => {
+  function updateViewportWidth() {
+    setViewportWidth(
+      window.innerWidth,
+    );
+  }
+
+  updateViewportWidth();
+
+  window.addEventListener(
+    'resize',
+    updateViewportWidth,
+  );
+
+  return () => {
+    window.removeEventListener(
+      'resize',
+      updateViewportWidth,
+    );
+  };
+}, []);
+
   const isMobile =
     previewMode === 'mobile';
+
+/**
+ * Le mode desktop du site commence à lg, donc 1024 px.
+ * On évite de calculer un faux cadre desktop inférieur à
+ * cette largeur.
+ */
+const simulatedDesktopViewportWidth =
+  Math.max(
+    viewportWidth,
+    1024,
+  );
+
+const desktopFrameWidth =
+  simulatedDesktopViewportWidth /
+    2 +
+  DESKTOP_EXTRA_WIDTH;
+
+const frameAspectRatio =
+  isMobile
+    ? MOBILE_PREVIEW_WIDTH /
+      MOBILE_FRAME_HEIGHT
+    : desktopFrameWidth /
+      DESKTOP_FRAME_HEIGHT;
+
+const displayedFrameWidth =
+  isMobile
+    ? MOBILE_PREVIEW_WIDTH
+    : Math.round(
+        desktopFrameWidth,
+      );
+
+const displayedFrameHeight =
+  isMobile
+    ? MOBILE_FRAME_HEIGHT
+    : DESKTOP_FRAME_HEIGHT;    
 
   const positionX =
     isMobile
@@ -445,34 +525,37 @@ className="
     onPointerMove={handlePointerMove}
     onPointerUp={stopDragging}
     onPointerCancel={stopDragging}
-    className={`
-      relative
-      cursor-grab
-      touch-none
-      select-none
-      overflow-hidden
-      bg-slate-100
-      shadow-[0_18px_45px_rgba(15,23,42,0.18)]
-      active:cursor-grabbing
-      ${
-        isMobile
-          ? `
-            aspect-[9/13]
-            w-full
-            max-w-[280px]
-            rounded-[1.75rem]
-            border-[6px]
-            border-slate-900
-          `
-          : `
-            aspect-[16/9]
-            w-full
-            rounded-2xl
-            border-[4px]
-            border-slate-900
-          `
-      }
-    `}
+style={{
+  aspectRatio:
+    `${frameAspectRatio}`,
+}}
+className={`
+  relative
+  cursor-grab
+  touch-none
+  select-none
+  overflow-hidden
+  bg-slate-100
+  shadow-[0_18px_45px_rgba(15,23,42,0.18)]
+  active:cursor-grabbing
+  ${
+    isMobile
+      ? `
+        w-full
+        max-w-[390px]
+        rounded-[1.75rem]
+        border-[6px]
+        border-slate-900
+      `
+      : `
+        w-full
+        max-w-[920px]
+        rounded-2xl
+        border-[4px]
+        border-slate-900
+      `
+  }
+`}
   >
 <img
   src={imageUrl}
@@ -578,13 +661,13 @@ className="
     items-center
     gap-2
     rounded-full
-    bg-slate-950/75
+    bg-slate-950/80
     px-3
     py-1.5
     text-[11px]
     font-extrabold
     uppercase
-    tracking-[0.12em]
+    tracking-[0.1em]
     text-white
     backdrop-blur-sm
   "
@@ -595,11 +678,25 @@ className="
     <Monitor size={13} />
   )}
 
-  {isMobile
-    ? 'Cadre mobile'
-    : 'Cadre desktop'}
-</div>
-<div
+  <span>
+    {isMobile
+      ? 'Cadre mobile'
+      : 'Cadre desktop'}
+  </span>
+
+  <span
+    className="
+      font-semibold
+      normal-case
+      tracking-normal
+      text-white/70
+    "
+  >
+    {displayedFrameWidth}
+    {' × '}
+    {displayedFrameHeight}
+  </span>
+</div><div
   className="
     pointer-events-none
     absolute
@@ -620,8 +717,10 @@ className="
     shadow-sm
   "
 >
-  Zone visible sur le site
-</div>
+{isMobile
+  ? 'Zone visible sur un écran mobile de 390 px'
+  : `Zone visible sur votre écran de ${viewportWidth}px`}
+  </div>
 </div>
           <div
             aria-hidden="true"
