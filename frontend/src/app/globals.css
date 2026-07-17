@@ -429,6 +429,11 @@ summary::-webkit-details-marker {
 }
 
 .homepage-hero-image {
+  object-fit: var(
+    --hero-fit-mobile,
+    cover
+  );
+
   object-position: var(
     --hero-position-mobile,
     50% 50%
@@ -436,7 +441,7 @@ summary::-webkit-details-marker {
 
   transform: scale(
     var(
-      --hero-zoom-mobile,
+      --hero-scale-mobile,
       1
     )
   );
@@ -449,6 +454,11 @@ summary::-webkit-details-marker {
 
 @media (min-width: 640px) {
   .homepage-hero-image {
+    object-fit: var(
+      --hero-fit-desktop,
+      cover
+    );
+
     object-position: var(
       --hero-position-desktop,
       50% 50%
@@ -456,7 +466,7 @@ summary::-webkit-details-marker {
 
     transform: scale(
       var(
-        --hero-zoom-desktop,
+        --hero-scale-desktop,
         1
       )
     );

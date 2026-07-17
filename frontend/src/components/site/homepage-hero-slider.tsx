@@ -31,6 +31,8 @@ const fallbackSlide: HomepageHeroSlide = {
   desktopPositionY: 50,
   mobilePositionX: 50,
   mobilePositionY: 50,
+  desktopZoom: 100,
+  mobileZoom: 100,
 };
 
 export function HomepageHeroSlider({
@@ -175,18 +177,37 @@ export function HomepageHeroSlider({
                     ? 'high'
                     : 'auto'
                 }
-                style={{
-                  '--hero-position-mobile':
-                    `${slide.mobilePositionX}% ${slide.mobilePositionY}%`,
-                  '--hero-position-desktop':
-                    `${slide.desktopPositionX}% ${slide.desktopPositionY}%`,
-                } as React.CSSProperties}
+style={{
+  '--hero-position-mobile':
+    `${slide.mobilePositionX}% ${slide.mobilePositionY}%`,
+  '--hero-position-desktop':
+    `${slide.desktopPositionX}% ${slide.desktopPositionY}%`,
+  '--hero-fit-mobile':
+    slide.mobileZoom < 100
+      ? 'contain'
+      : 'cover',
+  '--hero-fit-desktop':
+    slide.desktopZoom < 100
+      ? 'contain'
+      : 'cover',
+  '--hero-scale-mobile':
+    slide.mobileZoom < 100
+      ? '1'
+      : `${slide.mobileZoom / 100}`,
+  '--hero-scale-desktop':
+    slide.desktopZoom < 100
+      ? '1'
+      : `${slide.desktopZoom / 100}`,
+  '--hero-origin-mobile':
+    `${slide.mobilePositionX}% ${slide.mobilePositionY}%`,
+  '--hero-origin-desktop':
+    `${slide.desktopPositionX}% ${slide.desktopPositionY}%`,
+} as React.CSSProperties}
                 className="
                   homepage-hero-image
                   absolute
                   inset-0
                   size-full
-                  object-cover
                 "
               />
             </picture>

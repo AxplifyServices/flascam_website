@@ -1037,24 +1037,29 @@ export default function AdminHomepagePage() {
                         bg-slate-100
                       "
                     >
-                      <img
-                        src={slide.imageUrl}
-                        alt={slide.altText}
-                        style={{
-                          objectPosition:
-                            `${slide.desktopPositionX}% ${slide.desktopPositionY}%`,
-                          transform:
-                            `scale(${slide.desktopZoom / 100})`,
-                          transformOrigin:
-                            `${slide.desktopPositionX}% ${slide.desktopPositionY}%`,
-                        }}
-                        className="
-                          absolute
-                          inset-0
-                          size-full
-                          object-cover
-                        "
-                      />
+<img
+  src={slide.imageUrl}
+  alt={slide.altText}
+  style={{
+    objectPosition:
+      `${slide.desktopPositionX}% ${slide.desktopPositionY}%`,
+    objectFit:
+      slide.desktopZoom < 100
+        ? 'contain'
+        : 'cover',
+    transform:
+      slide.desktopZoom < 100
+        ? 'scale(1)'
+        : `scale(${slide.desktopZoom / 100})`,
+    transformOrigin:
+      `${slide.desktopPositionX}% ${slide.desktopPositionY}%`,
+  }}
+  className="
+    absolute
+    inset-0
+    size-full
+  "
+/>
 
                       <span
                         className="

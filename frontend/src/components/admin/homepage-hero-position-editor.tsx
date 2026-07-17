@@ -415,80 +415,214 @@ export function HomepageHeroPositionEditor({
       </div>
 
       <div
-        className="
-          mt-4
-          flex
-          justify-center
-          overflow-hidden
-          rounded-2xl
-          bg-slate-200
-          p-2
-          sm:p-3
-        "
+className="
+  mt-4
+  flex
+  justify-center
+  overflow-visible
+  rounded-2xl
+  bg-slate-200
+  px-2
+  pb-12
+  pt-3
+  sm:px-3
+  sm:pb-12
+  sm:pt-4
+"
       >
-        <div
-          role="application"
-          aria-label={`Réglage du cadrage ${isMobile ? 'mobile' : 'desktop'}`}
-          onPointerDown={
-            handlePointerDown
-          }
-          onPointerMove={
-            handlePointerMove
-          }
-          onPointerUp={
-            stopDragging
-          }
-          onPointerCancel={
-            stopDragging
-          }
-          className={`
-            relative
-            cursor-grab
-            touch-none
-            select-none
-            overflow-hidden
-            rounded-xl
-            bg-slate-100
-            shadow-lg
-            active:cursor-grabbing
-            ${
-              isMobile
-                ? `
-                  aspect-[9/13]
-                  w-full
-                  max-w-[260px]
-                `
-                : `
-                  aspect-[16/9]
-                  w-full
-                `
-            }
-          `}
-        >
-          <img
-            src={imageUrl}
-            alt={altText}
-            draggable={false}
-            style={{
-              objectPosition:
-                `${positionX}% ${positionY}%`,
-              transform:
-                `scale(${zoom / 100})`,
-              transformOrigin:
-                `${positionX}% ${positionY}%`,
-            }}
-            className="
-              pointer-events-none
-              absolute
-              inset-0
-              size-full
-              object-cover
-              select-none
-              transition-transform
-              duration-150
-            "
-          />
+<div
+  className="
+    relative
+    flex
+    w-full
+    justify-center
+  "
+>
+  <div
+    role="application"
+    aria-label={`Réglage du cadrage ${isMobile ? 'mobile' : 'desktop'}`}
+    onPointerDown={handlePointerDown}
+    onPointerMove={handlePointerMove}
+    onPointerUp={stopDragging}
+    onPointerCancel={stopDragging}
+    className={`
+      relative
+      cursor-grab
+      touch-none
+      select-none
+      overflow-hidden
+      bg-slate-100
+      shadow-[0_18px_45px_rgba(15,23,42,0.18)]
+      active:cursor-grabbing
+      ${
+        isMobile
+          ? `
+            aspect-[9/13]
+            w-full
+            max-w-[280px]
+            rounded-[1.75rem]
+            border-[6px]
+            border-slate-900
+          `
+          : `
+            aspect-[16/9]
+            w-full
+            rounded-2xl
+            border-[4px]
+            border-slate-900
+          `
+      }
+    `}
+  >
+<img
+  src={imageUrl}
+  alt={altText}
+  draggable={false}
+  style={{
+    objectPosition:
+      `${positionX}% ${positionY}%`,
+    objectFit:
+      zoom < 100
+        ? 'contain'
+        : 'cover',
+    transform:
+      zoom < 100
+        ? 'scale(1)'
+        : `scale(${zoom / 100})`,
+    transformOrigin:
+      `${positionX}% ${positionY}%`,
+  }}
+  className="
+    pointer-events-none
+    absolute
+    inset-0
+    size-full
+    select-none
+    transition-transform
+    duration-150
+  "
+/>
+<div
+  aria-hidden="true"
+  className="
+    pointer-events-none
+    absolute
+    inset-0
+    z-20
+    border-2
+    border-white/90
+    shadow-[inset_0_0_0_1px_rgba(15,23,42,0.45)]
+  "
+/>
+<div
+  aria-hidden="true"
+  className="
+    pointer-events-none
+    absolute
+    inset-0
+    z-10
+  "
+>
+  <div
+    className="
+      absolute
+      left-1/3
+      top-0
+      h-full
+      w-px
+      bg-white/35
+    "
+  />
 
+  <div
+    className="
+      absolute
+      left-2/3
+      top-0
+      h-full
+      w-px
+      bg-white/35
+    "
+  />
+
+  <div
+    className="
+      absolute
+      left-0
+      top-1/3
+      h-px
+      w-full
+      bg-white/35
+    "
+  />
+
+  <div
+    className="
+      absolute
+      left-0
+      top-2/3
+      h-px
+      w-full
+      bg-white/35
+    "
+  />
+</div>
+<div
+  className="
+    pointer-events-none
+    absolute
+    left-3
+    top-3
+    z-30
+    inline-flex
+    items-center
+    gap-2
+    rounded-full
+    bg-slate-950/75
+    px-3
+    py-1.5
+    text-[11px]
+    font-extrabold
+    uppercase
+    tracking-[0.12em]
+    text-white
+    backdrop-blur-sm
+  "
+>
+  {isMobile ? (
+    <Smartphone size={13} />
+  ) : (
+    <Monitor size={13} />
+  )}
+
+  {isMobile
+    ? 'Cadre mobile'
+    : 'Cadre desktop'}
+</div>
+<div
+  className="
+    pointer-events-none
+    absolute
+    -bottom-8
+    left-1/2
+    z-30
+    -translate-x-1/2
+    whitespace-nowrap
+    rounded-full
+    border
+    border-[var(--flascam-border)]
+    bg-white
+    px-3
+    py-1
+    text-[11px]
+    font-bold
+    text-slate-600
+    shadow-sm
+  "
+>
+  Zone visible sur le site
+</div>
+</div>
           <div
             aria-hidden="true"
             className="
@@ -569,10 +703,10 @@ Réglage {isMobile
   ? 'mobile'
   : 'desktop'} : {zoom} %
 {zoom < 100
-  ? ' — image dézoomée'
+  ? ' — image entière visible'
   : zoom > 100
     ? ' — image agrandie'
-    : ' — taille normale'}
+    : ' — image ajustée au cadre'}
             </p>
           </div>
 
@@ -719,7 +853,7 @@ Réglage {isMobile
         updateCurrentValues(
           50,
           50,
-          75,
+          95,
         );
       }}
       className="
