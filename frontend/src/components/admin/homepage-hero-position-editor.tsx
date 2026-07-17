@@ -47,7 +47,7 @@ type DragState = {
   height: number;
 };
 
-const MIN_ZOOM = 100;
+const MIN_ZOOM = 25;
 const MAX_ZOOM = 200;
 const ZOOM_STEP = 5;
 
@@ -448,7 +448,7 @@ export function HomepageHeroPositionEditor({
             select-none
             overflow-hidden
             rounded-xl
-            bg-slate-300
+            bg-slate-100
             shadow-lg
             active:cursor-grabbing
             ${
@@ -565,9 +565,14 @@ export function HomepageHeroPositionEditor({
                 text-[var(--flascam-slate)]
               "
             >
-              Réglage {isMobile
-                ? 'mobile'
-                : 'desktop'} : {zoom} %
+Réglage {isMobile
+  ? 'mobile'
+  : 'desktop'} : {zoom} %
+{zoom < 100
+  ? ' — image dézoomée'
+  : zoom > 100
+    ? ' — image agrandie'
+    : ' — taille normale'}
             </p>
           </div>
 
@@ -671,63 +676,102 @@ export function HomepageHeroPositionEditor({
             text-slate-500
           "
         >
+          <span>25 %</span>
           <span>100 %</span>
-          <span>150 %</span>
           <span>200 %</span>
         </div>
       </div>
 
-      <div
-        className="
-          mt-3
-          flex
-          flex-col
-          gap-3
-          sm:flex-row
-          sm:items-center
-          sm:justify-between
-        "
-      >
-        <p
-          className="
-            text-xs
-            font-semibold
-            text-slate-600
-          "
-        >
-          Position : {positionX}% horizontal,
-          {' '}
-          {positionY}% vertical
-        </p>
+<div
+  className="
+    mt-3
+    flex
+    flex-col
+    gap-3
+    sm:flex-row
+    sm:items-center
+    sm:justify-between
+  "
+>
+  <p
+    className="
+      text-xs
+      font-semibold
+      text-slate-600
+    "
+  >
+    Position : {positionX}% horizontal,
+    {' '}
+    {positionY}% vertical
+  </p>
 
-        <button
-          type="button"
-          onClick={
-            resetCurrentFraming
-          }
-          className="
-            flex
-            min-h-10
-            items-center
-            justify-center
-            gap-2
-            rounded-xl
-            border
-            border-[var(--flascam-border)]
-            bg-white
-            px-3
-            text-xs
-            font-bold
-            text-slate-700
-            transition
-            hover:border-[var(--flascam-blue)]
-            hover:text-[var(--flascam-blue)]
-          "
-        >
-          <RotateCcw size={15} />
-          Réinitialiser ce cadrage
-        </button>
-      </div>
+  <div
+    className="
+      flex
+      flex-col
+      gap-2
+      sm:flex-row
+    "
+  >
+    <button
+      type="button"
+      onClick={() => {
+        updateCurrentValues(
+          50,
+          50,
+          75,
+        );
+      }}
+      className="
+        flex
+        min-h-10
+        items-center
+        justify-center
+        rounded-xl
+        border
+        border-[var(--flascam-border)]
+        bg-white
+        px-3
+        text-xs
+        font-bold
+        text-slate-700
+        transition
+        hover:border-[var(--flascam-blue)]
+        hover:text-[var(--flascam-blue)]
+      "
+    >
+      Ajuster au cadre
+    </button>
+
+    <button
+      type="button"
+      onClick={
+        resetCurrentFraming
+      }
+      className="
+        flex
+        min-h-10
+        items-center
+        justify-center
+        gap-2
+        rounded-xl
+        border
+        border-[var(--flascam-border)]
+        bg-white
+        px-3
+        text-xs
+        font-bold
+        text-slate-700
+        transition
+        hover:border-[var(--flascam-blue)]
+        hover:text-[var(--flascam-blue)]
+      "
+    >
+      <RotateCcw size={15} />
+      Réinitialiser
+    </button>
+  </div>
+</div>
     </div>
   );
 }

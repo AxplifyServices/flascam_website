@@ -57,13 +57,13 @@ export class CreateHomepageHeroSlideDto {
 
   @IsOptional()
   @IsInt()
-  @Min(100)
+  @Min(25)
   @Max(200)
   desktopZoom?: number;
 
   @IsOptional()
   @IsInt()
-  @Min(100)
+  @Min(25)
   @Max(200)
   mobileZoom?: number;  
 }
