@@ -18,6 +18,7 @@ import {
   MapPin,
   Phone,
   UsersRound,
+  ArrowDown,
 } from 'lucide-react';
 
 import {
@@ -205,11 +206,22 @@ export default async function AssociationDetailPage({
   const website =
     normalizeUrl(association.websiteUrl);
 
-  const actualities =
-    association.actualities ?? [];
+const actualities =
+  association.actualities ?? [];
 
-  const events =
-    association.events ?? [];
+const latestActualities =
+  actualities.slice(
+    0,
+    3,
+  );
+
+const additionalActualities =
+  actualities.slice(
+    3,
+  );
+
+const events =
+  association.events ?? [];
 
   const photos =
     association.photos ?? [];
@@ -490,70 +502,204 @@ export default async function AssociationDetailPage({
                 </div>
               </section>
 
-              <section>
-                <div className="flex items-center justify-between gap-5 border-b border-[#dbe5ef] pb-5">
-                  <div className="flex items-center gap-3">
-                    <span className="h-[3px] w-10 bg-[#c96f4a]" />
+<section>
+  <div className="flex items-center justify-between gap-5 border-b border-[#dbe5ef] pb-5">
+    <div className="flex items-center gap-3">
+      <span className="h-[3px] w-10 bg-[#c96f4a]" />
 
-                    <h2 className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#0f5f9f]">
-                      Actualités de l’association
-                    </h2>
-                  </div>
-                </div>
+      <h2 className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#0f5f9f]">
+        Actualités de l’association
+      </h2>
+    </div>
 
-                {actualities.length === 0 ? (
-                  <div className="mt-6 border border-dashed border-[#b9c9d8] bg-white p-6 text-sm leading-7 text-[#536273]">
-                    Aucune actualité publiée pour le moment.
-                  </div>
+    {actualities.length > 0 && (
+      <span className="shrink-0 text-xs font-bold text-[#536273]">
+        {actualities.length}{' '}
+        {actualities.length > 1
+          ? 'publications'
+          : 'publication'}
+      </span>
+    )}
+  </div>
+
+  {actualities.length === 0 ? (
+    <div className="mt-6 border border-dashed border-[#b9c9d8] bg-white p-6 text-sm leading-7 text-[#536273]">
+      Aucune actualité publiée pour le moment.
+    </div>
+  ) : (
+    <div className="mt-6">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {latestActualities.map(
+          (
+            post,
+          ) => (
+            <Link
+              key={
+                post.id
+              }
+              href={`/actualites/${post.slug}`}
+              className="group flex min-w-0 flex-col overflow-hidden border border-[#dbe5ef] bg-white transition duration-300 hover:-translate-y-1 hover:border-[#c96f4a]/50 hover:shadow-[0_22px_55px_rgba(7,53,93,0.1)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0f5f9f]/20"
+            >
+              <div className="relative h-44 overflow-hidden bg-[#eaf5ff] sm:h-48">
+                {post.coverUrl ? (
+                  <AdaptiveImage
+                    src={
+                      post.coverUrl
+                    }
+                    alt={
+                      post.coverAltText ||
+                      post.title
+                    }
+                    fit="cover"
+                    position="center"
+                    imageClassName="
+                      transition
+                      duration-500
+                      group-hover:scale-105
+                    "
+                  />
                 ) : (
-                  <div className="mt-6 grid gap-6 md:grid-cols-2">
-                    {actualities.map((post) => (
-                      <article
-                        key={post.id}
-                        className="group overflow-hidden border border-[#dbe5ef] bg-white transition duration-300 hover:-translate-y-1 hover:border-[#c96f4a]/50 hover:shadow-[0_22px_55px_rgba(7,53,93,0.1)]"
-                      >
-                        <div className="relative h-48 overflow-hidden bg-[#eaf5ff]">
-                          {post.coverUrl ? (
-<AdaptiveImage
-  src={post.coverUrl}
-  alt={post.title}
-  fit="cover"
-  position="center"
-  imageClassName="
-    transition
-    duration-500
-    group-hover:scale-105
-  "
-/>
-                          ) : (
-                            <div className="grid h-full place-items-center text-sm font-bold text-[#0f5f9f]">
-                              Actualité FLASCAM
-                            </div>
-                          )}
-
-                          <div className="absolute bottom-0 left-0 h-1 w-20 bg-[#c96f4a] transition-all duration-300 group-hover:w-full" />
-                        </div>
-
-                        <div className="p-6">
-                          <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#c96f4a]">
-                            {formatDate(post.publishedAt || post.createdAt)}
-                          </p>
-
-                          <h3 className="mt-3 text-xl font-extrabold leading-tight text-[#07355d]">
-                            {post.title}
-                          </h3>
-
-                          {post.excerpt && (
-                            <p className="mt-3 text-sm leading-7 text-[#536273]">
-                              {post.excerpt}
-                            </p>
-                          )}
-                        </div>
-                      </article>
-                    ))}
+                  <div className="grid h-full place-items-center px-5 text-center text-sm font-bold text-[#0f5f9f]">
+                    Actualité de l’association
                   </div>
                 )}
-              </section>
+
+                <div className="absolute bottom-0 left-0 h-1 w-20 bg-[#c96f4a] transition-all duration-300 group-hover:w-full" />
+              </div>
+
+              <div className="flex flex-1 flex-col p-5 sm:p-6">
+                <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#c96f4a]">
+                  {formatDate(
+                    post.publishedAt ||
+                      post.createdAt,
+                  )}
+                </p>
+
+                <h3 className="mt-3 line-clamp-2 text-lg font-extrabold leading-tight text-[#07355d] sm:text-xl">
+                  {post.title}
+                </h3>
+
+                {post.excerpt && (
+                  <p className="mt-3 line-clamp-3 text-sm leading-7 text-[#536273]">
+                    {post.excerpt}
+                  </p>
+                )}
+
+                <span className="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-extrabold text-[#0f5f9f]">
+                  Lire l’actualité
+
+                  <ArrowRight
+                    size={
+                      16
+                    }
+                    aria-hidden="true"
+                    className="transition-transform group-hover:translate-x-1"
+                  />
+                </span>
+              </div>
+            </Link>
+          ),
+        )}
+      </div>
+
+      {additionalActualities.length > 0 && (
+        <details className="group/more mt-8">
+          <summary className="mx-auto flex min-h-11 w-fit cursor-pointer list-none items-center justify-center gap-2 rounded-md border border-[#0f5f9f] bg-white px-5 py-3 text-sm font-extrabold text-[#0f5f9f] transition hover:bg-[#eaf5ff] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0f5f9f]/20 [&::-webkit-details-marker]:hidden">
+            <span className="group-open/more:hidden">
+              Afficher plus d’actualités
+            </span>
+
+            <span className="hidden group-open/more:inline">
+              Réduire les actualités
+            </span>
+
+            <ArrowDown
+              size={
+                17
+              }
+              aria-hidden="true"
+              className="transition-transform duration-300 group-open/more:rotate-180"
+            />
+          </summary>
+
+          <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {additionalActualities.map(
+              (
+                post,
+              ) => (
+                <Link
+                  key={
+                    post.id
+                  }
+                  href={`/actualites/${post.slug}`}
+                  className="group flex min-w-0 flex-col overflow-hidden border border-[#dbe5ef] bg-white transition duration-300 hover:-translate-y-1 hover:border-[#c96f4a]/50 hover:shadow-[0_22px_55px_rgba(7,53,93,0.1)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0f5f9f]/20"
+                >
+                  <div className="relative h-44 overflow-hidden bg-[#eaf5ff] sm:h-48">
+                    {post.coverUrl ? (
+                      <AdaptiveImage
+                        src={
+                          post.coverUrl
+                        }
+                        alt={
+                          post.coverAltText ||
+                          post.title
+                        }
+                        fit="cover"
+                        position="center"
+                        imageClassName="
+                          transition
+                          duration-500
+                          group-hover:scale-105
+                        "
+                      />
+                    ) : (
+                      <div className="grid h-full place-items-center px-5 text-center text-sm font-bold text-[#0f5f9f]">
+                        Actualité de l’association
+                      </div>
+                    )}
+
+                    <div className="absolute bottom-0 left-0 h-1 w-20 bg-[#c96f4a] transition-all duration-300 group-hover:w-full" />
+                  </div>
+
+                  <div className="flex flex-1 flex-col p-5 sm:p-6">
+                    <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#c96f4a]">
+                      {formatDate(
+                        post.publishedAt ||
+                          post.createdAt,
+                      )}
+                    </p>
+
+                    <h3 className="mt-3 line-clamp-2 text-lg font-extrabold leading-tight text-[#07355d] sm:text-xl">
+                      {post.title}
+                    </h3>
+
+                    {post.excerpt && (
+                      <p className="mt-3 line-clamp-3 text-sm leading-7 text-[#536273]">
+                        {post.excerpt}
+                      </p>
+                    )}
+
+                    <span className="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-extrabold text-[#0f5f9f]">
+                      Lire l’actualité
+
+                      <ArrowRight
+                        size={
+                          16
+                        }
+                        aria-hidden="true"
+                        className="transition-transform group-hover:translate-x-1"
+                      />
+                    </span>
+                  </div>
+                </Link>
+              ),
+            )}
+          </div>
+        </details>
+      )}
+    </div>
+  )}
+</section>
 
               <section>
                 <div className="flex items-center gap-3 border-b border-[#dbe5ef] pb-5">
@@ -762,10 +908,13 @@ export default async function AssociationDetailPage({
                         dayMonth(event.eventStartAt);
 
                       return (
-                        <article
-                          key={event.id}
-                          className="grid grid-cols-[3.5rem_1fr] gap-4 py-5 first:pt-0 last:pb-0"
-                        >
+<Link
+  key={
+    event.id
+  }
+  href={`/actualites/${event.slug}`}
+  className="group grid grid-cols-[3.5rem_1fr] gap-4 py-5 transition first:pt-0 last:pb-0 hover:bg-[#f5f9fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f5f9f]/30"
+>
                           <div className="border-r border-[#dbe5ef] pr-4 text-center">
                             <p className="text-2xl font-black text-[#07355d]">
                               {date.day}
@@ -776,18 +925,40 @@ export default async function AssociationDetailPage({
                             </p>
                           </div>
 
-                          <div>
-                            <h3 className="font-extrabold leading-snug text-[#07355d]">
-                              {event.title}
-                            </h3>
+<div className="min-w-0">
+  <h3 className="font-extrabold leading-snug text-[#07355d] transition group-hover:text-[#0f5f9f]">
+    {event.title}
+  </h3>
 
-                            {event.eventLocation && (
-                              <p className="mt-2 text-sm text-[#536273]">
-                                {event.eventLocation}
-                              </p>
-                            )}
-                          </div>
-                        </article>
+  {event.eventLocation && (
+    <p className="mt-2 flex items-start gap-2 text-sm leading-6 text-[#536273]">
+      <MapPin
+        size={
+          14
+        }
+        className="mt-1 shrink-0 text-[#c96f4a]"
+        aria-hidden="true"
+      />
+
+      <span>
+        {event.eventLocation}
+      </span>
+    </p>
+  )}
+
+  <span className="mt-3 inline-flex items-center gap-1 text-xs font-extrabold text-[#0f5f9f]">
+    Voir l’événement
+
+    <ArrowRight
+      size={
+        13
+      }
+      aria-hidden="true"
+      className="transition-transform group-hover:translate-x-1"
+    />
+  </span>
+</div>
+                        </Link>
                       );
                     })}
                   </div>

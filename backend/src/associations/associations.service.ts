@@ -151,7 +151,7 @@ const [
       ],
 
       take:
-        6,
+        12,
 
       include: {
         news_article_media: {

@@ -399,15 +399,18 @@ export function AdminShell({
 
   const sidebar = (
     <aside
-      className={`
-        flex
-        h-full
-        flex-col
-        border-r
-        border-[var(--flascam-border)]
-        bg-white
-        transition-all
-        duration-200
+className={`
+  flex
+  h-full
+  min-h-0
+  shrink-0
+  flex-col
+  overflow-hidden
+  border-r
+  border-[var(--flascam-border)]
+  bg-white
+  transition-all
+  duration-200
         ${
           collapsed
             ? 'w-20'
@@ -697,28 +700,34 @@ export function AdminShell({
     </aside>
   );
 
-  return (
-    <main
+return (
+  <main
+    className="
+      h-screen
+      overflow-hidden
+      bg-[#f3f9ff]
+      text-[var(--flascam-black)]
+    "
+  >
+    <div
       className="
-        min-h-screen
-        bg-[#f3f9ff]
-        text-[var(--flascam-black)]
+        flex
+        h-full
+        min-h-0
+        overflow-hidden
       "
     >
-      <div
-        className="
-          flex
-          min-h-screen
-        "
-      >
-        <div
-          className="
-            hidden
-            lg:block
-          "
-        >
-          {sidebar}
-        </div>
+<div
+  className="
+    hidden
+    h-full
+    shrink-0
+    overflow-hidden
+    lg:block
+  "
+>
+  {sidebar}
+</div>
 
         {mobileOpen && (
           <div
@@ -755,14 +764,17 @@ export function AdminShell({
           </div>
         )}
 
-        <section
-          className="
-            flex
-            min-w-0
-            flex-1
-            flex-col
-          "
-        >
+<section
+  className="
+    flex
+    h-full
+    min-h-0
+    min-w-0
+    flex-1
+    flex-col
+    overflow-hidden
+  "
+>
           <header
             className="
               sticky
@@ -814,19 +826,23 @@ export function AdminShell({
             />
           </header>
 
-          <div
-            className="
-              min-w-0
-              flex-1
-              px-4
-              py-5
-              sm:px-6
-              lg:px-8
-              lg:py-8
-            "
-          >
-            {children}
-          </div>
+<div
+  className="
+    min-h-0
+    min-w-0
+    flex-1
+    overflow-x-hidden
+    overflow-y-auto
+    overscroll-contain
+    px-4
+    py-5
+    sm:px-6
+    lg:px-8
+    lg:py-8
+  "
+>
+  {children}
+</div>
         </section>
       </div>
     </main>
