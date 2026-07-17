@@ -107,87 +107,237 @@ export class AssociationsService {
       throw new NotFoundException('Association introuvable.');
     }
 
-    const [actualities, events, photos, videos] = await Promise.all([
-      this.prisma.association_posts.findMany({
-        where: {
-          regional_association_id: association.id,
-          content_type: 'ACTUALITY',
-          status: 'PUBLISHED',
-          deleted_at: null,
+const now =
+  new Date();
+
+const [
+  actualities,
+  events,
+  photos,
+  videos,
+] =
+  await Promise.all([
+    this.prisma.news_articles.findMany({
+      where: {
+        regional_association_id:
+          association.id,
+
+        content_type: {
+          not:
+            'EVENT',
         },
-        orderBy: [
-          {
-            published_at: 'desc',
+
+        status:
+          'PUBLISHED',
+
+        published_at: {
+          lte:
+            now,
+        },
+
+        deleted_at:
+          null,
+      },
+
+      orderBy: [
+        {
+          published_at:
+            'desc',
+        },
+        {
+          created_at:
+            'desc',
+        },
+      ],
+
+      take:
+        6,
+
+      include: {
+        news_article_media: {
+          include: {
+            media_assets:
+              true,
           },
-          {
-            created_at: 'desc',
+
+          orderBy: [
+            {
+              display_order:
+                'asc',
+            },
+            {
+              created_at:
+                'asc',
+            },
+          ],
+        },
+      },
+    }),
+
+    this.prisma.news_articles.findMany({
+      where: {
+        regional_association_id:
+          association.id,
+
+        content_type:
+          'EVENT',
+
+        status:
+          'PUBLISHED',
+
+        published_at: {
+          lte:
+            now,
+        },
+
+        event_start_at: {
+          gte:
+            now,
+        },
+
+        deleted_at:
+          null,
+      },
+
+      orderBy: [
+        {
+          event_start_at:
+            'asc',
+        },
+        {
+          published_at:
+            'desc',
+        },
+      ],
+
+      take:
+        5,
+
+      include: {
+        news_article_media: {
+          include: {
+            media_assets:
+              true,
           },
-        ],
-        take: 6,
-        include: {
-          media_assets: true,
-        },
-      }),
 
-      this.prisma.association_posts.findMany({
-        where: {
-          regional_association_id: association.id,
-          content_type: 'EVENT',
-          status: 'PUBLISHED',
-          deleted_at: null,
-          event_start_at: {
-            gte: new Date(),
-          },
+          orderBy: [
+            {
+              display_order:
+                'asc',
+            },
+            {
+              created_at:
+                'asc',
+            },
+          ],
         },
-        orderBy: {
-          event_start_at: 'asc',
-        },
-        take: 5,
-        include: {
-          media_assets: true,
-        },
-      }),
+      },
+    }),
 
-      this.prisma.association_media_items.findMany({
-        where: {
-          regional_association_id: association.id,
-          media_type: 'PHOTO',
-          is_published: true,
-          deleted_at: null,
-        },
-        orderBy: {
-          display_order: 'asc',
-        },
-        take: 12,
-        include: {
-          media_assets: true,
-        },
-      }),
+    this.prisma.association_media_items.findMany({
+      where: {
+        regional_association_id:
+          association.id,
 
-      this.prisma.association_media_items.findMany({
-        where: {
-          regional_association_id: association.id,
-          media_type: 'VIDEO',
-          is_published: true,
-          deleted_at: null,
-        },
-        orderBy: {
-          display_order: 'asc',
-        },
-        take: 6,
-        include: {
-          media_assets: true,
-        },
-      }),
-    ]);
+        media_type:
+          'PHOTO',
 
-    return {
-      ...this.formatAssociationDetail(association),
-      actualities: actualities.map((post) => this.formatPost(post)),
-      events: events.map((post) => this.formatPost(post)),
-      photos: photos.map((media) => this.formatMediaItem(media)),
-      videos: videos.map((media) => this.formatMediaItem(media)),
-    };
+        is_published:
+          true,
+
+        deleted_at:
+          null,
+      },
+
+      orderBy: {
+        display_order:
+          'asc',
+      },
+
+      take:
+        12,
+
+      include: {
+        media_assets:
+          true,
+      },
+    }),
+
+    this.prisma.association_media_items.findMany({
+      where: {
+        regional_association_id:
+          association.id,
+
+        media_type:
+          'VIDEO',
+
+        is_published:
+          true,
+
+        deleted_at:
+          null,
+      },
+
+      orderBy: {
+        display_order:
+          'asc',
+      },
+
+      take:
+        6,
+
+      include: {
+        media_assets:
+          true,
+      },
+    }),
+  ]);
+
+return {
+  ...this.formatAssociationDetail(
+    association,
+  ),
+
+  actualities:
+    actualities.map(
+      (
+        article,
+      ) =>
+        this.formatAssociationNewsArticle(
+          article,
+        ),
+    ),
+
+  events:
+    events.map(
+      (
+        article,
+      ) =>
+        this.formatAssociationNewsArticle(
+          article,
+        ),
+    ),
+
+  photos:
+    photos.map(
+      (
+        media,
+      ) =>
+        this.formatMediaItem(
+          media,
+        ),
+    ),
+
+  videos:
+    videos.map(
+      (
+        media,
+      ) =>
+        this.formatMediaItem(
+          media,
+        ),
+    ),
+};
   }
 
   async getAdminAssociations(user: AuthUser) {
@@ -1183,6 +1333,77 @@ export class AssociationsService {
       updatedAt: association.updated_at,
     };
   }
+
+private formatAssociationNewsArticle(
+  article: any,
+) {
+  const primaryMedia =
+    article.news_article_media?.[0] ??
+    null;
+
+  return {
+    id:
+      article.id,
+
+    associationId:
+      article.regional_association_id,
+
+    contentType:
+      article.content_type,
+
+    eventCategory:
+      article.event_category,
+
+    status:
+      article.status,
+
+    title:
+      article.title,
+
+    slug:
+      article.slug,
+
+    excerpt:
+      article.excerpt,
+
+    body:
+      article.body,
+
+    coverUrl:
+      this.mediaUrl(
+        primaryMedia?.media_assets,
+      ),
+
+    coverAltText:
+      primaryMedia?.alt_text ??
+      primaryMedia?.media_assets?.alt_text ??
+      article.title,
+
+    eventStartAt:
+      article.event_start_at,
+
+    eventEndAt:
+      article.event_end_at,
+
+    eventLocation:
+      article.event_location,
+
+    seoTitle:
+      article.seo_title,
+
+    seoDescription:
+      article.seo_description,
+
+    publishedAt:
+      article.published_at,
+
+    createdAt:
+      article.created_at,
+
+    updatedAt:
+      article.updated_at,
+  };
+}  
 
   private formatPost(post: any) {
     return {

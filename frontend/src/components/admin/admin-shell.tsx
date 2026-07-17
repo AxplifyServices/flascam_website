@@ -99,6 +99,24 @@ const navItems: AdminNavItem[] = [
   },
 
   {
+  label:
+    'Mes actualités',
+
+  href:
+    '/admin/my-news',
+
+  icon:
+    Newspaper,
+
+  permission:
+    'association.content.manage',
+
+  roles: [
+    'ASSOCIATION_ADMIN',
+  ],
+},
+
+  {
     label: 'Associations',
     href: '/admin/associations',
     icon: Building2,

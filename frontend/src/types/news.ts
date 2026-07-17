@@ -19,6 +19,8 @@ export type NewsEventCategory =
 
 export type NewsStatus =
   | 'DRAFT'
+  | 'PENDING_REVIEW'
+  | 'REJECTED'
   | 'PUBLISHED'
   | 'ARCHIVED';
 
@@ -61,10 +63,23 @@ export type NewsArticle = {
   eventPeriod?: NewsEventPeriod;
   seoTitle?: string | null;
   seoDescription?: string | null;
-  publishedAt?: string | null;
-  scheduledAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
+publishedAt?: string | null;
+
+scheduledAt?: string | null;
+
+regionalAssociationId?: string | null;
+
+submittedAt?: string | null;
+
+reviewedAt?: string | null;
+
+reviewedByUserId?: string | null;
+
+rejectionReason?: string | null;
+
+createdAt: string;
+
+updatedAt: string;
   media: NewsMedia[];
   primaryMedia?: NewsMedia | null;
 };

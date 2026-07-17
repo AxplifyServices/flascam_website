@@ -262,6 +262,143 @@ export async function getAdminNews(
   );
 }
 
+export async function getAssociationNews(
+  filters: NewsAdminFilters = {},
+) {
+  const params =
+    new URLSearchParams();
+
+  params.set(
+    'page',
+    String(
+      filters.page ?? 1,
+    ),
+  );
+
+  params.set(
+    'limit',
+    String(
+      filters.limit ?? 20,
+    ),
+  );
+
+  if (
+    filters.search?.trim()
+  ) {
+    params.set(
+      'search',
+      filters.search.trim(),
+    );
+  }
+
+  if (
+    filters.contentType
+  ) {
+    params.set(
+      'contentType',
+      filters.contentType,
+    );
+  }
+
+  if (
+    filters.status
+  ) {
+    params.set(
+      'status',
+      filters.status,
+    );
+  }
+
+  return await adminFetch<NewsListResponse>(
+    `/news/association?${params.toString()}`,
+  );
+}
+
+export async function getAssociationNewsById(
+  id: string,
+) {
+  return await adminFetch<NewsArticle>(
+    `/news/association/${id}`,
+  );
+}
+
+export async function createAssociationNews(
+  form: NewsFormState,
+) {
+  return await adminFetch<NewsArticle>(
+    '/news/association',
+    {
+      method:
+        'POST',
+
+      body:
+        JSON.stringify(
+          buildPayload(
+            form,
+          ),
+        ),
+    },
+  );
+}
+
+export async function updateAssociationNews(
+  id: string,
+  form: NewsFormState,
+) {
+  return await adminFetch<NewsArticle>(
+    `/news/association/${id}`,
+    {
+      method:
+        'PUT',
+
+      body:
+        JSON.stringify(
+          buildPayload(
+            form,
+          ),
+        ),
+    },
+  );
+}
+
+export async function submitAssociationNews(
+  id: string,
+) {
+  return await adminFetch<NewsArticle>(
+    `/news/association/${id}/submit`,
+    {
+      method:
+        'PATCH',
+    },
+  );
+}
+
+export async function unpublishAssociationNews(
+  id: string,
+) {
+  return await adminFetch<NewsArticle>(
+    `/news/association/${id}/unpublish`,
+    {
+      method:
+        'PATCH',
+    },
+  );
+}
+
+export async function deleteAssociationNews(
+  id: string,
+) {
+  return await adminFetch<{
+    success: boolean;
+  }>(
+    `/news/association/${id}`,
+    {
+      method:
+        'DELETE',
+    },
+  );
+}
+
 export async function getAdminNewsById(
   id: string,
 ) {
@@ -313,6 +450,37 @@ export async function updateNewsStatus(
       body: JSON.stringify({
         status,
       }),
+    },
+  );
+}
+
+export async function approveAssociationNews(
+  id: string,
+) {
+  return await adminFetch<NewsArticle>(
+    `/news/admin/${id}/approve`,
+    {
+      method:
+        'PATCH',
+    },
+  );
+}
+
+export async function rejectAssociationNews(
+  id: string,
+  reason: string,
+) {
+  return await adminFetch<NewsArticle>(
+    `/news/admin/${id}/reject`,
+    {
+      method:
+        'PATCH',
+
+      body:
+        JSON.stringify({
+          reason:
+            reason.trim(),
+        }),
     },
   );
 }
@@ -390,6 +558,29 @@ export async function uploadNewsMedia(
     {
       method: 'POST',
       body: formData,
+    },
+  );
+}
+
+export async function uploadAssociationNewsMedia(
+  file: File,
+) {
+  const formData =
+    new FormData();
+
+  formData.append(
+    'file',
+    file,
+  );
+
+  return await adminFetch<UploadedNewsMedia>(
+    '/media/association/news-media',
+    {
+      method:
+        'POST',
+
+      body:
+        formData,
     },
   );
 }

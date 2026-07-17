@@ -19,23 +19,45 @@ export type AssociationSummary = {
 
 export type AssociationPost = {
   id: string;
+
   associationId: string;
-  contentType: 'ACTUALITY' | 'EVENT';
+
+  contentType: string;
+
+  eventCategory?: string | null;
+
   status: string;
+
   title: string;
+
   slug: string;
+
   excerpt?: string | null;
+
   body?: string | null;
+
   coverUrl?: string | null;
+
+  coverAltText?: string | null;
+
   coverMediaAssetId?: string | null;
+
   eventStartAt?: string | null;
+
   eventEndAt?: string | null;
+
   eventLocation?: string | null;
+
   displayOrder?: number;
+
   seoTitle?: string | null;
+
   seoDescription?: string | null;
+
   publishedAt?: string | null;
+
   createdAt?: string | null;
+
   updatedAt?: string | null;
 };
 

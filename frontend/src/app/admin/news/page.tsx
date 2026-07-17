@@ -80,15 +80,21 @@ const statusLabels:
     NewsStatus,
     string
   > = {
-    DRAFT:
-      'Brouillon',
+  DRAFT:
+    'Brouillon',
 
-    PUBLISHED:
-      'Publié',
+  PENDING_REVIEW:
+    'En attente de validation',
 
-    ARCHIVED:
-      'Archivé',
-  };
+  REJECTED:
+    'Refusé',
+
+  PUBLISHED:
+    'Publié',
+
+  ARCHIVED:
+    'Archivé',
+};
 
 const eventCategoryLabels:
   Record<
@@ -330,6 +336,20 @@ function statusClass(
     'PUBLISHED'
   ) {
     return 'bg-emerald-50 text-emerald-700';
+  }
+
+  if (
+    status ===
+    'PENDING_REVIEW'
+  ) {
+    return 'bg-blue-50 text-blue-700';
+  }
+
+  if (
+    status ===
+    'REJECTED'
+  ) {
+    return 'bg-red-50 text-red-700';
   }
 
   if (
