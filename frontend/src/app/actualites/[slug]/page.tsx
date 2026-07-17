@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 import {
   ArrowLeft,
+  Building2,
   CalendarDays,
   Clock3,
   MapPin,
@@ -246,6 +247,21 @@ const articleImages =
         'https://flascam.axplitest.com',
     },
 
+    ...(article.association
+  ? {
+      author: {
+        '@type':
+          'Organization',
+
+        name:
+          article.association.name,
+
+        url:
+          `https://flascam.axplitest.com/associations/${article.association.slug}`,
+      },
+    }
+  : {}),
+
     ...(article.contentType ===
       'EVENT'
       ? {
@@ -455,6 +471,42 @@ const articleImages =
                   sm:gap-x-7
                 "
               >
+
+{article.association && (
+  <Link
+    href={`/associations/${article.association.slug}`}
+    className="
+      flex
+      w-fit
+      items-center
+      gap-2
+      text-white
+      transition
+      hover:text-[#f0a27f]
+      focus-visible:outline-none
+      focus-visible:ring-2
+      focus-visible:ring-white
+    "
+  >
+    <Building2
+      size={
+        17
+      }
+      className="
+        shrink-0
+        text-[#f0a27f]
+      "
+      aria-hidden="true"
+    />
+
+    <span>
+      {article.association.acronym
+        ? `${article.association.acronym} — ${article.association.name}`
+        : article.association.name}
+    </span>
+  </Link>
+)}
+
                 {publicationDate && (
                   <p
                     className="

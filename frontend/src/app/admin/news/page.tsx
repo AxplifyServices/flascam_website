@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUp,
+  Building2,
   CalendarDays,
   Check,
   Clock3,
@@ -1914,7 +1915,66 @@ if (!generatedSlug) {
                         ]
                       }
                     </p>
+<div
+  className="
+    mt-3
+    flex
+    items-start
+    gap-2
+    rounded-xl
+    border
+    border-slate-200
+    bg-slate-50
+    px-3
+    py-2.5
+  "
+>
+  <Building2
+    size={
+      16
+    }
+    className="
+      mt-0.5
+      shrink-0
+      text-[var(--flascam-blue)]
+    "
+    aria-hidden="true"
+  />
 
+  <div className="min-w-0">
+    <p
+      className="
+        text-[0.68rem]
+        font-extrabold
+        uppercase
+        tracking-wide
+        text-slate-500
+      "
+    >
+      Propriétaire
+    </p>
+
+    <p
+      className="
+        mt-0.5
+        truncate
+        text-sm
+        font-bold
+        text-slate-800
+      "
+      title={
+        article.association?.name ??
+        'FLASCAM'
+      }
+    >
+      {article.association
+        ? article.association.acronym
+          ? `${article.association.acronym} — ${article.association.name}`
+          : article.association.name
+        : 'FLASCAM'}
+    </p>
+  </div>
+</div>
                     <h2
                       className="
                         mt-2
@@ -2484,33 +2544,104 @@ if (!generatedSlug) {
                     sm:py-6
                   "
                 >
-                  {editorError && (
-                    <div
-                      className="
-                        mb-5
-                        rounded-2xl
-                        border
-                        border-red-200
-                        bg-red-50
-                        p-4
-                        text-sm
-                        font-semibold
-                        text-red-800
-                      "
-                    >
-                      {
-                        editorError
-                      }
-                    </div>
-                  )}
+{editorError && (
+  <div
+    className="
+      mb-5
+      rounded-2xl
+      border
+      border-red-200
+      bg-red-50
+      p-4
+      text-sm
+      font-semibold
+      text-red-800
+    "
+  >
+    {
+      editorError
+    }
+  </div>
+)}
 
-                  <div
-                    className="
-                      grid
-                      gap-5
-                      lg:grid-cols-2
-                    "
-                  >
+{selectedArticle && (
+  <div
+    className="
+      mb-6
+      flex
+      items-start
+      gap-3
+      rounded-2xl
+      border
+      border-blue-100
+      bg-blue-50
+      p-4
+    "
+  >
+    <Building2
+      size={
+        20
+      }
+      className="
+        mt-0.5
+        shrink-0
+        text-[var(--flascam-blue)]
+      "
+      aria-hidden="true"
+    />
+
+    <div className="min-w-0">
+      <p
+        className="
+          text-xs
+          font-extrabold
+          uppercase
+          tracking-wide
+          text-[var(--flascam-blue)]
+        "
+      >
+        Propriétaire de la publication
+      </p>
+
+      <p
+        className="
+          mt-1
+          break-words
+          text-sm
+          font-bold
+          text-slate-900
+        "
+      >
+        {selectedArticle.association
+          ? selectedArticle.association.acronym
+            ? `${selectedArticle.association.acronym} — ${selectedArticle.association.name}`
+            : selectedArticle.association.name
+          : 'FLASCAM'}
+      </p>
+
+      {selectedArticle.association && (
+        <p
+          className="
+            mt-1
+            text-xs
+            leading-5
+            text-slate-600
+          "
+        >
+          Cette publication a été créée par une association. Les modifications réalisées ici sont effectuées par l’administration FLASCAM.
+        </p>
+      )}
+    </div>
+  </div>
+)}
+
+<div
+  className="
+    grid
+    gap-5
+    lg:grid-cols-2
+  "
+>
                     <Field
                       label="Type de publication"
                       required

@@ -84,9 +84,17 @@ type NewsArticleRecord = {
   submitted_at: Date | null;
   reviewed_at: Date | null;
   reviewed_by_user_id: string | null;
-  rejection_reason: string | null;
-  created_at: Date;
-  updated_at: Date;
+rejection_reason: string | null;
+
+regional_associations?: {
+  id: string;
+  name: string;
+  acronym: string | null;
+  slug: string;
+} | null;
+
+created_at: Date;
+updated_at: Date;
 };
 
 type PublishableNewsArticle = {
@@ -220,25 +228,44 @@ export class NewsService {
   async getPublicNewsBySlug(
     slug: string,
   ) {
-    const article =
-      await this.prisma.news_articles.findFirst({
-        where: {
-          slug,
+const article =
+  await this.prisma.news_articles.findFirst({
+    where: {
+      slug,
 
-          status:
-            'PUBLISHED',
+      status:
+        'PUBLISHED',
 
-          published_at: {
-            not:
-              null,
-            lte:
-              new Date(),
-          },
+      published_at: {
+        not:
+          null,
 
-          deleted_at:
-            null,
+        lte:
+          new Date(),
+      },
+
+      deleted_at:
+        null,
+    },
+
+    include: {
+      regional_associations: {
+        select: {
+          id:
+            true,
+
+          name:
+            true,
+
+          acronym:
+            true,
+
+          slug:
+            true,
         },
-      });
+      },
+    },
+  });
 
     if (
       !article
@@ -1250,15 +1277,33 @@ include: {
       user,
     );
 
-    const article =
-      await this.prisma.news_articles.findFirst({
-        where: {
-          id,
+const article =
+  await this.prisma.news_articles.findFirst({
+    where: {
+      id,
 
-          deleted_at:
-            null,
+      deleted_at:
+        null,
+    },
+
+    include: {
+      regional_associations: {
+        select: {
+          id:
+            true,
+
+          name:
+            true,
+
+          acronym:
+            true,
+
+          slug:
+            true,
         },
-      });
+      },
+    },
+  });
 
     if (
       !article
@@ -3100,11 +3145,28 @@ private formatArticleData(
     scheduledAt:
       article.scheduled_at,
 
-    regionalAssociationId:
-      article.regional_association_id,
+regionalAssociationId:
+  article.regional_association_id,
 
-    submittedAt:
-      article.submitted_at,
+association:
+  article.regional_associations
+    ? {
+        id:
+          article.regional_associations.id,
+
+        name:
+          article.regional_associations.name,
+
+        acronym:
+          article.regional_associations.acronym,
+
+        slug:
+          article.regional_associations.slug,
+      }
+    : null,
+
+submittedAt:
+  article.submitted_at,
 
     reviewedAt:
       article.reviewed_at,

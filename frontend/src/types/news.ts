@@ -69,6 +69,13 @@ scheduledAt?: string | null;
 
 regionalAssociationId?: string | null;
 
+association?: {
+  id: string;
+  name: string;
+  acronym?: string | null;
+  slug: string;
+} | null;
+
 submittedAt?: string | null;
 
 reviewedAt?: string | null;
