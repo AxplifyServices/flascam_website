@@ -391,6 +391,8 @@ model homepage_hero_slides {
   desktop_position_y Int          @default(50) @db.SmallInt
   mobile_position_x  Int          @default(50) @db.SmallInt
   mobile_position_y  Int          @default(50) @db.SmallInt
+  desktop_zoom       Int          @default(100) @db.SmallInt
+  mobile_zoom        Int          @default(100) @db.SmallInt
   media_assets       media_assets @relation(fields: [media_asset_id], references: [id], onUpdate: NoAction)
 
   @@index([is_published, display_order, created_at], map: "homepage_hero_slides_public_idx")
