@@ -433,12 +433,36 @@ summary::-webkit-details-marker {
     --hero-position-mobile,
     50% 50%
   );
+
+  transform: scale(
+    var(
+      --hero-zoom-mobile,
+      1
+    )
+  );
+
+  transform-origin: var(
+    --hero-origin-mobile,
+    50% 50%
+  );
 }
 
 @media (min-width: 640px) {
   .homepage-hero-image {
     object-position: var(
       --hero-position-desktop,
+      50% 50%
+    );
+
+    transform: scale(
+      var(
+        --hero-zoom-desktop,
+        1
+      )
+    );
+
+    transform-origin: var(
+      --hero-origin-desktop,
       50% 50%
     );
   }

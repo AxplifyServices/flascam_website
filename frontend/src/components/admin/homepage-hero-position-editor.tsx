@@ -7,8 +7,10 @@ import {
 } from 'react';
 
 import {
+  Minus,
   Monitor,
   Move,
+  Plus,
   RotateCcw,
   Smartphone,
 } from 'lucide-react';
@@ -18,6 +20,8 @@ export type HeroImagePositions = {
   desktopPositionY: number;
   mobilePositionX: number;
   mobilePositionY: number;
+  desktopZoom: number;
+  mobileZoom: number;
 };
 
 type PreviewMode =
@@ -43,6 +47,10 @@ type DragState = {
   height: number;
 };
 
+const MIN_ZOOM = 100;
+const MAX_ZOOM = 200;
+const ZOOM_STEP = 5;
+
 function clampPosition(
   value: number,
 ) {
@@ -50,6 +58,18 @@ function clampPosition(
     0,
     Math.min(
       100,
+      Math.round(value),
+    ),
+  );
+}
+
+function clampZoom(
+  value: number,
+) {
+  return Math.max(
+    MIN_ZOOM,
+    Math.min(
+      MAX_ZOOM,
       Math.round(value),
     ),
   );
@@ -86,9 +106,15 @@ export function HomepageHeroPositionEditor({
       ? value.mobilePositionY
       : value.desktopPositionY;
 
-  function updateCurrentPosition(
+  const zoom =
+    isMobile
+      ? value.mobileZoom
+      : value.desktopZoom;
+
+  function updateCurrentValues(
     nextX: number,
     nextY: number,
+    nextZoom = zoom,
   ) {
     if (isMobile) {
       onChange({
@@ -97,6 +123,8 @@ export function HomepageHeroPositionEditor({
           clampPosition(nextX),
         mobilePositionY:
           clampPosition(nextY),
+        mobileZoom:
+          clampZoom(nextZoom),
       });
 
       return;
@@ -108,12 +136,42 @@ export function HomepageHeroPositionEditor({
         clampPosition(nextX),
       desktopPositionY:
         clampPosition(nextY),
+      desktopZoom:
+        clampZoom(nextZoom),
     });
+  }
+
+  function updateCurrentPosition(
+    nextX: number,
+    nextY: number,
+  ) {
+    updateCurrentValues(
+      nextX,
+      nextY,
+      zoom,
+    );
+  }
+
+  function updateCurrentZoom(
+    nextZoom: number,
+  ) {
+    updateCurrentValues(
+      positionX,
+      positionY,
+      nextZoom,
+    );
   }
 
   function handlePointerDown(
     event: PointerEvent<HTMLDivElement>,
   ) {
+    if (
+      event.pointerType === 'mouse' &&
+      event.button !== 0
+    ) {
+      return;
+    }
+
     const rect =
       event.currentTarget.getBoundingClientRect();
 
@@ -153,11 +211,6 @@ export function HomepageHeroPositionEditor({
       return;
     }
 
-    /*
-     * Le déplacement est inversé pour reproduire
-     * le comportement naturel d'une image que
-     * l'utilisateur saisit et fait glisser.
-     */
     const deltaX =
       event.clientX -
       dragState.startClientX;
@@ -213,10 +266,11 @@ export function HomepageHeroPositionEditor({
     }
   }
 
-  function resetCurrentPosition() {
-    updateCurrentPosition(
+  function resetCurrentFraming() {
+    updateCurrentValues(
       50,
       50,
+      100,
     );
   }
 
@@ -261,8 +315,9 @@ export function HomepageHeroPositionEditor({
               text-[var(--flascam-slate)]
             "
           >
-            Faites glisser l’image pour choisir la
-            zone qui restera visible.
+            Faites glisser l’image et ajustez son
+            zoom séparément pour ordinateur et
+            mobile.
           </p>
         </div>
 
@@ -417,6 +472,10 @@ export function HomepageHeroPositionEditor({
             style={{
               objectPosition:
                 `${positionX}% ${positionY}%`,
+              transform:
+                `scale(${zoom / 100})`,
+              transformOrigin:
+                `${positionX}% ${positionY}%`,
             }}
             className="
               pointer-events-none
@@ -425,6 +484,8 @@ export function HomepageHeroPositionEditor({
               size-full
               object-cover
               select-none
+              transition-transform
+              duration-150
             "
           />
 
@@ -469,6 +530,155 @@ export function HomepageHeroPositionEditor({
 
       <div
         className="
+          mt-4
+          rounded-2xl
+          border
+          border-[var(--flascam-border)]
+          bg-white
+          p-3
+          sm:p-4
+        "
+      >
+        <div
+          className="
+            flex
+            items-center
+            justify-between
+            gap-3
+          "
+        >
+          <div>
+            <p
+              className="
+                text-sm
+                font-extrabold
+                text-slate-900
+              "
+            >
+              Zoom
+            </p>
+
+            <p
+              className="
+                mt-1
+                text-xs
+                text-[var(--flascam-slate)]
+              "
+            >
+              Réglage {isMobile
+                ? 'mobile'
+                : 'desktop'} : {zoom} %
+            </p>
+          </div>
+
+          <div
+            className="
+              flex
+              items-center
+              gap-2
+            "
+          >
+            <button
+              type="button"
+              onClick={() =>
+                updateCurrentZoom(
+                  zoom -
+                    ZOOM_STEP,
+                )
+              }
+              disabled={
+                zoom <= MIN_ZOOM
+              }
+              aria-label="Dézoomer l’image"
+              className="
+                grid
+                size-10
+                place-items-center
+                rounded-xl
+                border
+                border-[var(--flascam-border)]
+                text-slate-700
+                transition
+                hover:border-[var(--flascam-blue)]
+                hover:text-[var(--flascam-blue)]
+                disabled:cursor-not-allowed
+                disabled:opacity-40
+              "
+            >
+              <Minus size={17} />
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                updateCurrentZoom(
+                  zoom +
+                    ZOOM_STEP,
+                )
+              }
+              disabled={
+                zoom >= MAX_ZOOM
+              }
+              aria-label="Zoomer l’image"
+              className="
+                grid
+                size-10
+                place-items-center
+                rounded-xl
+                border
+                border-[var(--flascam-border)]
+                text-slate-700
+                transition
+                hover:border-[var(--flascam-blue)]
+                hover:text-[var(--flascam-blue)]
+                disabled:cursor-not-allowed
+                disabled:opacity-40
+              "
+            >
+              <Plus size={17} />
+            </button>
+          </div>
+        </div>
+
+        <input
+          type="range"
+          min={MIN_ZOOM}
+          max={MAX_ZOOM}
+          step={ZOOM_STEP}
+          value={zoom}
+          onChange={(event) =>
+            updateCurrentZoom(
+              Number(
+                event.target.value,
+              ),
+            )
+          }
+          aria-label={`Zoom ${isMobile ? 'mobile' : 'desktop'}`}
+          className="
+            mt-4
+            w-full
+            accent-[var(--flascam-blue)]
+          "
+        />
+
+        <div
+          className="
+            mt-2
+            flex
+            justify-between
+            text-[11px]
+            font-semibold
+            text-slate-500
+          "
+        >
+          <span>100 %</span>
+          <span>150 %</span>
+          <span>200 %</span>
+        </div>
+      </div>
+
+      <div
+        className="
           mt-3
           flex
           flex-col
@@ -493,7 +703,7 @@ export function HomepageHeroPositionEditor({
         <button
           type="button"
           onClick={
-            resetCurrentPosition
+            resetCurrentFraming
           }
           className="
             flex
@@ -515,7 +725,7 @@ export function HomepageHeroPositionEditor({
           "
         >
           <RotateCcw size={15} />
-          Recentrer ce cadrage
+          Réinitialiser ce cadrage
         </button>
       </div>
     </div>

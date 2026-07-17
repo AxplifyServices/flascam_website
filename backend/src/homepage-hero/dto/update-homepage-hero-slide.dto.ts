@@ -51,4 +51,16 @@ export class UpdateHomepageHeroSlideDto {
   @Min(0)
   @Max(100)
   mobilePositionY?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(200)
+  desktopZoom?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(200)
+  mobileZoom?: number;  
 }

@@ -17,6 +17,8 @@ export type CreateHomepageHeroSlidePayload = {
   desktopPositionY?: number;
   mobilePositionX?: number;
   mobilePositionY?: number;
+  desktopZoom?: number;
+  mobileZoom?: number;
 };
 
 export type UpdateHomepageHeroSlidePayload = {
@@ -28,6 +30,8 @@ export type UpdateHomepageHeroSlidePayload = {
   desktopPositionY?: number;
   mobilePositionX?: number;
   mobilePositionY?: number;
+  desktopZoom?: number;
+  mobileZoom?: number;
 };
 
 export type UploadedHomepageImage = {

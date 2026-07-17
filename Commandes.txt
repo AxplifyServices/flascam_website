@@ -23,12 +23,12 @@ Mot de passe : flascam_minio_local_password_2026
 
 ** Execution d'un script
 
-psql -U postgres -d flascam_db -f "database\migrations\017_add_homepage_hero_zoom.sql
+psql -U postgres -d flascam_db -f "database\migrations\018_expand_homepage_hero_zoom_range.sql
 
 
 cd /opt/apps/flascam/repo
 
-sudo -u postgres psql -d flascam_db  -f database/migrations/017_add_homepage_hero_zoom.sql
+sudo -u postgres psql -d flascam_db  -f database/migrations/018_expand_homepage_hero_zoom_range.sql
 
 
 ** Build l'appli

@@ -10,4 +10,6 @@ export type HomepageHeroSlideResponse = {
   desktopPositionY: number;
   mobilePositionX: number;
   mobilePositionY: number;
+  desktopZoom: number;
+  mobileZoom: number;
 };

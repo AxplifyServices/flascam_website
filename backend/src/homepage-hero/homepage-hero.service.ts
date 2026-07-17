@@ -120,6 +120,10 @@ data: {
     dto.mobilePositionX ?? 50,
   mobile_position_y:
     dto.mobilePositionY ?? 50,
+  desktop_zoom:
+    dto.desktopZoom ?? 100,
+  mobile_zoom:
+    dto.mobileZoom ?? 100,
 },
         include: {
           media_assets: true,
@@ -201,6 +205,19 @@ data: {
         dto.mobilePositionY,
     }
   : {}),
+
+...(dto.desktopZoom !== undefined
+  ? {
+      desktop_zoom:
+        dto.desktopZoom,
+    }
+  : {}),
+...(dto.mobileZoom !== undefined
+  ? {
+      mobile_zoom:
+        dto.mobileZoom,
+    }
+  : {}),  
 
           updated_at: new Date(),
         },
@@ -309,6 +326,8 @@ desktop_position_x: number;
 desktop_position_y: number;
 mobile_position_x: number;
 mobile_position_y: number;
+desktop_zoom: number;
+mobile_zoom: number;
 
       media_assets: {
         object_key: string;
@@ -336,6 +355,11 @@ mobilePositionX:
   slide.mobile_position_x,
 mobilePositionY:
   slide.mobile_position_y,
+
+desktopZoom:
+  slide.desktop_zoom,
+mobileZoom:
+  slide.mobile_zoom,  
     };
   }
 

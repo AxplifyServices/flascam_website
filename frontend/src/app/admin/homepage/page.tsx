@@ -61,6 +61,8 @@ const createEmptyForm =
       desktopPositionY: 50,
       mobilePositionX: 50,
       mobilePositionY: 50,
+      desktopZoom: 100,
+      mobileZoom: 100,
     },
   });
 
@@ -117,6 +119,11 @@ export default function AdminHomepagePage() {
   >(null);
 
   const [
+    editorOpen,
+    setEditorOpen,
+  ] = useState(false);
+
+  const [
     selectedFile,
     setSelectedFile,
   ] = useState<
@@ -134,8 +141,8 @@ export default function AdminHomepagePage() {
     form,
     setForm,
   ] = useState<SlideFormState>(
-  createEmptyForm,
-);
+    createEmptyForm,
+  );
 
   const [
     error,
@@ -218,6 +225,47 @@ export default function AdminHomepagePage() {
     previewUrl,
   ]);
 
+  useEffect(() => {
+    if (!editorOpen) {
+      return;
+    }
+
+    const previousOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow =
+      'hidden';
+
+    function handleKeyDown(
+      event: KeyboardEvent,
+    ) {
+      if (
+        event.key === 'Escape' &&
+        !submitting
+      ) {
+        closeEditor();
+      }
+    }
+
+    window.addEventListener(
+      'keydown',
+      handleKeyDown,
+    );
+
+    return () => {
+      document.body.style.overflow =
+        previousOverflow;
+
+      window.removeEventListener(
+        'keydown',
+        handleKeyDown,
+      );
+    };
+  }, [
+    editorOpen,
+    submitting,
+  ]);
+
   function clearMessages() {
     setError(null);
     setSuccess(null);
@@ -234,8 +282,23 @@ export default function AdminHomepagePage() {
     setSelectedFile(null);
     setPreviewUrl(null);
     setForm(
-  createEmptyForm(),
-);
+      createEmptyForm(),
+    );
+  }
+
+  function openCreateEditor() {
+    resetForm();
+    clearMessages();
+    setEditorOpen(true);
+  }
+
+  function closeEditor() {
+    if (submitting) {
+      return;
+    }
+
+    resetForm();
+    setEditorOpen(false);
   }
 
   function handleFileChange(
@@ -322,29 +385,30 @@ export default function AdminHomepagePage() {
     setPreviewUrl(null);
     setEditingSlide(slide);
 
-setForm({
-  title:
-    slide.title ?? '',
-  altText:
-    slide.altText,
-  isPublished:
-    slide.isPublished,
-  positions: {
-    desktopPositionX:
-      slide.desktopPositionX,
-    desktopPositionY:
-      slide.desktopPositionY,
-    mobilePositionX:
-      slide.mobilePositionX,
-    mobilePositionY:
-      slide.mobilePositionY,
-  },
-});
-
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
+    setForm({
+      title:
+        slide.title ?? '',
+      altText:
+        slide.altText,
+      isPublished:
+        slide.isPublished,
+      positions: {
+        desktopPositionX:
+          slide.desktopPositionX,
+        desktopPositionY:
+          slide.desktopPositionY,
+        mobilePositionX:
+          slide.mobilePositionX,
+        mobilePositionY:
+          slide.mobilePositionY,
+        desktopZoom:
+          slide.desktopZoom,
+        mobileZoom:
+          slide.mobileZoom,
+      },
     });
+
+    setEditorOpen(true);
   }
 
   async function submit(
@@ -381,14 +445,14 @@ setForm({
         const updated =
           await updateHomepageHeroSlide(
             editingSlide.id,
-{
-  title:
-    form.title.trim(),
-  altText,
-  isPublished:
-    form.isPublished,
-  ...form.positions,
-},
+            {
+              title:
+                form.title.trim(),
+              altText,
+              isPublished:
+                form.isPublished,
+              ...form.positions,
+            },
           );
 
         setSlides(
@@ -424,9 +488,9 @@ setForm({
               altText,
               displayOrder:
                 orderedSlides.length,
-isPublished:
-  form.isPublished,
-...form.positions,
+              isPublished:
+                form.isPublished,
+              ...form.positions,
             },
           );
 
@@ -444,6 +508,7 @@ isPublished:
       }
 
       resetForm();
+      setEditorOpen(false);
     } catch (caughtError) {
       setError(
         caughtError instanceof Error
@@ -625,6 +690,7 @@ isPublished:
         slide.id
       ) {
         resetForm();
+        setEditorOpen(false);
       }
 
       setSuccess(
@@ -707,50 +773,90 @@ isPublished:
 
         <div
           className="
-            mt-5
+            mt-6
             flex
-            flex-wrap
-            gap-3
+            flex-col
+            gap-4
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
           "
         >
-          <span
+          <div
             className="
-              rounded-full
-              bg-white
-              px-4
-              py-2
-              text-sm
-              font-bold
-              text-slate-700
-              shadow-sm
+              flex
+              flex-wrap
+              gap-3
             "
           >
-            {slides.length} image
-            {slides.length > 1
-              ? 's'
-              : ''}
-          </span>
+            <span
+              className="
+                rounded-full
+                bg-white
+                px-4
+                py-2
+                text-sm
+                font-bold
+                text-slate-700
+                shadow-sm
+              "
+            >
+              {slides.length} image
+              {slides.length > 1
+                ? 's'
+                : ''}
+            </span>
 
-          <span
+            <span
+              className="
+                rounded-full
+                bg-emerald-50
+                px-4
+                py-2
+                text-sm
+                font-bold
+                text-emerald-700
+              "
+            >
+              {publishedCount} publiée
+              {publishedCount > 1
+                ? 's'
+                : ''}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={openCreateEditor}
             className="
-              rounded-full
-              bg-emerald-50
-              px-4
-              py-2
+              inline-flex
+              min-h-12
+              w-full
+              items-center
+              justify-center
+              gap-2
+              rounded-2xl
+              bg-[var(--flascam-blue)]
+              px-5
               text-sm
-              font-bold
-              text-emerald-700
+              font-extrabold
+              text-white
+              shadow-sm
+              transition
+              hover:brightness-95
+              focus-visible:outline-none
+              focus-visible:ring-4
+              focus-visible:ring-[#b9d9f2]
+              sm:w-auto
             "
           >
-            {publishedCount} publiée
-            {publishedCount > 1
-              ? 's'
-              : ''}
-          </span>
+            <ImagePlus size={19} />
+            Ajouter une image
+          </button>
         </div>
       </header>
 
-      {error && (
+      {error && !editorOpen && (
         <div
           role="alert"
           className="
@@ -793,44 +899,90 @@ isPublished:
       <div
         className="
           mt-6
-          grid
-          gap-6
-          xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)]
+          min-w-0
+          rounded-3xl
+          border
+          border-[var(--flascam-border)]
+          bg-white
+          p-4
+          shadow-sm
+          sm:p-6
         "
       >
-        <form
-          onSubmit={submit}
-          className="
-            h-fit
-            rounded-3xl
-            border
-            border-[var(--flascam-border)]
-            bg-white
-            p-5
-            shadow-sm
-            sm:p-6
-          "
-        >
+        <div>
+          <h2
+            className="
+              text-xl
+              font-extrabold
+              text-slate-950
+            "
+          >
+            Ordre d’affichage
+          </h2>
+
+          <p
+            className="
+              mt-1
+              text-sm
+              leading-6
+              text-[var(--flascam-slate)]
+            "
+          >
+            La première image de cette liste sera
+            affichée en premier sur la page
+            d’accueil.
+          </p>
+        </div>
+
+        {loading ? (
           <div
             className="
-              flex
-              items-center
-              justify-between
-              gap-4
+              grid
+              min-h-72
+              place-items-center
+              text-[var(--flascam-blue)]
+            "
+          >
+            <LoaderCircle
+              size={30}
+              className="animate-spin"
+            />
+          </div>
+        ) : orderedSlides.length ===
+          0 ? (
+          <div
+            className="
+              mt-6
+              grid
+              min-h-64
+              place-items-center
+              rounded-2xl
+              border
+              border-dashed
+              border-[var(--flascam-border)]
+              bg-[#f8fbff]
+              px-6
+              text-center
             "
           >
             <div>
-              <h2
+              <ImagePlus
+                size={34}
                 className="
-                  text-xl
+                  mx-auto
+                  text-[var(--flascam-blue)]
+                "
+              />
+
+              <p
+                className="
+                  mt-3
                   font-extrabold
-                  text-slate-950
+                  text-slate-900
                 "
               >
-                {editingSlide
-                  ? 'Modifier l’image'
-                  : 'Ajouter une image'}
-              </h2>
+                Aucune image ajoutée
+              </p>
 
               <p
                 className="
@@ -839,484 +991,430 @@ isPublished:
                   text-[var(--flascam-slate)]
                 "
               >
-                Formats acceptés : JPG, PNG,
-                WEBP ou SVG, maximum 10 Mo.
+                Utilisez le bouton « Ajouter une
+                image » pour créer le premier
+                élément du diaporama.
               </p>
             </div>
+          </div>
+        ) : (
+          <div
+            className="
+              mt-6
+              space-y-4
+            "
+          >
+            {orderedSlides.map(
+              (
+                slide,
+                index,
+              ) => (
+                <article
+                  key={slide.id}
+                  className="
+                    overflow-hidden
+                    rounded-2xl
+                    border
+                    border-[var(--flascam-border)]
+                    bg-white
+                  "
+                >
+                  <div
+                    className="
+                      grid
+                      gap-4
+                      p-3
+                      sm:grid-cols-[160px_minmax(0,1fr)]
+                      sm:p-4
+                    "
+                  >
+                    <div
+                      className="
+                        relative
+                        aspect-[16/10]
+                        overflow-hidden
+                        rounded-xl
+                        bg-slate-100
+                      "
+                    >
+                      <img
+                        src={slide.imageUrl}
+                        alt={slide.altText}
+                        style={{
+                          objectPosition:
+                            `${slide.desktopPositionX}% ${slide.desktopPositionY}%`,
+                          transform:
+                            `scale(${slide.desktopZoom / 100})`,
+                          transformOrigin:
+                            `${slide.desktopPositionX}% ${slide.desktopPositionY}%`,
+                        }}
+                        className="
+                          absolute
+                          inset-0
+                          size-full
+                          object-cover
+                        "
+                      />
 
-            {editingSlide && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="
-                  grid
-                  size-10
-                  place-items-center
-                  rounded-full
-                  border
-                  border-[var(--flascam-border)]
-                  text-slate-600
-                  transition
-                  hover:bg-slate-50
-                "
-                aria-label="Annuler la modification"
-              >
-                <X size={18} />
-              </button>
+                      <span
+                        className="
+                          absolute
+                          left-2
+                          top-2
+                          rounded-full
+                          bg-[#07355d]/90
+                          px-2.5
+                          py-1
+                          text-xs
+                          font-extrabold
+                          text-white
+                        "
+                      >
+                        {index + 1}
+                      </span>
+                    </div>
+
+                    <div className="min-w-0">
+                      <div
+                        className="
+                          flex
+                          flex-wrap
+                          items-start
+                          justify-between
+                          gap-3
+                        "
+                      >
+                        <div
+                          className="
+                            min-w-0
+                            flex-1
+                          "
+                        >
+                          <h3
+                            className="
+                              truncate
+                              font-extrabold
+                              text-slate-950
+                            "
+                          >
+                            {slide.title ||
+                              `Image ${index + 1}`}
+                          </h3>
+
+                          <p
+                            className="
+                              mt-1
+                              line-clamp-2
+                              text-sm
+                              leading-5
+                              text-[var(--flascam-slate)]
+                            "
+                          >
+                            {slide.altText}
+                          </p>
+                        </div>
+
+                        <span
+                          className={`
+                            inline-flex
+                            items-center
+                            gap-1.5
+                            rounded-full
+                            px-3
+                            py-1.5
+                            text-xs
+                            font-extrabold
+                            ${
+                              slide.isPublished
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-slate-100 text-slate-600'
+                            }
+                          `}
+                        >
+                          {slide.isPublished ? (
+                            <Eye size={14} />
+                          ) : (
+                            <EyeOff size={14} />
+                          )}
+
+                          {slide.isPublished
+                            ? 'Publiée'
+                            : 'Masquée'}
+                        </span>
+                      </div>
+
+                      <div
+                        className="
+                          mt-4
+                          flex
+                          flex-wrap
+                          gap-2
+                        "
+                      >
+                        <button
+                          type="button"
+                          onClick={() =>
+                            moveSlide(
+                              slide.id,
+                              'up',
+                            )
+                          }
+                          disabled={
+                            index === 0 ||
+                            movingId !== null
+                          }
+                          className="
+                            grid
+                            size-10
+                            place-items-center
+                            rounded-xl
+                            border
+                            border-[var(--flascam-border)]
+                            text-slate-700
+                            transition
+                            hover:border-[var(--flascam-blue)]
+                            hover:text-[var(--flascam-blue)]
+                            disabled:cursor-not-allowed
+                            disabled:opacity-35
+                          "
+                          aria-label="Remonter l’image"
+                        >
+                          <ArrowUp size={17} />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            moveSlide(
+                              slide.id,
+                              'down',
+                            )
+                          }
+                          disabled={
+                            index ===
+                              orderedSlides.length -
+                                1 ||
+                            movingId !== null
+                          }
+                          className="
+                            grid
+                            size-10
+                            place-items-center
+                            rounded-xl
+                            border
+                            border-[var(--flascam-border)]
+                            text-slate-700
+                            transition
+                            hover:border-[var(--flascam-blue)]
+                            hover:text-[var(--flascam-blue)]
+                            disabled:cursor-not-allowed
+                            disabled:opacity-35
+                          "
+                          aria-label="Descendre l’image"
+                        >
+                          <ArrowDown size={17} />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            togglePublished(
+                              slide,
+                            )
+                          }
+                          className="
+                            flex
+                            h-10
+                            items-center
+                            gap-2
+                            rounded-xl
+                            border
+                            border-[var(--flascam-border)]
+                            px-3
+                            text-xs
+                            font-bold
+                            text-slate-700
+                            transition
+                            hover:border-[var(--flascam-blue)]
+                            hover:text-[var(--flascam-blue)]
+                          "
+                        >
+                          {slide.isPublished ? (
+                            <EyeOff size={16} />
+                          ) : (
+                            <Eye size={16} />
+                          )}
+
+                          {slide.isPublished
+                            ? 'Masquer'
+                            : 'Publier'}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            startEditing(
+                              slide,
+                            )
+                          }
+                          className="
+                            flex
+                            h-10
+                            items-center
+                            gap-2
+                            rounded-xl
+                            border
+                            border-[var(--flascam-border)]
+                            px-3
+                            text-xs
+                            font-bold
+                            text-slate-700
+                            transition
+                            hover:border-[var(--flascam-blue)]
+                            hover:text-[var(--flascam-blue)]
+                          "
+                        >
+                          <Pencil size={16} />
+                          Modifier
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            removeSlide(
+                              slide,
+                            )
+                          }
+                          disabled={
+                            deletingId ===
+                            slide.id
+                          }
+                          className="
+                            ml-auto
+                            flex
+                            h-10
+                            items-center
+                            gap-2
+                            rounded-xl
+                            border
+                            border-red-200
+                            px-3
+                            text-xs
+                            font-bold
+                            text-red-700
+                            transition
+                            hover:bg-red-50
+                            disabled:cursor-not-allowed
+                            disabled:opacity-50
+                          "
+                        >
+                          {deletingId ===
+                          slide.id ? (
+                            <LoaderCircle
+                              size={16}
+                              className="animate-spin"
+                            />
+                          ) : (
+                            <Trash2 size={16} />
+                          )}
+
+                          Supprimer
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ),
             )}
           </div>
+        )}
+      </div>
 
-{!editingSlide && (
-  <label
-    className="
-      mt-5
-      flex
-      min-h-52
-      cursor-pointer
-      flex-col
-      items-center
-      justify-center
-      overflow-hidden
-      rounded-2xl
-      border-2
-      border-dashed
-      border-[#b9d5e8]
-      bg-[#f8fbff]
-      text-center
-      transition
-      hover:border-[var(--flascam-blue)]
-    "
-  >
-    {previewUrl ? (
-      <div
-        className="
-          relative
-          h-52
-          w-full
-          overflow-hidden
-        "
-      >
-        <img
-          src={previewUrl}
-          alt="Aperçu de l’image sélectionnée"
+      {editorOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="homepage-image-editor-title"
           className="
-            absolute
+            fixed
             inset-0
-            size-full
-            object-cover
-          "
-        />
-
-        <div
-          className="
-            absolute
-            inset-x-0
-            bottom-0
-            bg-[#07355d]/75
-            px-4
-            py-2
-            text-xs
-            font-bold
-            text-white
+            z-[100]
+            flex
+            items-end
+            bg-slate-950/55
             backdrop-blur-sm
+            sm:items-center
+            sm:justify-center
+            sm:p-5
           "
+          onMouseDown={(event) => {
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
+              closeEditor();
+            }
+          }}
         >
-          Appuyez pour choisir une autre image
-        </div>
-      </div>
-    ) : (
-      <div className="px-6 py-8">
-        <div
-          className="
-            mx-auto
-            grid
-            size-14
-            place-items-center
-            rounded-2xl
-            bg-[#eaf5ff]
-            text-[var(--flascam-blue)]
-          "
-        >
-          <ImagePlus
-            size={25}
-          />
-        </div>
-
-        <p
-          className="
-            mt-4
-            text-sm
-            font-extrabold
-            text-slate-900
-          "
-        >
-          Sélectionner une image
-        </p>
-
-        <p
-          className="
-            mt-1
-            text-xs
-            text-[var(--flascam-slate)]
-          "
-        >
-          Appuyez ici pour parcourir vos fichiers
-        </p>
-      </div>
-    )}
-
-    <input
-      type="file"
-      accept="image/jpeg,image/png,image/webp,image/svg+xml"
-      onChange={
-        handleFileChange
-      }
-      className="sr-only"
-    />
-  </label>
-)}
-
-{(
-  previewUrl ||
-  editingSlide
-) && (
-  <HomepageHeroPositionEditor
-    imageUrl={
-      previewUrl ??
-      editingSlide!.imageUrl
-    }
-    altText={
-      form.altText ||
-      editingSlide?.altText ||
-      'Aperçu du cadrage'
-    }
-    value={
-      form.positions
-    }
-    onChange={(
-      positions,
-    ) => {
-      setForm(
-        (current) => ({
-          ...current,
-          positions,
-        }),
-      );
-    }}
-  />
-)}          
-
-          <label
+          <div
             className="
-              mt-5
-              block
-            "
-          >
-            <span
-              className="
-                text-sm
-                font-bold
-                text-slate-800
-              "
-            >
-              Titre facultatif
-            </span>
-
-            <input
-              value={form.title}
-              onChange={(event) =>
-                setForm(
-                  (current) => ({
-                    ...current,
-                    title:
-                      event.target.value,
-                  }),
-                )
-              }
-              maxLength={180}
-              className="
-                mt-2
-                h-12
-                w-full
-                rounded-2xl
-                border
-                border-[var(--flascam-border)]
-                bg-white
-                px-4
-                text-sm
-                outline-none
-                transition
-                focus:border-[var(--flascam-blue)]
-                focus:ring-4
-                focus:ring-[#dcefff]
-              "
-            />
-          </label>
-
-          <label
-            className="
-              mt-4
-              block
-            "
-          >
-            <span
-              className="
-                text-sm
-                font-bold
-                text-slate-800
-              "
-            >
-              Texte alternatif
-            </span>
-
-            <span
-              className="
-                ml-1
-                text-red-600
-              "
-            >
-              *
-            </span>
-
-            <textarea
-              value={form.altText}
-              onChange={(event) =>
-                setForm(
-                  (current) => ({
-                    ...current,
-                    altText:
-                      event.target.value,
-                  }),
-                )
-              }
-              maxLength={255}
-              rows={3}
-              required
-              className="
-                mt-2
-                w-full
-                resize-none
-                rounded-2xl
-                border
-                border-[var(--flascam-border)]
-                bg-white
-                px-4
-                py-3
-                text-sm
-                leading-6
-                outline-none
-                transition
-                focus:border-[var(--flascam-blue)]
-                focus:ring-4
-                focus:ring-[#dcefff]
-              "
-            />
-
-            <span
-              className="
-                mt-1
-                block
-                text-xs
-                leading-5
-                text-[var(--flascam-slate)]
-              "
-            >
-              Décrivez précisément l’image pour
-              l’accessibilité et le référencement.
-            </span>
-          </label>
-
-          <label
-            className="
-              mt-4
               flex
-              cursor-pointer
-              items-start
-              gap-3
-              rounded-2xl
-              border
-              border-[var(--flascam-border)]
-              bg-[#f8fbff]
-              p-4
-            "
-          >
-            <input
-              type="checkbox"
-              checked={
-                form.isPublished
-              }
-              onChange={(event) =>
-                setForm(
-                  (current) => ({
-                    ...current,
-                    isPublished:
-                      event.target.checked,
-                  }),
-                )
-              }
-              className="
-                mt-1
-                size-4
-                accent-[var(--flascam-blue)]
-              "
-            />
-
-            <span>
-              <span
-                className="
-                  block
-                  text-sm
-                  font-extrabold
-                  text-slate-900
-                "
-              >
-                Publier cette image
-              </span>
-
-              <span
-                className="
-                  mt-1
-                  block
-                  text-xs
-                  leading-5
-                  text-[var(--flascam-slate)]
-                "
-              >
-                Une image non publiée reste
-                enregistrée, mais n’apparaît pas sur
-                le site.
-              </span>
-            </span>
-          </label>
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="
-              mt-5
-              flex
-              h-12
+              max-h-[96vh]
               w-full
-              items-center
-              justify-center
-              gap-2
-              rounded-2xl
-              bg-[var(--flascam-blue)]
-              px-5
-              text-sm
-              font-extrabold
-              text-white
-              transition
-              hover:brightness-95
-              disabled:cursor-not-allowed
-              disabled:opacity-60
+              flex-col
+              overflow-hidden
+              rounded-t-[2rem]
+              bg-white
+              shadow-2xl
+              sm:max-h-[92vh]
+              sm:max-w-4xl
+              sm:rounded-[2rem]
             "
+            onMouseDown={(event) =>
+              event.stopPropagation()
+            }
           >
-            {submitting ? (
-              <LoaderCircle
-                size={19}
-                className="animate-spin"
-              />
-            ) : editingSlide ? (
-              <Save size={19} />
-            ) : (
-              <Upload size={19} />
-            )}
-
-            {submitting
-              ? 'Enregistrement…'
-              : editingSlide
-                ? 'Enregistrer les modifications'
-                : 'Importer et ajouter'}
-          </button>
-        </form>
-
-        <div
-          className="
-            min-w-0
-            rounded-3xl
-            border
-            border-[var(--flascam-border)]
-            bg-white
-            p-4
-            shadow-sm
-            sm:p-6
-          "
-        >
-          <div>
-            <h2
+            <header
               className="
-                text-xl
-                font-extrabold
-                text-slate-950
-              "
-            >
-              Ordre d’affichage
-            </h2>
-
-            <p
-              className="
-                mt-1
-                text-sm
-                leading-6
-                text-[var(--flascam-slate)]
-              "
-            >
-              La première image de cette liste sera
-              affichée en premier sur la page
-              d’accueil.
-            </p>
-          </div>
-
-          {loading ? (
-            <div
-              className="
-                grid
-                min-h-72
-                place-items-center
-                text-[var(--flascam-blue)]
-              "
-            >
-              <LoaderCircle
-                size={30}
-                className="animate-spin"
-              />
-            </div>
-          ) : orderedSlides.length ===
-            0 ? (
-            <div
-              className="
-                mt-6
-                grid
-                min-h-64
-                place-items-center
-                rounded-2xl
-                border
-                border-dashed
+                flex
+                shrink-0
+                items-start
+                justify-between
+                gap-4
+                border-b
                 border-[var(--flascam-border)]
-                bg-[#f8fbff]
-                px-6
-                text-center
+                px-5
+                py-4
+                sm:px-7
               "
             >
               <div>
-                <ImagePlus
-                  size={34}
-                  className="
-                    mx-auto
-                    text-[var(--flascam-blue)]
-                  "
-                />
-
                 <p
                   className="
-                    mt-3
+                    text-xs
                     font-extrabold
-                    text-slate-900
+                    uppercase
+                    tracking-[0.16em]
+                    text-[var(--flascam-blue)]
                   "
                 >
-                  Aucune image ajoutée
+                  Page d’accueil
                 </p>
+
+                <h2
+                  id="homepage-image-editor-title"
+                  className="
+                    mt-1
+                    text-xl
+                    font-extrabold
+                    text-slate-950
+                    sm:text-2xl
+                  "
+                >
+                  {editingSlide
+                    ? 'Modifier l’image'
+                    : 'Ajouter une image'}
+                </h2>
 
                 <p
                   className="
@@ -1325,362 +1423,494 @@ isPublished:
                     text-[var(--flascam-slate)]
                   "
                 >
-                  Utilisez le formulaire pour créer
-                  le premier élément du diaporama.
+                  Formats acceptés : JPG, PNG,
+                  WEBP ou SVG, maximum 10 Mo.
                 </p>
               </div>
-            </div>
-          ) : (
-            <div
+
+              <button
+                type="button"
+                onClick={closeEditor}
+                disabled={submitting}
+                aria-label="Fermer la fenêtre"
+                className="
+                  grid
+                  size-10
+                  shrink-0
+                  place-items-center
+                  rounded-xl
+                  border
+                  border-[var(--flascam-border)]
+                  text-slate-600
+                  transition
+                  hover:border-slate-400
+                  hover:bg-slate-50
+                  disabled:cursor-not-allowed
+                  disabled:opacity-50
+                "
+              >
+                <X size={18} />
+              </button>
+            </header>
+
+            <form
+              onSubmit={submit}
               className="
-                mt-6
-                space-y-4
+                flex
+                min-h-0
+                flex-1
+                flex-col
               "
             >
-              {orderedSlides.map(
-                (
-                  slide,
-                  index,
-                ) => (
-                  <article
-                    key={slide.id}
+              <div
+                className="
+                  min-h-0
+                  flex-1
+                  overflow-y-auto
+                  overscroll-contain
+                  px-5
+                  py-5
+                  sm:px-7
+                  sm:py-6
+                "
+              >
+                {error && (
+                  <div
+                    role="alert"
                     className="
+                      mb-5
+                      rounded-2xl
+                      border
+                      border-red-200
+                      bg-red-50
+                      px-4
+                      py-3
+                      text-sm
+                      font-semibold
+                      text-red-700
+                    "
+                  >
+                    {error}
+                  </div>
+                )}
+
+                {!editingSlide && (
+                  <label
+                    className="
+                      flex
+                      min-h-52
+                      cursor-pointer
+                      flex-col
+                      items-center
+                      justify-center
                       overflow-hidden
+                      rounded-2xl
+                      border-2
+                      border-dashed
+                      border-[#b9d5e8]
+                      bg-[#f8fbff]
+                      text-center
+                      transition
+                      hover:border-[var(--flascam-blue)]
+                    "
+                  >
+                    {previewUrl ? (
+                      <div
+                        className="
+                          relative
+                          h-52
+                          w-full
+                          overflow-hidden
+                        "
+                      >
+                        <img
+                          src={previewUrl}
+                          alt="Aperçu de l’image sélectionnée"
+                          className="
+                            absolute
+                            inset-0
+                            size-full
+                            object-cover
+                          "
+                        />
+
+                        <div
+                          className="
+                            absolute
+                            inset-x-0
+                            bottom-0
+                            bg-[#07355d]/75
+                            px-4
+                            py-2
+                            text-xs
+                            font-bold
+                            text-white
+                            backdrop-blur-sm
+                          "
+                        >
+                          Appuyez pour choisir une
+                          autre image
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="px-6 py-8">
+                        <div
+                          className="
+                            mx-auto
+                            grid
+                            size-14
+                            place-items-center
+                            rounded-2xl
+                            bg-[#eaf5ff]
+                            text-[var(--flascam-blue)]
+                          "
+                        >
+                          <ImagePlus size={25} />
+                        </div>
+
+                        <p
+                          className="
+                            mt-4
+                            text-sm
+                            font-extrabold
+                            text-slate-900
+                          "
+                        >
+                          Sélectionner une image
+                        </p>
+
+                        <p
+                          className="
+                            mt-1
+                            text-xs
+                            text-[var(--flascam-slate)]
+                          "
+                        >
+                          Appuyez ici pour parcourir
+                          vos fichiers
+                        </p>
+                      </div>
+                    )}
+
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/svg+xml"
+                      onChange={
+                        handleFileChange
+                      }
+                      className="sr-only"
+                    />
+                  </label>
+                )}
+
+                {(
+                  previewUrl ||
+                  editingSlide
+                ) && (
+                  <HomepageHeroPositionEditor
+                    imageUrl={
+                      previewUrl ??
+                      editingSlide!.imageUrl
+                    }
+                    altText={
+                      form.altText ||
+                      editingSlide
+                        ?.altText ||
+                      'Aperçu du cadrage'
+                    }
+                    value={
+                      form.positions
+                    }
+                    onChange={(
+                      positions,
+                    ) => {
+                      setForm(
+                        (current) => ({
+                          ...current,
+                          positions,
+                        }),
+                      );
+                    }}
+                  />
+                )}
+
+                <label
+                  className="
+                    mt-5
+                    block
+                  "
+                >
+                  <span
+                    className="
+                      text-sm
+                      font-bold
+                      text-slate-800
+                    "
+                  >
+                    Titre facultatif
+                  </span>
+
+                  <input
+                    value={form.title}
+                    onChange={(event) =>
+                      setForm(
+                        (current) => ({
+                          ...current,
+                          title:
+                            event.target
+                              .value,
+                        }),
+                      )
+                    }
+                    maxLength={180}
+                    className="
+                      mt-2
+                      h-12
+                      w-full
                       rounded-2xl
                       border
                       border-[var(--flascam-border)]
                       bg-white
+                      px-4
+                      text-sm
+                      outline-none
+                      transition
+                      focus:border-[var(--flascam-blue)]
+                      focus:ring-4
+                      focus:ring-[#dcefff]
+                    "
+                  />
+                </label>
+
+                <label
+                  className="
+                    mt-4
+                    block
+                  "
+                >
+                  <span
+                    className="
+                      text-sm
+                      font-bold
+                      text-slate-800
                     "
                   >
-                    <div
+                    Texte alternatif
+                  </span>
+
+                  <span
+                    className="
+                      ml-1
+                      text-red-600
+                    "
+                  >
+                    *
+                  </span>
+
+                  <textarea
+                    value={form.altText}
+                    onChange={(event) =>
+                      setForm(
+                        (current) => ({
+                          ...current,
+                          altText:
+                            event.target
+                              .value,
+                        }),
+                      )
+                    }
+                    maxLength={255}
+                    rows={3}
+                    required
+                    className="
+                      mt-2
+                      w-full
+                      resize-none
+                      rounded-2xl
+                      border
+                      border-[var(--flascam-border)]
+                      bg-white
+                      px-4
+                      py-3
+                      text-sm
+                      leading-6
+                      outline-none
+                      transition
+                      focus:border-[var(--flascam-blue)]
+                      focus:ring-4
+                      focus:ring-[#dcefff]
+                    "
+                  />
+
+                  <span
+                    className="
+                      mt-1
+                      block
+                      text-xs
+                      leading-5
+                      text-[var(--flascam-slate)]
+                    "
+                  >
+                    Décrivez précisément l’image
+                    pour l’accessibilité et le
+                    référencement.
+                  </span>
+                </label>
+
+                <label
+                  className="
+                    mt-4
+                    flex
+                    cursor-pointer
+                    items-start
+                    gap-3
+                    rounded-2xl
+                    border
+                    border-[var(--flascam-border)]
+                    bg-[#f8fbff]
+                    p-4
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    checked={
+                      form.isPublished
+                    }
+                    onChange={(event) =>
+                      setForm(
+                        (current) => ({
+                          ...current,
+                          isPublished:
+                            event.target
+                              .checked,
+                        }),
+                      )
+                    }
+                    className="
+                      mt-1
+                      size-4
+                      accent-[var(--flascam-blue)]
+                    "
+                  />
+
+                  <span>
+                    <span
                       className="
-                        grid
-                        gap-4
-                        p-3
-                        sm:grid-cols-[160px_minmax(0,1fr)]
-                        sm:p-4
+                        block
+                        text-sm
+                        font-extrabold
+                        text-slate-900
                       "
                     >
-                      <div
-                        className="
-                          relative
-                          aspect-[16/10]
-                          overflow-hidden
-                          rounded-xl
-                          bg-slate-100
-                        "
-                      >
-<img
-  src={slide.imageUrl}
-  alt={slide.altText}
-  style={{
-    objectPosition:
-      `${slide.desktopPositionX}% ${slide.desktopPositionY}%`,
-  }}
-  className="
-    absolute
-    inset-0
-    size-full
-    object-cover
-  "
-/>
+                      Publier cette image
+                    </span>
 
-                        <span
-                          className="
-                            absolute
-                            left-2
-                            top-2
-                            rounded-full
-                            bg-[#07355d]/90
-                            px-2.5
-                            py-1
-                            text-xs
-                            font-extrabold
-                            text-white
-                          "
-                        >
-                          {index + 1}
-                        </span>
-                      </div>
+                    <span
+                      className="
+                        mt-1
+                        block
+                        text-xs
+                        leading-5
+                        text-[var(--flascam-slate)]
+                      "
+                    >
+                      Une image non publiée reste
+                      enregistrée, mais n’apparaît
+                      pas sur le site.
+                    </span>
+                  </span>
+                </label>
+              </div>
 
-                      <div
-                        className="
-                          min-w-0
-                        "
-                      >
-                        <div
-                          className="
-                            flex
-                            flex-wrap
-                            items-start
-                            justify-between
-                            gap-3
-                          "
-                        >
-                          <div
-                            className="
-                              min-w-0
-                              flex-1
-                            "
-                          >
-                            <h3
-                              className="
-                                truncate
-                                font-extrabold
-                                text-slate-950
-                              "
-                            >
-                              {slide.title ||
-                                `Image ${index + 1}`}
-                            </h3>
+              <footer
+                className="
+                  shrink-0
+                  border-t
+                  border-[var(--flascam-border)]
+                  bg-white
+                  px-5
+                  py-4
+                  sm:px-7
+                "
+              >
+                <div
+                  className="
+                    flex
+                    flex-col-reverse
+                    gap-3
+                    sm:flex-row
+                    sm:justify-end
+                  "
+                >
+                  <button
+                    type="button"
+                    onClick={closeEditor}
+                    disabled={submitting}
+                    className="
+                      inline-flex
+                      min-h-11
+                      items-center
+                      justify-center
+                      rounded-xl
+                      border
+                      border-[var(--flascam-border)]
+                      px-5
+                      text-sm
+                      font-bold
+                      text-slate-700
+                      transition
+                      hover:border-slate-400
+                      disabled:cursor-not-allowed
+                      disabled:opacity-50
+                    "
+                  >
+                    Annuler
+                  </button>
 
-                            <p
-                              className="
-                                mt-1
-                                line-clamp-2
-                                text-sm
-                                leading-5
-                                text-[var(--flascam-slate)]
-                              "
-                            >
-                              {slide.altText}
-                            </p>
-                          </div>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="
+                      inline-flex
+                      min-h-11
+                      items-center
+                      justify-center
+                      gap-2
+                      rounded-xl
+                      bg-[var(--flascam-blue)]
+                      px-5
+                      text-sm
+                      font-extrabold
+                      text-white
+                      transition
+                      hover:brightness-95
+                      disabled:cursor-not-allowed
+                      disabled:opacity-60
+                    "
+                  >
+                    {submitting ? (
+                      <LoaderCircle
+                        size={19}
+                        className="animate-spin"
+                      />
+                    ) : editingSlide ? (
+                      <Save size={19} />
+                    ) : (
+                      <Upload size={19} />
+                    )}
 
-                          <span
-                            className={`
-                              inline-flex
-                              items-center
-                              gap-1.5
-                              rounded-full
-                              px-3
-                              py-1.5
-                              text-xs
-                              font-extrabold
-                              ${
-                                slide.isPublished
-                                  ? 'bg-emerald-50 text-emerald-700'
-                                  : 'bg-slate-100 text-slate-600'
-                              }
-                            `}
-                          >
-                            {slide.isPublished ? (
-                              <Eye
-                                size={14}
-                              />
-                            ) : (
-                              <EyeOff
-                                size={14}
-                              />
-                            )}
-
-                            {slide.isPublished
-                              ? 'Publiée'
-                              : 'Masquée'}
-                          </span>
-                        </div>
-
-                        <div
-                          className="
-                            mt-4
-                            flex
-                            flex-wrap
-                            gap-2
-                          "
-                        >
-                          <button
-                            type="button"
-                            onClick={() =>
-                              moveSlide(
-                                slide.id,
-                                'up',
-                              )
-                            }
-                            disabled={
-                              index === 0 ||
-                              movingId !==
-                                null
-                            }
-                            className="
-                              grid
-                              size-10
-                              place-items-center
-                              rounded-xl
-                              border
-                              border-[var(--flascam-border)]
-                              text-slate-700
-                              transition
-                              hover:border-[var(--flascam-blue)]
-                              hover:text-[var(--flascam-blue)]
-                              disabled:cursor-not-allowed
-                              disabled:opacity-35
-                            "
-                            aria-label="Remonter l’image"
-                          >
-                            <ArrowUp
-                              size={17}
-                            />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              moveSlide(
-                                slide.id,
-                                'down',
-                              )
-                            }
-                            disabled={
-                              index ===
-                                orderedSlides.length -
-                                  1 ||
-                              movingId !==
-                                null
-                            }
-                            className="
-                              grid
-                              size-10
-                              place-items-center
-                              rounded-xl
-                              border
-                              border-[var(--flascam-border)]
-                              text-slate-700
-                              transition
-                              hover:border-[var(--flascam-blue)]
-                              hover:text-[var(--flascam-blue)]
-                              disabled:cursor-not-allowed
-                              disabled:opacity-35
-                            "
-                            aria-label="Descendre l’image"
-                          >
-                            <ArrowDown
-                              size={17}
-                            />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              togglePublished(
-                                slide,
-                              )
-                            }
-                            className="
-                              flex
-                              h-10
-                              items-center
-                              gap-2
-                              rounded-xl
-                              border
-                              border-[var(--flascam-border)]
-                              px-3
-                              text-xs
-                              font-bold
-                              text-slate-700
-                              transition
-                              hover:border-[var(--flascam-blue)]
-                              hover:text-[var(--flascam-blue)]
-                            "
-                          >
-                            {slide.isPublished ? (
-                              <EyeOff
-                                size={16}
-                              />
-                            ) : (
-                              <Eye
-                                size={16}
-                              />
-                            )}
-
-                            {slide.isPublished
-                              ? 'Masquer'
-                              : 'Publier'}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              startEditing(
-                                slide,
-                              )
-                            }
-                            className="
-                              flex
-                              h-10
-                              items-center
-                              gap-2
-                              rounded-xl
-                              border
-                              border-[var(--flascam-border)]
-                              px-3
-                              text-xs
-                              font-bold
-                              text-slate-700
-                              transition
-                              hover:border-[var(--flascam-blue)]
-                              hover:text-[var(--flascam-blue)]
-                            "
-                          >
-                            <Pencil
-                              size={16}
-                            />
-                            Modifier
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              removeSlide(
-                                slide,
-                              )
-                            }
-                            disabled={
-                              deletingId ===
-                              slide.id
-                            }
-                            className="
-                              ml-auto
-                              flex
-                              h-10
-                              items-center
-                              gap-2
-                              rounded-xl
-                              border
-                              border-red-200
-                              px-3
-                              text-xs
-                              font-bold
-                              text-red-700
-                              transition
-                              hover:bg-red-50
-                              disabled:cursor-not-allowed
-                              disabled:opacity-50
-                            "
-                          >
-                            {deletingId ===
-                            slide.id ? (
-                              <LoaderCircle
-                                size={16}
-                                className="animate-spin"
-                              />
-                            ) : (
-                              <Trash2
-                                size={16}
-                              />
-                            )}
-
-                            Supprimer
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </article>
-                ),
-              )}
-            </div>
-          )}
+                    {submitting
+                      ? 'Enregistrement…'
+                      : editingSlide
+                        ? 'Enregistrer les modifications'
+                        : 'Importer et ajouter'}
+                  </button>
+                </div>
+              </footer>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }
