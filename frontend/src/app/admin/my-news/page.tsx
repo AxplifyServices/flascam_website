@@ -915,23 +915,28 @@ export default function AssociationNewsPage() {
             );
         }
 
-        setSelectedArticle(
-          saved,
-        );
+const successMessage =
+  selectedArticle
+    ? 'Les modifications ont été enregistrées.'
+    : 'Le brouillon a été créé.';
 
-        setForm(
-          formFromArticle(
-            saved,
-          ),
-        );
+setEditorOpen(
+  false,
+);
 
-        setSuccess(
-          selectedArticle
-            ? 'Les modifications ont été enregistrées.'
-            : 'Le brouillon a été créé.',
-        );
+setSelectedArticle(
+  null,
+);
 
-        await loadArticles();
+setForm(
+  emptyForm,
+);
+
+setSuccess(
+  successMessage,
+);
+
+await loadArticles();
       } catch (
         caught
       ) {
@@ -1202,29 +1207,30 @@ export default function AssociationNewsPage() {
       );
 
       try {
-        if (
-          action ===
-          'submit'
-        ) {
-          const updated =
-            await submitAssociationNews(
-              selectedArticle.id,
-            );
+if (
+  action ===
+  'submit'
+) {
+  await submitAssociationNews(
+    selectedArticle.id,
+  );
 
-          setSelectedArticle(
-            updated,
-          );
+  setEditorOpen(
+    false,
+  );
 
-          setForm(
-            formFromArticle(
-              updated,
-            ),
-          );
+  setSelectedArticle(
+    null,
+  );
 
-          setSuccess(
-            'La publication a été soumise à FLASCAM.',
-          );
-        }
+  setForm(
+    emptyForm,
+  );
+
+  setSuccess(
+    'La publication a été soumise à FLASCAM pour validation.',
+  );
+}
 
         if (
           action ===
