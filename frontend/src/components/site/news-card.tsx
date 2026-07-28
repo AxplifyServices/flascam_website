@@ -82,12 +82,12 @@ className={`
   overflow-hidden
   bg-[#eaf5ff]
   ${
-    compact
-      ? `
-        h-[180px]
-        sm:h-[210px]
-        lg:h-[230px]
-      `
+compact
+  ? `
+    h-[220px]
+    sm:h-[230px]
+    lg:h-[240px]
+  `
       : `
         h-[210px]
         sm:h-[240px]
@@ -378,17 +378,20 @@ className={`
           )}
         </div>
 
-        <h2
-          className="
-            mt-4
-            text-xl
-            font-extrabold
-            leading-[1.25]
-            tracking-[-0.025em]
-            text-[#101820]
-            sm:text-[1.35rem]
-          "
-        >
+<h2
+  className="
+    mt-4
+    line-clamp-3
+    min-h-[4.7rem]
+    text-xl
+    font-extrabold
+    leading-[1.25]
+    tracking-[-0.025em]
+    text-[#101820]
+    sm:min-h-[5.05rem]
+    sm:text-[1.35rem]
+  "
+>
           <Link
             href={`/actualites/${article.slug}`}
             className="
@@ -405,15 +408,16 @@ className={`
         </h2>
 
         {article.excerpt && (
-          <p
-            className="
-              mt-3
-              line-clamp-3
-              text-sm
-              leading-7
-              text-[#536273]
-            "
-          >
+<p
+  className="
+    mt-3
+    line-clamp-3
+    min-h-[5.25rem]
+    text-sm
+    leading-7
+    text-[#536273]
+  "
+>
             {article.excerpt}
           </p>
         )}

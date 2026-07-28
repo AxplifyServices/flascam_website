@@ -65,13 +65,14 @@ function markerLabel(
 function markerLabelWidth(
   association: AssociationSummary,
 ) {
-  const label = markerLabel(association);
+  const label =
+    markerLabel(association);
 
   return Math.min(
-    220,
+    290,
     Math.max(
-      128,
-      label.length * 5.6 + 24,
+      160,
+      label.length * 7.4 + 32,
     ),
   );
 }
@@ -208,29 +209,30 @@ const labelWidth =
                     >
 <rect
   x={-labelWidth / 2}
-  y={-36}
+  y={-48}
   width={labelWidth}
-  height={23}
-  rx={7}
+  height={34}
+  rx={10}
   fill="#ffffff"
   stroke="#dbe5ef"
-  strokeWidth={1}
-  filter="drop-shadow(0 4px 8px rgba(7,53,93,0.18))"
+  strokeWidth={1.25}
+  filter="drop-shadow(0 5px 11px rgba(7,53,93,0.2))"
 />
 
 <text
   x={0}
-  y={-24.5}
+  y={-31}
   textAnchor="middle"
   dominantBaseline="middle"
   fill="#07355d"
-  fontSize={5.8}
-  fontWeight={750}
+  fontSize={9}
+  fontWeight={800}
+  letterSpacing={0.1}
 >
-                        {markerLabel(
-                          association,
-                        )}
-                      </text>
+  {markerLabel(
+    association,
+  )}
+</text>
                     </g>
                   )}
 

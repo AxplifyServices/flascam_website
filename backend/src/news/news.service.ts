@@ -217,7 +217,7 @@ export class NewsService {
         ],
 
         take:
-          5,
+          10,
       });
 
     return this.formatArticles(

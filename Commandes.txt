@@ -23,12 +23,12 @@ Mot de passe : flascam_minio_local_password_2026
 
 ** Execution d'un script
 
-psql -U postgres -d flascam_db -f "database\migrations\019_add_association_map_positions.sql
+psql -U postgres -d flascam_db -f "database\migrations\020_add_association_coordinates.sql
 
 
 cd /opt/apps/flascam/repo
 
-sudo -u postgres psql -d flascam_db  -f database/migrations/019_add_association_map_positions.sql
+sudo -u postgres psql -d flascam_db  -f database/migrations/020_add_association_coordinates.sql
 
 
 ** Build l'appli

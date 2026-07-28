@@ -9,8 +9,8 @@ import {
 } from '@/lib/news-api';
 
 import {
-  NewsCard,
-} from './news-card';
+  LatestNewsCarousel,
+} from './latest-news-carousel';
 
 export async function LatestNewsSection() {
   let articles;
@@ -83,14 +83,10 @@ export async function LatestNewsSection() {
     return null;
   }
 
-  const [
-    mainArticle,
-    ...secondaryArticles
-  ] = articles;
-
   return (
     <section
       className="
+        overflow-hidden
         bg-white
         py-16
         sm:py-24
@@ -169,7 +165,7 @@ export async function LatestNewsSection() {
                 sm:text-lg
               "
             >
-              Retrouvez les actions,
+              Parcourez les actions,
               événements, communiqués et
               publications officielles de
               la FLASCAM.
@@ -192,70 +188,31 @@ export async function LatestNewsSection() {
               font-extrabold
               text-[#07355d]
               transition
-              hover:bg-[#07355d]
+              hover:border-[#c96f4a]
+              hover:bg-[#c96f4a]
               hover:text-white
+              focus-visible:outline-none
+              focus-visible:ring-4
+              focus-visible:ring-[#c96f4a]/20
             "
           >
             Toutes les actualités
 
             <ArrowRight
               size={17}
+              aria-hidden="true"
             />
           </Link>
         </div>
 
-<div
-  className={`
-    mt-10
-    grid
-    gap-6
-    ${
-      secondaryArticles.length > 0
-        ? `
-          lg:grid-cols-[1.15fr_0.85fr]
-        `
-        : `
-          lg:grid-cols-1
-        `
-    }
-  `}
->
-<div>
-  <NewsCard
-    article={
-      mainArticle
-    }
-    priority
-    compact
-  />
-</div>
-
-          {secondaryArticles.length >
-            0 && (
-            <div
-              className="
-                grid
-                gap-6
-                sm:grid-cols-2
-                lg:grid-cols-1
-                xl:grid-cols-2
-              "
-            >
-              {secondaryArticles.map(
-                (article) => (
-                  <NewsCard
-                    key={
-                      article.id
-                    }
-                    article={
-                      article
-                    }
-                  />
-                ),
-              )}
-            </div>
-          )}
-        </div>
+        <LatestNewsCarousel
+          articles={
+            articles.slice(
+              0,
+              10,
+            )
+          }
+        />
       </div>
     </section>
   );

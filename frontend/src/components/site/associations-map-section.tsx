@@ -276,15 +276,47 @@ function AssociationDetailCard({
 
 <Link
   href={`/associations/${association.slug}`}
-  className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-[#ef4b87] px-5 text-sm font-extrabold text-white shadow-[0_12px_28px_rgba(239,75,135,0.24)] transition duration-200 hover:bg-[#d93676] hover:shadow-[0_16px_34px_rgba(239,75,135,0.3)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#ef4b87]/25"
+  className="
+    mt-6
+    inline-flex
+    min-h-12
+    w-full
+    items-center
+    justify-center
+    gap-3
+    rounded-xl
+    border
+    border-[#c96f4a]
+    bg-[#c96f4a]
+    px-5
+    text-sm
+    font-extrabold
+    !text-white
+    shadow-[0_12px_28px_rgba(201,111,74,0.24)]
+    transition
+    duration-200
+    hover:-translate-y-0.5
+    hover:border-[#a95235]
+    hover:bg-[#a95235]
+    hover:!text-white
+    hover:shadow-[0_16px_34px_rgba(169,82,53,0.28)]
+    focus-visible:outline-none
+    focus-visible:ring-4
+    focus-visible:ring-[#c96f4a]/25
+    [&_*]:text-white
+  "
 >
-  Découvrir l’association
+  <span className="text-white">
+    Découvrir l’association
+  </span>
 
   <ArrowRight
     size={18}
     aria-hidden="true"
+    className="text-white"
   />
 </Link>
+
       </div>
     </article>
   );
