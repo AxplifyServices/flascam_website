@@ -1044,12 +1044,21 @@ longitude:
       throw new NotFoundException('Média association introuvable.');
     }
 
-    const mediaAsset = await this.prisma.media_assets.findFirst({
-      where: {
-        id: dto.mediaAssetId,
-        deleted_at: null,
-        status: 'READY',
-      },
+const mediaAsset = await this.prisma.media_assets.findFirst({
+  where: {
+    id:
+      dto.mediaAssetId,
+
+    deleted_at:
+      null,
+
+    status: {
+      in: [
+        'PUBLISHED',
+        'READY',
+      ],
+    },
+  },
       select: {
         id: true,
         media_type: true,
@@ -1521,44 +1530,40 @@ longitude:
   private async ensureAssociationLeaderPhoto(
     mediaAssetId: string,
   ) {
-    const mediaAsset =
-      await this.prisma.media_assets.findFirst({
-        where: {
-          id:
-            mediaAssetId,
+const mediaAsset =
+  await this.prisma.media_assets.findFirst({
+    where: {
+      id:
+        mediaAssetId,
 
-          deleted_at:
-            null,
+      deleted_at:
+        null,
 
-          status:
-            'READY',
+      status: {
+        in: [
+          'PUBLISHED',
+          'READY',
+        ],
+      },
 
-          media_type:
-            'IMAGE',
-        },
+      media_type:
+        'IMAGE',
 
-        select: {
-          id:
-            true,
+      visibility:
+        'PUBLIC',
+    },
 
-          visibility:
-            true,
-        },
-      });
+    select: {
+      id:
+        true,
+    },
+  });
 
-    if (!mediaAsset) {
-      throw new BadRequestException(
-        'La photo sélectionnée est introuvable ou n’est pas encore disponible.',
-      );
-    }
-
-    if (
-      mediaAsset.visibility !== 'PUBLIC'
-    ) {
-      throw new BadRequestException(
-        'La photo du dirigeant doit être un média public.',
-      );
-    }
+if (!mediaAsset) {
+  throw new BadRequestException(
+    'La photo sélectionnée est introuvable, non publique ou indisponible.',
+  );
+}
   }  
 
   private mediaUrl(

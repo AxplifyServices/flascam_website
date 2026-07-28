@@ -502,8 +502,9 @@ const presidentMessage =
             className="absolute -left-40 top-20 h-80 w-80 rounded-full bg-[#0f5f9f]/[0.05] blur-3xl"
           />
 
-          <div className="site-container relative grid gap-10 lg:grid-cols-[1fr_23rem] xl:grid-cols-[1fr_25rem]">
-            <div className="space-y-14">
+          <div className="site-container relative">
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_23rem] xl:grid-cols-[minmax(0,1fr)_25rem]">
+              <div className="min-w-0 space-y-14">
               <section>
                 <div className="flex items-center gap-3">
                   <span className="h-[3px] w-10 bg-[#c96f4a]" />
@@ -618,98 +619,6 @@ const presidentMessage =
     </section>
   )}
 
- {visibleLeaders.length > 0 && (
-  <section>
-    <div className="flex items-center gap-3 border-b border-[#dbe5ef] pb-5">
-      <span className="h-[3px] w-10 bg-[#c96f4a]" />
-
-      <h2 className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#0f5f9f]">
-        Équipe dirigeante
-      </h2>
-    </div>
-
-    <div className="mt-6 grid gap-6 md:grid-cols-2">
-      {visibleLeaders.map(
-        (leader) => {
-          const isPresident =
-            leader.role ===
-            'PRESIDENT';
-
-          const biography =
-            leader.biography
-              ?.trim() ?? '';
-
-          return (
-            <article
-              key={leader.id}
-              className="group overflow-hidden border border-[#dbe5ef] bg-white transition duration-300 hover:-translate-y-1 hover:border-[#0f5f9f]/35 hover:shadow-[0_20px_50px_rgba(7,53,93,0.08)]"
-            >
-              <div className="grid sm:grid-cols-[10rem_minmax(0,1fr)] md:grid-cols-1 xl:grid-cols-[10rem_minmax(0,1fr)]">
-                <div className="aspect-[4/5] overflow-hidden bg-[#eaf5ff] sm:aspect-auto sm:min-h-56 md:aspect-[4/5] md:min-h-0 xl:aspect-auto xl:min-h-56">
-                  {leader.photoUrl ? (
-                    <img
-                      src={
-                        leader.photoUrl
-                      }
-                      alt={`Portrait de ${leader.fullName}`}
-                      className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.03]"
-                    />
-                  ) : (
-                    <div className="grid h-full min-h-56 place-items-center">
-                      <UsersRound
-                        size={48}
-                        className="text-[#0f5f9f]/35"
-                        aria-hidden="true"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="min-w-0 p-5 sm:p-6">
-                  <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#c96f4a]">
-                    {isPresident
-                      ? 'Président'
-                      : 'Secrétaire général'}
-                  </p>
-
-                  <h3 className="mt-3 text-xl font-extrabold leading-tight text-[#07355d]">
-                    {leader.fullName}
-                  </h3>
-
-                  {biography && (
-                    <div className="mt-4 space-y-3 text-sm leading-7 text-[#536273]">
-                      {biography
-                        .split('\n')
-                        .map(
-                          (
-                            paragraph,
-                          ) =>
-                            paragraph.trim(),
-                        )
-                        .filter(Boolean)
-                        .map(
-                          (
-                            paragraph,
-                            index,
-                          ) => (
-                            <p
-                              key={`${index}-${paragraph}`}
-                            >
-                              {paragraph}
-                            </p>
-                          ),
-                        )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </article>
-          );
-        },
-      )}
-    </div>
-  </section>
-)} 
 
 <section>
   <div className="flex items-center justify-between gap-5 border-b border-[#dbe5ef] pb-5">
@@ -1186,6 +1095,95 @@ const presidentMessage =
                 Retour aux associations
               </Link>
             </aside>
+          </div>
+
+            {visibleLeaders.length > 0 && (
+              <section className="mt-14 sm:mt-16 lg:mt-20">
+                <div className="flex items-center gap-3 border-b border-[#dbe5ef] pb-5">
+                  <span className="h-[3px] w-10 bg-[#c96f4a]" />
+
+                  <h2 className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#0f5f9f]">
+                    Équipe dirigeante
+                  </h2>
+                </div>
+
+                <div className="mt-8 space-y-8">
+                  {visibleLeaders.map((leader) => {
+                    const isPresident =
+                      leader.role === 'PRESIDENT';
+
+                    const biography =
+                      leader.biography?.trim() ?? '';
+
+                    return (
+                      <article
+                        key={leader.id}
+                        className="group overflow-hidden border border-[#dbe5ef] bg-white transition duration-300 hover:-translate-y-1 hover:border-[#0f5f9f]/35 hover:shadow-[0_24px_65px_rgba(7,53,93,0.1)]"
+                      >
+                        <div className="grid lg:grid-cols-[25rem_minmax(0,1fr)] xl:grid-cols-[30rem_minmax(0,1fr)]">
+                          <div className="relative min-h-[28rem] overflow-hidden bg-[#eaf5ff] sm:min-h-[34rem] lg:min-h-[40rem]">
+                            {leader.photoUrl ? (
+                              <img
+                                src={leader.photoUrl}
+                                alt={`Portrait de ${leader.fullName}`}
+                                className="absolute inset-0 h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.025]"
+                              />
+                            ) : (
+                              <div className="grid h-full min-h-[34rem] place-items-center">
+                                <UsersRound
+                                  size={68}
+                                  className="text-[#0f5f9f]/35"
+                                  aria-hidden="true"
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="min-w-0 p-6 sm:p-9 lg:p-12 xl:p-14">
+                            <p className="text-sm font-extrabold uppercase tracking-[0.16em] text-[#c96f4a]">
+                              {isPresident
+                                ? 'Président'
+                                : 'Secrétaire général'}
+                            </p>
+
+                            <h3 className="mt-4 text-3xl font-extrabold leading-tight tracking-[-0.025em] text-[#07355d] sm:text-4xl">
+                              {leader.fullName}
+                            </h3>
+
+                            {biography ? (
+                              <div className="mt-8 max-w-none space-y-6 text-base leading-8 text-[#536273] sm:text-lg sm:leading-9">
+                                {biography
+                                  .split('\n')
+                                  .map((paragraph) =>
+                                    paragraph.trim(),
+                                  )
+                                  .filter(Boolean)
+                                  .map(
+                                    (
+                                      paragraph,
+                                      index,
+                                    ) => (
+                                      <p
+                                        key={`${index}-${paragraph}`}
+                                      >
+                                        {paragraph}
+                                      </p>
+                                    ),
+                                  )}
+                              </div>
+                            ) : (
+                              <p className="mt-8 text-base leading-8 text-[#536273]">
+                                La biographie de ce responsable sera bientôt disponible.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
           </div>
         </section>
       </main>
