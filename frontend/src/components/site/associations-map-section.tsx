@@ -18,6 +18,8 @@ import {
   useState,
 } from 'react';
 
+import dynamic from 'next/dynamic';
+
 import type {
   AssociationSummary,
 } from '@/types/associations';
@@ -26,25 +28,55 @@ type AssociationsMapSectionProps = {
   associations: AssociationSummary[];
 };
 
+function MapLoadingState() {
+  return (
+    <div className="grid min-h-[520px] place-items-center bg-transparent px-6 text-center">
+      <div>
+        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[#dbe5ef] border-t-[#0f5f9f]" />
+
+        <p className="mt-4 text-sm font-bold text-[#536273]">
+          Chargement de la carte du Maroc…
+        </p>
+      </div>
+    </div>
+  );
+}
+
+const InteractiveAssociationsMap =
+  dynamic(
+    () =>
+      import(
+        '@/components/maps/interactive-associations-map'
+      ).then(
+        (module) =>
+          module.InteractiveAssociationsMap,
+      ),
+    {
+      ssr: false,
+      loading:
+        MapLoadingState,
+    },
+  );
+
 function isMapAssociation(
   association: AssociationSummary,
 ) {
   return (
     association.mapIsVisible !== false &&
-    association.mapPositionX !== null &&
-    association.mapPositionX !== undefined &&
-    association.mapPositionY !== null &&
-    association.mapPositionY !== undefined &&
+    association.latitude !== null &&
+    association.latitude !== undefined &&
+    association.longitude !== null &&
+    association.longitude !== undefined &&
     Number.isFinite(
-      association.mapPositionX,
+      association.latitude,
     ) &&
     Number.isFinite(
-      association.mapPositionY,
+      association.longitude,
     ) &&
-    association.mapPositionX >= 0 &&
-    association.mapPositionX <= 100 &&
-    association.mapPositionY >= 0 &&
-    association.mapPositionY <= 100
+    association.latitude >= -90 &&
+    association.latitude <= 90 &&
+    association.longitude >= -180 &&
+    association.longitude <= 180
   );
 }
 
@@ -242,17 +274,17 @@ function AssociationDetailCard({
             )}
         </div>
 
-        <Link
-          href={`/associations/${association.slug}`}
-          className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-[#07355d] px-5 text-sm font-extrabold text-white transition hover:bg-[#0f5f9f] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0f5f9f]/25"
-        >
-          Découvrir l’association
+<Link
+  href={`/associations/${association.slug}`}
+  className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-xl bg-[#ef4b87] px-5 text-sm font-extrabold text-white shadow-[0_12px_28px_rgba(239,75,135,0.24)] transition duration-200 hover:bg-[#d93676] hover:shadow-[0_16px_34px_rgba(239,75,135,0.3)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#ef4b87]/25"
+>
+  Découvrir l’association
 
-          <ArrowRight
-            size={18}
-            aria-hidden="true"
-          />
-        </Link>
+  <ArrowRight
+    size={18}
+    aria-hidden="true"
+  />
+</Link>
       </div>
     </article>
   );
@@ -308,6 +340,16 @@ export function AssociationsMapSection({
       null,
     );
 
+const mapViewportRef =
+  useRef<HTMLDivElement | null>(
+    null,
+  );
+
+const [
+  mapShouldLoad,
+  setMapShouldLoad,
+] = useState(false);
+
   const selectedAssociation =
     mapAssociations.find(
       (association) =>
@@ -340,6 +382,53 @@ export function AssociationsMapSection({
       );
     };
   }, []);
+
+useEffect(() => {
+  const element =
+    mapViewportRef.current;
+
+  if (!element) {
+    return;
+  }
+
+  if (
+    !(
+      'IntersectionObserver' in
+      window
+    )
+  ) {
+    setMapShouldLoad(true);
+    return;
+  }
+
+  const observer =
+    new IntersectionObserver(
+      (entries) => {
+        const entry =
+          entries[0];
+
+        if (
+          entry?.isIntersecting
+        ) {
+          setMapShouldLoad(
+            true,
+          );
+
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin:
+          '400px 0px',
+      },
+    );
+
+  observer.observe(element);
+
+  return () => {
+    observer.disconnect();
+  };
+}, []);  
 
   function selectAssociation(
     association: AssociationSummary,
@@ -428,304 +517,62 @@ export function AssociationsMapSection({
               : 'lg:grid-cols-1',
           ].join(' ')}
         >
-          <div className="relative overflow-hidden rounded-[1.5rem] border border-[#183d64] bg-[#071d38] shadow-[0_22px_70px_rgba(7,53,93,0.16)]">
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 opacity-[0.2]"
-              style={{
-                backgroundImage:
-                  'radial-gradient(circle, rgba(255,255,255,0.7) 1px, transparent 1px)',
-                backgroundSize:
-                  '24px 24px',
-              }}
-            />
+<div className="relative overflow-visible bg-transparent">
+  <div className="relative px-1 pb-4 sm:px-2">
+    <div className="flex items-center gap-3 text-[#07355d]">
+      <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#eef6fb] text-[#0f5f9f]">
+        <Building2
+          size={19}
+          aria-hidden="true"
+        />
+      </span>
 
-            <div className="relative border-b border-white/10 px-5 py-4 sm:px-7">
-              <div className="flex items-center gap-3 text-white">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10">
-                  <Building2
-                    size={19}
-                    aria-hidden="true"
-                  />
-                </span>
+      <div>
+        <p className="text-sm font-extrabold">
+          Carte du réseau FLASCAM
+        </p>
 
-                <div>
-                  <p className="text-sm font-extrabold">
-                    Carte du réseau FLASCAM
-                  </p>
+        <p className="mt-0.5 text-xs text-[#536273]">
+          {mapAssociations.length}{' '}
+          association
+          {mapAssociations.length > 1
+            ? 's'
+            : ''}{' '}
+          présente
+          {mapAssociations.length > 1
+            ? 's'
+            : ''}
+        </p>
+      </div>
+    </div>
+  </div>
 
-                  <p className="mt-0.5 text-xs text-white/60">
-                    {
-                      mapAssociations.length
-                    }{' '}
-                    association
-                    {mapAssociations.length >
-                    1
-                      ? 's'
-                      : ''}{' '}
-                    présente
-                    {mapAssociations.length >
-                    1
-                      ? 's'
-                      : ''}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative mx-auto aspect-[4/5] w-full max-w-[42rem] p-4 sm:p-8 lg:aspect-[5/4] lg:max-w-[58rem] lg:p-10">
-              <svg
-                viewBox="0 0 500 650"
-                role="img"
-                aria-label="Carte interactive du Maroc présentant les associations régionales de la FLASCAM"
-                className="absolute inset-0 h-full w-full p-5 sm:p-8 lg:p-10"
-                preserveAspectRatio="xMidYMid meet"
-              >
-                <defs>
-                  <linearGradient
-                    id="publicMoroccoMapGradient"
-                    x1="0"
-                    y1="0"
-                    x2="1"
-                    y2="1"
-                  >
-                    <stop
-                      offset="0%"
-                      stopColor="#1269aa"
-                    />
-
-                    <stop
-                      offset="45%"
-                      stopColor="#6f279f"
-                    />
-
-                    <stop
-                      offset="100%"
-                      stopColor="#c92b81"
-                    />
-                  </linearGradient>
-
-                  <filter
-                    id="publicMoroccoMapShadow"
-                    x="-30%"
-                    y="-30%"
-                    width="160%"
-                    height="160%"
-                  >
-                    <feDropShadow
-                      dx="0"
-                      dy="12"
-                      stdDeviation="12"
-                      floodColor="#000000"
-                      floodOpacity="0.3"
-                    />
-                  </filter>
-                </defs>
-
-                <path
-                  d="
-                    M 270 24
-                    L 310 38
-                    L 324 58
-                    L 350 69
-                    L 355 92
-                    L 376 107
-                    L 367 130
-                    L 388 151
-                    L 374 178
-                    L 392 207
-                    L 378 231
-                    L 392 256
-                    L 377 284
-                    L 386 314
-                    L 366 338
-                    L 372 366
-                    L 350 390
-                    L 354 420
-                    L 330 442
-                    L 334 470
-                    L 310 493
-                    L 314 519
-                    L 289 541
-                    L 291 566
-                    L 263 590
-                    L 258 621
-                    L 226 630
-                    L 201 610
-                    L 195 578
-                    L 177 552
-                    L 183 518
-                    L 167 488
-                    L 177 456
-                    L 161 425
-                    L 174 394
-                    L 159 362
-                    L 177 331
-                    L 167 301
-                    L 189 273
-                    L 182 242
-                    L 205 218
-                    L 203 190
-                    L 229 168
-                    L 222 137
-                    L 246 116
-                    L 239 86
-                    L 261 64
-                    Z
-                  "
-                  fill="url(#publicMoroccoMapGradient)"
-                  stroke="rgba(255,255,255,0.85)"
-                  strokeWidth="4"
-                  strokeLinejoin="round"
-                  filter="url(#publicMoroccoMapShadow)"
-                />
-
-                <path
-                  d="
-                    M 189 273
-                    L 377 284
-                    M 177 331
-                    L 366 338
-                    M 174 394
-                    L 350 390
-                    M 177 456
-                    L 330 442
-                    M 183 518
-                    L 310 493
-                  "
-                  fill="none"
-                  stroke="rgba(255,255,255,0.11)"
-                  strokeWidth="2"
-                />
-              </svg>
-
-              <div className="absolute inset-5 sm:inset-8 lg:inset-10">
-                {mapAssociations.map(
-                  (
-                    association,
-                  ) => {
-                    const isSelected =
-                      association.id ===
-                      selectedAssociationId;
-
-                    const isHovered =
-                      association.id ===
-                      hoveredAssociationId;
-
-                    return (
-                      <div
-                        key={
-                          association.id
-                        }
-                        style={{
-                          left: `${association.mapPositionX}%`,
-                          top: `${association.mapPositionY}%`,
-                        }}
-                        className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
-                      >
-                        <button
-                          type="button"
-                          aria-label={`Afficher ${association.name}`}
-                          aria-pressed={
-                            isSelected
-                          }
-                          onClick={() =>
-                            selectAssociation(
-                              association,
-                            )
-                          }
-                          onMouseEnter={() =>
-                            setHoveredAssociationId(
-                              association.id,
-                            )
-                          }
-                          onMouseLeave={() =>
-                            setHoveredAssociationId(
-                              null,
-                            )
-                          }
-                          onFocus={() =>
-                            setHoveredAssociationId(
-                              association.id,
-                            )
-                          }
-                          onBlur={() =>
-                            setHoveredAssociationId(
-                              null,
-                            )
-                          }
-                          className={[
-                            'group relative grid h-11 w-11 place-items-center rounded-full',
-                            'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/40',
-                            isSelected
-                              ? 'z-30'
-                              : '',
-                          ].join(' ')}
-                        >
-                          <span
-                            aria-hidden="true"
-                            className={[
-                              'absolute rounded-full bg-[#ef4b87]/30 transition-all duration-300',
-                              isSelected
-                                ? 'h-11 w-11 animate-ping'
-                                : 'h-7 w-7 group-hover:h-10 group-hover:w-10',
-                            ].join(' ')}
-                          />
-
-                          <span
-                            aria-hidden="true"
-                            className={[
-                              'relative block rounded-full border-[3px] border-white',
-                              'shadow-[0_5px_18px_rgba(0,0,0,0.35)] transition duration-200',
-                              isSelected
-                                ? 'h-6 w-6 bg-[#c96f4a] scale-110'
-                                : 'h-4 w-4 bg-[#ef2779] group-hover:scale-125',
-                            ].join(' ')}
-                          />
-                        </button>
-
-                        <div
-                          role="tooltip"
-                          className={[
-                            'pointer-events-none absolute bottom-[calc(100%+0.45rem)] left-1/2',
-                            'w-max max-w-[13rem] -translate-x-1/2 rounded-xl',
-                            'border border-white/20 bg-[#03172d]/95 px-3 py-2',
-                            'text-center text-xs font-bold leading-5 text-white',
-                            'shadow-[0_12px_35px_rgba(0,0,0,0.35)] backdrop-blur',
-                            'transition duration-150',
-                            isHovered
-                              ? 'visible translate-y-0 opacity-100'
-                              : 'invisible translate-y-1 opacity-0',
-                          ].join(' ')}
-                        >
-                          <span className="block">
-                            {
-                              association.name
-                            }
-                          </span>
-
-                          <span className="mt-0.5 block font-medium text-white/65">
-                            {associationLocation(
-                              association,
-                            )}
-                          </span>
-
-                          <span
-                            aria-hidden="true"
-                            className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1/2 rotate-45 border-b border-r border-white/20 bg-[#03172d]"
-                          />
-                        </div>
-                      </div>
-                    );
-                  },
-                )}
-              </div>
-
-              <div className="pointer-events-none absolute bottom-4 left-4 right-4 rounded-xl border border-white/10 bg-[#03172d]/75 px-4 py-3 text-center text-xs font-semibold leading-5 text-white/75 backdrop-blur sm:bottom-6 sm:left-6 sm:right-auto sm:max-w-xs sm:text-left">
-                Sélectionnez un point pour afficher les informations de
-                l’association.
-              </div>
-            </div>
+<div
+  ref={mapViewportRef}
+  className="relative min-h-[520px]"
+>
+  {mapShouldLoad ? (
+    <InteractiveAssociationsMap
+      associations={
+        mapAssociations
+      }
+      selectedAssociationId={
+        selectedAssociationId
+      }
+      hoveredAssociationId={
+        hoveredAssociationId
+      }
+      onSelect={
+        selectAssociation
+      }
+      onHover={
+        setHoveredAssociationId
+      }
+    />
+  ) : (
+    <MapLoadingState />
+  )}
+</div>
           </div>
 
           {selectedAssociation && (

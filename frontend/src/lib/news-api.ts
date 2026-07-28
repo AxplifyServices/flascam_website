@@ -608,15 +608,11 @@ async function publicNewsFetch<T>(
     response =
       await apiFetch(
         path,
-        {
-          cache:
-            'no-store',
-
-          next: {
-            revalidate:
-              0,
-          },
-        },
+{
+  next: {
+    revalidate: 60,
+  },
+},
       );
   } catch (
     caughtError

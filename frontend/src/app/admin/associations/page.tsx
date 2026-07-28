@@ -12,6 +12,8 @@ import {
 
 import Link from 'next/link';
 
+import dynamic from 'next/dynamic';
+
 import {
   Building2,
   CheckCircle2,
@@ -40,9 +42,27 @@ import type {
   AssociationSummary,
 } from '@/types/associations';
 
-import {
-  AssociationMapPositionEditor,
-} from '@/components/admin/association-map-position-editor';
+const AssociationMapPositionEditor =
+  dynamic(
+    () =>
+      import(
+        '@/components/admin/association-map-position-editor'
+      ).then(
+        (module) =>
+          module.AssociationMapPositionEditor,
+      ),
+    {
+      ssr: false,
+
+      loading: () => (
+        <div className="grid h-[500px] place-items-center rounded-2xl border border-[var(--flascam-border)] bg-[#f8fbfd]">
+          <p className="text-sm font-bold text-[var(--flascam-slate)]">
+            Chargement de la carte du Maroc…
+          </p>
+        </div>
+      ),
+    },
+  );
 
 const emptyForm: AssociationFormState = {
   name: '',

@@ -69,15 +69,16 @@ export async function getPublicHomepageHeroSlides(): Promise<
     const response =
       await fetch(
         `${API_URL}/homepage-hero/public`,
-        {
-          cache:
-            'no-store',
+{
+  next: {
+    revalidate: 60,
+  },
 
-          signal:
-            AbortSignal.timeout(
-              5000,
-            ),
-        },
+  signal:
+    AbortSignal.timeout(
+      5000,
+    ),
+},
       );
 
     if (!response.ok) {
