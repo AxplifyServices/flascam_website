@@ -80,9 +80,40 @@ export type AssociationMediaItem = {
   updatedAt?: string | null;
 };
 
+export type AssociationLeaderRole =
+  | 'PRESIDENT'
+  | 'SECRETARY_GENERAL';
+
+export type AssociationLeader = {
+  id: string;
+  associationId: string;
+  role: AssociationLeaderRole;
+  fullName: string;
+  photoMediaAssetId?: string | null;
+  photoUrl?: string | null;
+  biography?: string | null;
+  message?: string | null;
+  isPublished: boolean;
+  displayOrder: number;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+};
+
+export type AssociationLeaderFormState = {
+  role: AssociationLeaderRole;
+  fullName: string;
+  photoMediaAssetId: string;
+  photoUrl: string;
+  biography: string;
+  message: string;
+  isPublished: boolean;
+  displayOrder: string;
+};
+
 export type AssociationDetail = AssociationSummary & {
   logoMediaAssetId?: string | null;
   presentation?: string | null;
+  leaders?: AssociationLeader[];
   address?: string | null;
   phone?: string | null;
   email?: string | null;
@@ -139,6 +170,7 @@ export type AssociationFormState = {
   displayOrder: string;
   seoTitle: string;
   seoDescription: string;
+  leaders: AssociationLeaderFormState[];
   adminEmail: string;
   adminFirstName: string;
   adminLastName: string;
@@ -165,6 +197,7 @@ export type OwnAssociationFormState = {
   youtubeUrl: string;
   seoTitle: string;
   seoDescription: string;
+  leaders: AssociationLeaderFormState[];
 };
 
 export type AssociationPostFormState = {

@@ -229,6 +229,37 @@ const events =
   const videos =
     association.videos ?? [];
 
+const leaders =
+  association.leaders ?? [];
+
+const president =
+  leaders.find(
+    (leader) =>
+      leader.role === 'PRESIDENT',
+  );
+
+const secretaryGeneral =
+  leaders.find(
+    (leader) =>
+      leader.role ===
+      'SECRETARY_GENERAL',
+  );
+
+const visibleLeaders = [
+  president,
+  secretaryGeneral,
+].filter(
+  (
+    leader,
+  ): leader is NonNullable<
+    typeof leader
+  > =>
+    Boolean(leader),
+);
+
+const presidentMessage =
+  president?.message?.trim() ?? '';    
+
   const socialLinks = [
     {
       label: 'Facebook',
@@ -501,6 +532,184 @@ const events =
                   </div>
                 </div>
               </section>
+
+{president &&
+  presidentMessage && (
+    <section>
+      <div className="flex items-center gap-3">
+        <span className="h-[3px] w-10 bg-[#c96f4a]" />
+
+        <h2 className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#0f5f9f]">
+          Mot du président
+        </h2>
+      </div>
+
+      <article className="relative mt-6 overflow-hidden border border-[#dbe5ef] bg-white">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[#0f5f9f]/[0.06]"
+        />
+
+        <div className="relative grid gap-7 p-6 sm:p-8 md:grid-cols-[11rem_minmax(0,1fr)] md:items-start">
+          <div className="mx-auto w-full max-w-44 md:mx-0">
+            <div className="aspect-[4/5] overflow-hidden border border-[#dbe5ef] bg-[#eaf5ff]">
+              {president.photoUrl ? (
+                <img
+                  src={
+                    president.photoUrl
+                  }
+                  alt={`Portrait de ${president.fullName}`}
+                  className="h-full w-full object-cover object-center"
+                />
+              ) : (
+                <div className="grid h-full place-items-center">
+                  <UsersRound
+                    size={48}
+                    className="text-[#0f5f9f]/35"
+                    aria-hidden="true"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="min-w-0">
+            <span
+              aria-hidden="true"
+              className="block h-12 text-6xl font-black leading-none text-[#c96f4a]/25"
+            >
+              “
+            </span>
+
+            <div className="space-y-5 text-base leading-8 text-[#536273]">
+              {presidentMessage
+                .split('\n')
+                .map(
+                  (paragraph) =>
+                    paragraph.trim(),
+                )
+                .filter(Boolean)
+                .map(
+                  (
+                    paragraph,
+                    index,
+                  ) => (
+                    <p
+                      key={`${index}-${paragraph}`}
+                    >
+                      {paragraph}
+                    </p>
+                  ),
+                )}
+            </div>
+
+            <footer className="mt-7 border-t border-[#dbe5ef] pt-5">
+              <p className="text-lg font-extrabold text-[#07355d]">
+                {president.fullName}
+              </p>
+
+              <p className="mt-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[#c96f4a]">
+                Président de l’association
+              </p>
+            </footer>
+          </div>
+        </div>
+      </article>
+    </section>
+  )}
+
+ {visibleLeaders.length > 0 && (
+  <section>
+    <div className="flex items-center gap-3 border-b border-[#dbe5ef] pb-5">
+      <span className="h-[3px] w-10 bg-[#c96f4a]" />
+
+      <h2 className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#0f5f9f]">
+        Équipe dirigeante
+      </h2>
+    </div>
+
+    <div className="mt-6 grid gap-6 md:grid-cols-2">
+      {visibleLeaders.map(
+        (leader) => {
+          const isPresident =
+            leader.role ===
+            'PRESIDENT';
+
+          const biography =
+            leader.biography
+              ?.trim() ?? '';
+
+          return (
+            <article
+              key={leader.id}
+              className="group overflow-hidden border border-[#dbe5ef] bg-white transition duration-300 hover:-translate-y-1 hover:border-[#0f5f9f]/35 hover:shadow-[0_20px_50px_rgba(7,53,93,0.08)]"
+            >
+              <div className="grid sm:grid-cols-[10rem_minmax(0,1fr)] md:grid-cols-1 xl:grid-cols-[10rem_minmax(0,1fr)]">
+                <div className="aspect-[4/5] overflow-hidden bg-[#eaf5ff] sm:aspect-auto sm:min-h-56 md:aspect-[4/5] md:min-h-0 xl:aspect-auto xl:min-h-56">
+                  {leader.photoUrl ? (
+                    <img
+                      src={
+                        leader.photoUrl
+                      }
+                      alt={`Portrait de ${leader.fullName}`}
+                      className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.03]"
+                    />
+                  ) : (
+                    <div className="grid h-full min-h-56 place-items-center">
+                      <UsersRound
+                        size={48}
+                        className="text-[#0f5f9f]/35"
+                        aria-hidden="true"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="min-w-0 p-5 sm:p-6">
+                  <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#c96f4a]">
+                    {isPresident
+                      ? 'Président'
+                      : 'Secrétaire général'}
+                  </p>
+
+                  <h3 className="mt-3 text-xl font-extrabold leading-tight text-[#07355d]">
+                    {leader.fullName}
+                  </h3>
+
+                  {biography && (
+                    <div className="mt-4 space-y-3 text-sm leading-7 text-[#536273]">
+                      {biography
+                        .split('\n')
+                        .map(
+                          (
+                            paragraph,
+                          ) =>
+                            paragraph.trim(),
+                        )
+                        .filter(Boolean)
+                        .map(
+                          (
+                            paragraph,
+                            index,
+                          ) => (
+                            <p
+                              key={`${index}-${paragraph}`}
+                            >
+                              {paragraph}
+                            </p>
+                          ),
+                        )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </article>
+          );
+        },
+      )}
+    </div>
+  </section>
+)} 
 
 <section>
   <div className="flex items-center justify-between gap-5 border-b border-[#dbe5ef] pb-5">

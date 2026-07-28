@@ -28,6 +28,11 @@ import { UpsertAssociationMediaDto } from './dto/upsert-association-media.dto';
 
 import { UpsertAssociationPostDto } from './dto/upsert-association-post.dto';
 
+import type {
+  AssociationLeaderInputDto,
+  AssociationLeaderRole,
+} from './dto/association-leader-input.dto';
+
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -98,9 +103,28 @@ export class AssociationsService {
         status: 'PUBLISHED',
         deleted_at: null,
       },
-      include: {
-        media_assets: true,
+include: {
+  media_assets: true,
+
+  association_leaders: {
+    where: {
+      is_published: true,
+    },
+
+    orderBy: [
+      {
+        display_order: 'asc',
       },
+      {
+        role: 'asc',
+      },
+    ],
+
+    include: {
+      media_assets: true,
+    },
+  },
+},
     });
 
     if (!association) {
@@ -362,6 +386,21 @@ return {
       ],
       include: {
         media_assets: true,
+association_leaders: {
+  orderBy: [
+    {
+      display_order: 'asc',
+    },
+    {
+      role: 'asc',
+    },
+  ],
+
+  include: {
+    media_assets: true,
+  },
+},
+
       },
     });
 
@@ -373,15 +412,31 @@ return {
   async getAdminAssociation(id: string, user: AuthUser) {
     await this.ensureAssociationAccess(id, user);
 
-    const association = await this.prisma.regional_associations.findFirst({
-      where: {
-        id,
-        deleted_at: null,
-      },
+const association = await this.prisma.regional_associations.findFirst({
+  where: {
+    id,
+    deleted_at: null,
+  },
+
+  include: {
+    media_assets: true,
+
+    association_leaders: {
+      orderBy: [
+        {
+          display_order: 'asc',
+        },
+        {
+          role: 'asc',
+        },
+      ],
+
       include: {
         media_assets: true,
       },
-    });
+    },
+  },
+});
 
     if (!association) {
       throw new NotFoundException('Association introuvable.');
@@ -404,9 +459,9 @@ return {
             created_at: 'desc',
           },
         ],
-        include: {
-          media_assets: true,
-        },
+include: {
+  media_assets: true,
+},
       }),
 
       this.prisma.association_media_items.findMany({
@@ -481,7 +536,14 @@ return {
         seo_description: dto.seoDescription,
         updated_at: new Date(),
       },
-    });
+    });  
+
+if (dto.leaders !== undefined) {
+  await this.syncAssociationLeaders(
+    associationId,
+    dto.leaders,
+  );
+}    
 
     await this.auditLogs.log({
       userId: user.id,
@@ -602,6 +664,13 @@ longitude:
       },
     });
 
+if (dto.leaders !== undefined) {
+  await this.syncAssociationLeaders(
+    association.id,
+    dto.leaders,
+  );
+} 
+
     if (
       dto.adminEmail ||
       dto.adminPassword ||
@@ -698,6 +767,13 @@ longitude:
         updated_at: new Date(),
       },
     });
+
+     if (dto.leaders !== undefined) {
+      await this.syncAssociationLeaders(
+        association.id,
+        dto.leaders,
+      );
+    }   
 
     if (
       dto.adminEmail ||
@@ -1301,6 +1377,190 @@ longitude:
     }
   }
 
+  private async syncAssociationLeaders(
+    associationId: string,
+    leaders: AssociationLeaderInputDto[],
+  ) {
+    const allowedRoles =
+      new Set<AssociationLeaderRole>([
+        'PRESIDENT',
+        'SECRETARY_GENERAL',
+      ]);
+
+    const receivedRoles =
+      new Set<AssociationLeaderRole>();
+
+    for (const leader of leaders) {
+      if (!allowedRoles.has(leader.role)) {
+        throw new BadRequestException(
+          'Le rôle du dirigeant est invalide.',
+        );
+      }
+
+      if (receivedRoles.has(leader.role)) {
+        throw new BadRequestException(
+          leader.role === 'PRESIDENT'
+            ? 'Un seul président peut être renseigné.'
+            : 'Un seul secrétaire général peut être renseigné.',
+        );
+      }
+
+      receivedRoles.add(leader.role);
+
+      const fullName =
+        leader.fullName?.trim() ?? '';
+
+      const biography =
+        leader.biography?.trim() || null;
+
+      const message =
+        leader.message?.trim() || null;
+
+      const photoMediaAssetId =
+        leader.photoMediaAssetId?.trim() || null;
+
+      /**
+       * Un nom vide signifie que le responsable
+       * doit être retiré de la fiche.
+       */
+      if (!fullName) {
+        await this.prisma.association_leaders.deleteMany({
+          where: {
+            regional_association_id:
+              associationId,
+
+            role:
+              leader.role,
+          },
+        });
+
+        continue;
+      }
+
+      if (photoMediaAssetId) {
+        await this.ensureAssociationLeaderPhoto(
+          photoMediaAssetId,
+        );
+      }
+
+      await this.prisma.association_leaders.upsert({
+        where: {
+          regional_association_id_role: {
+            regional_association_id:
+              associationId,
+
+            role:
+              leader.role,
+          },
+        },
+
+        create: {
+          regional_association_id:
+            associationId,
+
+          role:
+            leader.role,
+
+          full_name:
+            fullName,
+
+          photo_media_asset_id:
+            photoMediaAssetId,
+
+          biography,
+
+          message:
+            leader.role === 'PRESIDENT'
+              ? message
+              : null,
+
+          is_published:
+            leader.isPublished ?? true,
+
+          display_order:
+            leader.displayOrder ??
+            (
+              leader.role === 'PRESIDENT'
+                ? 0
+                : 1
+            ),
+        },
+
+        update: {
+          full_name:
+            fullName,
+
+          photo_media_asset_id:
+            photoMediaAssetId,
+
+          biography,
+
+          message:
+            leader.role === 'PRESIDENT'
+              ? message
+              : null,
+
+          is_published:
+            leader.isPublished ?? true,
+
+          display_order:
+            leader.displayOrder ??
+            (
+              leader.role === 'PRESIDENT'
+                ? 0
+                : 1
+            ),
+
+          updated_at:
+            new Date(),
+        },
+      });
+    }
+  }
+
+  private async ensureAssociationLeaderPhoto(
+    mediaAssetId: string,
+  ) {
+    const mediaAsset =
+      await this.prisma.media_assets.findFirst({
+        where: {
+          id:
+            mediaAssetId,
+
+          deleted_at:
+            null,
+
+          status:
+            'READY',
+
+          media_type:
+            'IMAGE',
+        },
+
+        select: {
+          id:
+            true,
+
+          visibility:
+            true,
+        },
+      });
+
+    if (!mediaAsset) {
+      throw new BadRequestException(
+        'La photo sélectionnée est introuvable ou n’est pas encore disponible.',
+      );
+    }
+
+    if (
+      mediaAsset.visibility !== 'PUBLIC'
+    ) {
+      throw new BadRequestException(
+        'La photo du dirigeant doit être un média public.',
+      );
+    }
+  }  
+
   private mediaUrl(
     asset:
       | {
@@ -1321,6 +1581,50 @@ longitude:
 
     return `${baseUrl.replace(/\/$/, '')}/${asset.object_key.replace(/^\//, '')}`;
   }
+
+  private formatAssociationLeader(
+    leader: any,
+  ) {
+    return {
+      id:
+        leader.id,
+
+      associationId:
+        leader.regional_association_id,
+
+      role:
+        leader.role,
+
+      fullName:
+        leader.full_name,
+
+      photoMediaAssetId:
+        leader.photo_media_asset_id,
+
+      photoUrl:
+        this.mediaUrl(
+          leader.media_assets,
+        ),
+
+      biography:
+        leader.biography,
+
+      message:
+        leader.message,
+
+      isPublished:
+        leader.is_published,
+
+      displayOrder:
+        leader.display_order,
+
+      createdAt:
+        leader.created_at,
+
+      updatedAt:
+        leader.updated_at,
+    };
+  }  
 
   private formatAssociationSummary(
     association: any,
@@ -1395,6 +1699,18 @@ const longitude =
       ...this.formatAssociationSummary(association),
       logoMediaAssetId: association.logo_media_asset_id,
       presentation: association.presentation,
+leaders:
+  (
+    association.association_leaders ??
+    []
+  ).map(
+    (
+      leader: any,
+    ) =>
+      this.formatAssociationLeader(
+        leader,
+      ),
+  ),      
       address: association.address,
       phone: association.phone,
       email: association.email,

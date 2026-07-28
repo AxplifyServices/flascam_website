@@ -11,7 +11,18 @@ import {
   MaxLength,
   Min,
   MinLength,
+  IsArray,
+ValidateNested,
+ArrayMaxSize,
 } from 'class-validator';
+
+import {
+  Type,
+} from 'class-transformer';
+
+import {
+  AssociationLeaderInputDto,
+} from './association-leader-input.dto';
 
 export class UpsertAssociationDto {
   @IsString()
@@ -163,6 +174,18 @@ longitude?: number;
   @IsEmail()
   @MaxLength(255)
   adminEmail?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(2)
+  @ValidateNested({
+    each: true,
+  })
+  @Type(
+    () =>
+      AssociationLeaderInputDto,
+  )
+  leaders?: AssociationLeaderInputDto[];  
 
   @IsOptional()
   @IsString()

@@ -16,6 +16,7 @@ import {
   LockKeyhole,
   Save,
   Upload,
+  UserRound,
 } from 'lucide-react';
 
 import {
@@ -26,8 +27,66 @@ import {
 
 import type {
   AssociationDetail,
+  AssociationLeaderRole,
   OwnAssociationFormState,
 } from '@/types/associations';
+
+function createEmptyLeaders():
+  OwnAssociationFormState['leaders'] {
+  return [
+    {
+      role:
+        'PRESIDENT',
+
+      fullName:
+        '',
+
+      photoMediaAssetId:
+        '',
+
+      photoUrl:
+        '',
+
+      biography:
+        '',
+
+      message:
+        '',
+
+      isPublished:
+        true,
+
+      displayOrder:
+        '0',
+    },
+
+    {
+      role:
+        'SECRETARY_GENERAL',
+
+      fullName:
+        '',
+
+      photoMediaAssetId:
+        '',
+
+      photoUrl:
+        '',
+
+      biography:
+        '',
+
+      message:
+        '',
+
+      isPublished:
+        true,
+
+      displayOrder:
+        '1',
+    },
+  ];
+}
 
 const emptyForm: OwnAssociationFormState = {
   name: '',
@@ -49,7 +108,94 @@ const emptyForm: OwnAssociationFormState = {
   youtubeUrl: '',
   seoTitle: '',
   seoDescription: '',
+  leaders: createEmptyLeaders(),
 };
+
+function mapAssociationLeadersToForm(
+  association: AssociationDetail,
+): OwnAssociationFormState['leaders'] {
+  const leaders =
+    association.leaders ?? [];
+
+  const president =
+    leaders.find(
+      (leader) =>
+        leader.role ===
+        'PRESIDENT',
+    );
+
+  const secretaryGeneral =
+    leaders.find(
+      (leader) =>
+        leader.role ===
+        'SECRETARY_GENERAL',
+    );
+
+  return [
+    {
+      role:
+        'PRESIDENT',
+
+      fullName:
+        president?.fullName ?? '',
+
+      photoMediaAssetId:
+        president?.photoMediaAssetId ??
+        '',
+
+      photoUrl:
+        president?.photoUrl ?? '',
+
+      biography:
+        president?.biography ?? '',
+
+      message:
+        president?.message ?? '',
+
+      isPublished:
+        president?.isPublished ?? true,
+
+      displayOrder:
+        String(
+          president?.displayOrder ?? 0,
+        ),
+    },
+
+    {
+      role:
+        'SECRETARY_GENERAL',
+
+      fullName:
+        secretaryGeneral?.fullName ??
+        '',
+
+      photoMediaAssetId:
+        secretaryGeneral
+          ?.photoMediaAssetId ?? '',
+
+      photoUrl:
+        secretaryGeneral?.photoUrl ??
+        '',
+
+      biography:
+        secretaryGeneral?.biography ??
+        '',
+
+      message:
+        '',
+
+      isPublished:
+        secretaryGeneral?.isPublished ??
+        true,
+
+      displayOrder:
+        String(
+          secretaryGeneral
+            ?.displayOrder ?? 1,
+        ),
+    },
+  ];
+}
 
 function mapAssociationToForm(
   association: AssociationDetail,
@@ -98,6 +244,11 @@ function mapAssociationToForm(
       association.seoTitle ?? '',
     seoDescription:
       association.seoDescription ?? '',
+leaders:
+  mapAssociationLeadersToForm(
+    association,
+  ),
+
   };
 }
 
@@ -135,6 +286,14 @@ export default function MyAssociationPage() {
     uploadingCover,
     setUploadingCover,
   ] = useState(false);
+
+const [
+  uploadingLeaderRole,
+  setUploadingLeaderRole,
+] =
+  useState<AssociationLeaderRole | null>(
+    null,
+  );  
 
   const [
     logoPreview,
@@ -216,6 +375,92 @@ export default function MyAssociationPage() {
     setError('');
     setSuccess('');
   }
+
+function updateLeaderField(
+  role: AssociationLeaderRole,
+  field:
+    | 'fullName'
+    | 'biography'
+    | 'message',
+  value: string,
+) {
+  setForm(
+    (current) => ({
+      ...current,
+
+      leaders:
+        current.leaders.map(
+          (leader) =>
+            leader.role === role
+              ? {
+                  ...leader,
+                  [field]:
+                    value,
+                }
+              : leader,
+        ),
+    }),
+  );
+
+  setError('');
+  setSuccess('');
+}
+
+function updateLeaderPublished(
+  role: AssociationLeaderRole,
+  isPublished: boolean,
+) {
+  setForm(
+    (current) => ({
+      ...current,
+
+      leaders:
+        current.leaders.map(
+          (leader) =>
+            leader.role === role
+              ? {
+                  ...leader,
+                  isPublished,
+                }
+              : leader,
+        ),
+    }),
+  );
+
+  setError('');
+  setSuccess('');
+}
+
+function removeLeaderPhoto(
+  role: AssociationLeaderRole,
+) {
+  setForm(
+    (current) => ({
+      ...current,
+
+      leaders:
+        current.leaders.map(
+          (leader) =>
+            leader.role === role
+              ? {
+                  ...leader,
+
+                  photoMediaAssetId:
+                    '',
+
+                  photoUrl:
+                    '',
+                }
+              : leader,
+        ),
+    }),
+  );
+
+  setError('');
+  setSuccess(
+    'La photo sera retirée après l’enregistrement de la fiche.',
+  );
+}  
 
   async function uploadLogo(
     event: ChangeEvent<HTMLInputElement>,
@@ -313,6 +558,69 @@ export default function MyAssociationPage() {
     }
   }
 
+async function uploadLeaderPhoto(
+  role: AssociationLeaderRole,
+  event: ChangeEvent<HTMLInputElement>,
+) {
+  const file =
+    event.target.files?.[0];
+
+  event.target.value = '';
+
+  if (!file) {
+    return;
+  }
+
+  setError('');
+  setSuccess('');
+  setUploadingLeaderRole(
+    role,
+  );
+
+  try {
+    const uploaded =
+      await uploadAssociationImage(
+        file,
+      );
+
+    setForm(
+      (current) => ({
+        ...current,
+
+        leaders:
+          current.leaders.map(
+            (leader) =>
+              leader.role === role
+                ? {
+                    ...leader,
+
+                    photoMediaAssetId:
+                      uploaded.id,
+
+                    photoUrl:
+                      uploaded.url,
+                  }
+                : leader,
+          ),
+      }),
+    );
+
+    setSuccess(
+      'La photo a été importée. Enregistrez la fiche pour confirmer la modification.',
+    );
+  } catch (caughtError) {
+    setError(
+      caughtError instanceof Error
+        ? caughtError.message
+        : 'Impossible d’importer la photo du dirigeant.',
+    );
+  } finally {
+    setUploadingLeaderRole(
+      null,
+    );
+  }
+}  
+
   async function submit(
     event: FormEvent<HTMLFormElement>,
   ) {
@@ -334,6 +642,53 @@ export default function MyAssociationPage() {
       );
       return;
     }
+
+const president =
+  form.leaders.find(
+    (leader) =>
+      leader.role ===
+      'PRESIDENT',
+  );
+
+const secretaryGeneral =
+  form.leaders.find(
+    (leader) =>
+      leader.role ===
+      'SECRETARY_GENERAL',
+  );
+
+if (
+  president?.message.trim() &&
+  !president.fullName.trim()
+) {
+  setError(
+    'Renseignez le nom du président avant d’ajouter son mot.',
+  );
+
+  return;
+}
+
+if (
+  president?.biography.trim() &&
+  !president.fullName.trim()
+) {
+  setError(
+    'Renseignez le nom du président avant d’ajouter sa biographie.',
+  );
+
+  return;
+}
+
+if (
+  secretaryGeneral?.biography.trim() &&
+  !secretaryGeneral.fullName.trim()
+) {
+  setError(
+    'Renseignez le nom du secrétaire général avant d’ajouter sa biographie.',
+  );
+
+  return;
+}    
 
     setSaving(true);
 
@@ -676,6 +1031,87 @@ export default function MyAssociationPage() {
           />
         </FormSection>
 
+<FormSection
+  title="Équipe dirigeante"
+  description="Présentez le président et le secrétaire général sur la page publique de l’association."
+>
+  <div
+    className="
+      grid
+      gap-6
+      xl:grid-cols-2
+    "
+  >
+    {form.leaders.map(
+      (leader) => (
+        <LeaderEditor
+          key={leader.role}
+          role={leader.role}
+          fullName={leader.fullName}
+          photoUrl={leader.photoUrl}
+          biography={leader.biography}
+          message={leader.message}
+          isPublished={
+            leader.isPublished
+          }
+          uploading={
+            uploadingLeaderRole ===
+            leader.role
+          }
+          onFullNameChange={(
+            value,
+          ) =>
+            updateLeaderField(
+              leader.role,
+              'fullName',
+              value,
+            )
+          }
+          onBiographyChange={(
+            value,
+          ) =>
+            updateLeaderField(
+              leader.role,
+              'biography',
+              value,
+            )
+          }
+          onMessageChange={(
+            value,
+          ) =>
+            updateLeaderField(
+              leader.role,
+              'message',
+              value,
+            )
+          }
+          onPublishedChange={(
+            value,
+          ) =>
+            updateLeaderPublished(
+              leader.role,
+              value,
+            )
+          }
+          onPhotoChange={(
+            event,
+          ) =>
+            uploadLeaderPhoto(
+              leader.role,
+              event,
+            )
+          }
+          onPhotoRemove={() =>
+            removeLeaderPhoto(
+              leader.role,
+            )
+          }
+        />
+      ),
+    )}
+  </div>
+</FormSection>     
+
         <FormSection
           title="Coordonnées"
           description="Informations publiques permettant de contacter l’association."
@@ -879,11 +1315,12 @@ export default function MyAssociationPage() {
         >
           <button
             type="submit"
-            disabled={
-              saving ||
-              uploadingLogo ||
-              uploadingCover
-            }
+disabled={
+  saving ||
+  uploadingLogo ||
+  uploadingCover ||
+  uploadingLeaderRole !== null
+}
             className="
               flex
               min-h-12
@@ -972,6 +1409,328 @@ function FormSection({
         {children}
       </div>
     </section>
+  );
+}
+
+function LeaderEditor({
+  role,
+  fullName,
+  photoUrl,
+  biography,
+  message,
+  isPublished,
+  uploading,
+  onFullNameChange,
+  onBiographyChange,
+  onMessageChange,
+  onPublishedChange,
+  onPhotoChange,
+  onPhotoRemove,
+}: {
+  role: AssociationLeaderRole;
+  fullName: string;
+  photoUrl: string;
+  biography: string;
+  message: string;
+  isPublished: boolean;
+  uploading: boolean;
+  onFullNameChange:
+    (value: string) => void;
+  onBiographyChange:
+    (value: string) => void;
+  onMessageChange:
+    (value: string) => void;
+  onPublishedChange:
+    (value: boolean) => void;
+  onPhotoChange:
+    (
+      event:
+        ChangeEvent<HTMLInputElement>,
+    ) => void;
+  onPhotoRemove:
+    () => void;
+}) {
+  const isPresident =
+    role === 'PRESIDENT';
+
+  const title =
+    isPresident
+      ? 'Président'
+      : 'Secrétaire général';
+
+  return (
+    <article
+      className="
+        overflow-hidden
+        rounded-3xl
+        border
+        border-[var(--flascam-border)]
+        bg-[#f8fbfd]
+      "
+    >
+      <header
+        className="
+          flex
+          flex-col
+          gap-4
+          border-b
+          border-[var(--flascam-border)]
+          bg-white
+          p-5
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+        "
+      >
+        <div
+          className="
+            flex
+            items-center
+            gap-3
+          "
+        >
+          <span
+            className="
+              grid
+              size-11
+              place-items-center
+              rounded-2xl
+              bg-[#eaf4fb]
+              text-[var(--flascam-blue)]
+            "
+          >
+            <UserRound
+              size={20}
+            />
+          </span>
+
+          <div>
+            <h3
+              className="
+                font-extrabold
+                text-slate-950
+              "
+            >
+              {title}
+            </h3>
+
+            <p
+              className="
+                mt-1
+                text-xs
+                text-[var(--flascam-slate)]
+              "
+            >
+              {isPresident
+                ? 'Présentation et mot institutionnel'
+                : 'Présentation institutionnelle'}
+            </p>
+          </div>
+        </div>
+
+        <label
+          className="
+            inline-flex
+            cursor-pointer
+            items-center
+            gap-3
+            text-sm
+            font-bold
+            text-slate-700
+          "
+        >
+          <input
+            type="checkbox"
+            checked={isPublished}
+            onChange={(event) =>
+              onPublishedChange(
+                event.target.checked,
+              )
+            }
+            className="
+              size-4
+              accent-[var(--flascam-blue)]
+            "
+          />
+
+          Afficher publiquement
+        </label>
+      </header>
+
+      <div
+        className="
+          space-y-5
+          p-5
+          sm:p-6
+        "
+      >
+        <div
+          className="
+            grid
+            gap-5
+            sm:grid-cols-[9rem_1fr]
+          "
+        >
+          <div>
+            <div
+              className="
+                grid
+                aspect-[4/5]
+                w-full
+                place-items-center
+                overflow-hidden
+                rounded-2xl
+                border
+                border-[var(--flascam-border)]
+                bg-white
+              "
+            >
+              {photoUrl ? (
+                <img
+                  src={photoUrl}
+                  alt={
+                    fullName
+                      ? `Photo de ${fullName}`
+                      : `Photo du ${title.toLowerCase()}`
+                  }
+                  className="
+                    h-full
+                    w-full
+                    object-cover
+                    object-center
+                  "
+                />
+              ) : (
+                <UserRound
+                  size={42}
+                  className="
+                    text-slate-300
+                  "
+                />
+              )}
+            </div>
+
+            <label
+              className={`
+                mt-3
+                inline-flex
+                min-h-10
+                w-full
+                cursor-pointer
+                items-center
+                justify-center
+                gap-2
+                rounded-xl
+                border
+                border-[var(--flascam-border)]
+                bg-white
+                px-3
+                text-xs
+                font-bold
+                text-slate-700
+                transition
+                hover:border-[var(--flascam-blue)]
+                hover:text-[var(--flascam-blue)]
+                ${
+                  uploading
+                    ? 'pointer-events-none opacity-60'
+                    : ''
+                }
+              `}
+            >
+              {uploading ? (
+                <Loader2
+                  size={15}
+                  className="animate-spin"
+                />
+              ) : (
+                <Upload
+                  size={15}
+                />
+              )}
+
+              Importer
+
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="sr-only"
+                disabled={uploading}
+                onChange={
+                  onPhotoChange
+                }
+              />
+            </label>
+
+            {photoUrl && (
+              <button
+                type="button"
+                onClick={
+                  onPhotoRemove
+                }
+                className="
+                  mt-2
+                  min-h-9
+                  w-full
+                  rounded-xl
+                  px-3
+                  text-xs
+                  font-bold
+                  text-red-600
+                  transition
+                  hover:bg-red-50
+                "
+              >
+                Retirer la photo
+              </button>
+            )}
+          </div>
+
+          <TextField
+            label="Nom complet"
+            value={fullName}
+            maxLength={180}
+            onChange={
+              onFullNameChange
+            }
+          />
+        </div>
+
+        <TextareaField
+          label="Biographie"
+          value={biography}
+          rows={6}
+          maxLength={10_000}
+          onChange={
+            onBiographyChange
+          }
+        />
+
+        {isPresident && (
+          <TextareaField
+            label="Mot du président"
+            value={message}
+            rows={8}
+            maxLength={10_000}
+            onChange={
+              onMessageChange
+            }
+          />
+        )}
+
+        <p
+          className="
+            text-xs
+            leading-5
+            text-[var(--flascam-slate)]
+          "
+        >
+          Formats acceptés : JPG, PNG ou WebP.
+          Pour un meilleur rendu, utilisez une photo
+          verticale nette, idéalement au format 4:5.
+        </p>
+      </div>
+    </article>
   );
 }
 

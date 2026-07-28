@@ -115,6 +115,54 @@ function numberOrUndefined(
     : undefined;
 }
 
+function associationLeadersPayload(
+  leaders:
+    | AssociationFormState['leaders']
+    | OwnAssociationFormState['leaders'],
+) {
+  return leaders.map(
+    (leader) => ({
+      role:
+        leader.role,
+
+      fullName:
+        emptyToUndefined(
+          leader.fullName,
+        ),
+
+      photoMediaAssetId:
+        emptyToUndefined(
+          leader.photoMediaAssetId,
+        ),
+
+      biography:
+        emptyToUndefined(
+          leader.biography,
+        ),
+
+      message:
+        leader.role === 'PRESIDENT'
+          ? emptyToUndefined(
+              leader.message,
+            )
+          : undefined,
+
+      isPublished:
+        leader.isPublished,
+
+      displayOrder:
+        numberOrUndefined(
+          leader.displayOrder,
+        ) ??
+        (
+          leader.role === 'PRESIDENT'
+            ? 0
+            : 1
+        ),
+    }),
+  );
+}
+
 export async function getPublicAssociations() {
   return (
     await publicFetch<AssociationSummary[]>(
@@ -432,6 +480,11 @@ function ownAssociationPayload(
       emptyToUndefined(
         form.seoDescription,
       ),
+
+leaders:
+  associationLeadersPayload(
+    form.leaders,
+  ),      
   };
 }
 
@@ -525,6 +578,11 @@ logoText:
       emptyToUndefined(
         form.seoDescription,
       ),
+
+leaders:
+  associationLeadersPayload(
+    form.leaders,
+  ),      
 
 adminEmail:
   emptyToUndefined(

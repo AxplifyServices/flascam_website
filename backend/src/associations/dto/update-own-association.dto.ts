@@ -7,7 +7,18 @@ import {
   IsUUID,
   MaxLength,
   Min,
+ArrayMaxSize,
+IsArray,
+ValidateNested,  
 } from 'class-validator';
+
+import {
+  Type,
+} from 'class-transformer';
+
+import {
+  AssociationLeaderInputDto,
+} from './association-leader-input.dto';
 
 export class UpdateOwnAssociationDto {
   @IsString()
@@ -104,4 +115,16 @@ export class UpdateOwnAssociationDto {
   @IsString()
   @MaxLength(320)
   seoDescription?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(2)
+  @ValidateNested({
+    each: true,
+  })
+  @Type(
+    () =>
+      AssociationLeaderInputDto,
+  )
+  leaders?: AssociationLeaderInputDto[];  
 }

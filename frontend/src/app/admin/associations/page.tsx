@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  ChangeEvent,
   FormEvent,
   ReactNode,
   RefObject,
@@ -24,6 +25,7 @@ import {
   Save,
   Search,
   Upload,
+  UserRound,
   X,
 } from 'lucide-react';
 
@@ -39,6 +41,7 @@ import {
 import type {
   AssociationDetail,
   AssociationFormState,
+  AssociationLeaderRole,
   AssociationSummary,
 } from '@/types/associations';
 
@@ -63,6 +66,32 @@ const AssociationMapPositionEditor =
       ),
     },
   );
+
+function createEmptyLeaders():
+  AssociationFormState['leaders'] {
+  return [
+    {
+      role: 'PRESIDENT',
+      fullName: '',
+      photoMediaAssetId: '',
+      photoUrl: '',
+      biography: '',
+      message: '',
+      isPublished: true,
+      displayOrder: '0',
+    },
+    {
+      role: 'SECRETARY_GENERAL',
+      fullName: '',
+      photoMediaAssetId: '',
+      photoUrl: '',
+      biography: '',
+      message: '',
+      isPublished: true,
+      displayOrder: '1',
+    },
+  ];
+}  
 
 const emptyForm: AssociationFormState = {
   name: '',
@@ -91,13 +120,24 @@ const emptyForm: AssociationFormState = {
   youtubeUrl: '',
   isFeatured: false,
   displayOrder: '0',
-  seoTitle: '',
-  seoDescription: '',
-  adminEmail: '',
-  adminFirstName: '',
-  adminLastName: '',
-  adminPassword: '',
+seoTitle: '',
+seoDescription: '',
+
+leaders: createEmptyLeaders(),
+
+adminEmail: '',
+adminFirstName: '',
+adminLastName: '',
+adminPassword: '',
 };
+
+function createEmptyForm():
+  AssociationFormState {
+  return {
+    ...emptyForm,
+    leaders: createEmptyLeaders(),
+  };
+}
 
 const statusLabels: Record<string, string> = {
   DRAFT: 'Brouillon',
@@ -113,6 +153,94 @@ function slugify(value: string) {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+function leadersFromAssociation(
+  association:
+    | AssociationDetail
+    | AssociationSummary,
+): AssociationFormState['leaders'] {
+  if (!('leaders' in association)) {
+    return createEmptyLeaders();
+  }
+
+  const leaders =
+    association.leaders ?? [];
+
+  const president =
+    leaders.find(
+      (leader) =>
+        leader.role === 'PRESIDENT',
+    );
+
+  const secretaryGeneral =
+    leaders.find(
+      (leader) =>
+        leader.role ===
+        'SECRETARY_GENERAL',
+    );
+
+  return [
+    {
+      role: 'PRESIDENT',
+
+      fullName:
+        president?.fullName ?? '',
+
+      photoMediaAssetId:
+        president?.photoMediaAssetId ??
+        '',
+
+      photoUrl:
+        president?.photoUrl ?? '',
+
+      biography:
+        president?.biography ?? '',
+
+      message:
+        president?.message ?? '',
+
+      isPublished:
+        president?.isPublished ?? true,
+
+      displayOrder:
+        String(
+          president?.displayOrder ?? 0,
+        ),
+    },
+
+    {
+      role: 'SECRETARY_GENERAL',
+
+      fullName:
+        secretaryGeneral?.fullName ??
+        '',
+
+      photoMediaAssetId:
+        secretaryGeneral
+          ?.photoMediaAssetId ?? '',
+
+      photoUrl:
+        secretaryGeneral?.photoUrl ??
+        '',
+
+      biography:
+        secretaryGeneral?.biography ??
+        '',
+
+      message: '',
+
+      isPublished:
+        secretaryGeneral?.isPublished ??
+        true,
+
+      displayOrder:
+        String(
+          secretaryGeneral
+            ?.displayOrder ?? 1,
+        ),
+    },
+  ];
 }
 
 function formFromAssociation(
@@ -207,12 +335,21 @@ coverImageUrl:
       association.displayOrder === undefined
         ? '0'
         : String(association.displayOrder),
-    seoTitle: association.seoTitle ?? '',
-    seoDescription: association.seoDescription ?? '',
-    adminEmail:
-      'adminAccount' in association
-        ? association.adminAccount?.email ?? ''
-        : '',
+seoTitle:
+  association.seoTitle ?? '',
+
+seoDescription:
+  association.seoDescription ?? '',
+
+leaders:
+  leadersFromAssociation(
+    association,
+  ),
+
+adminEmail:
+  'adminAccount' in association
+    ? association.adminAccount?.email ?? ''
+    : '',
     adminFirstName:
       'adminAccount' in association
         ? association.adminAccount?.firstName ?? ''
@@ -236,10 +373,13 @@ export default function AdminAssociationsPage() {
     setSelected,
   ] = useState<AssociationDetail | null>(null);
 
-  const [
-    form,
-    setForm,
-  ] = useState<AssociationFormState>(emptyForm);
+const [
+  form,
+  setForm,
+] =
+  useState<AssociationFormState>(
+    createEmptyForm,
+  );
 
   const [
     modalOpen,
@@ -280,6 +420,14 @@ const [
   coverPreviewUrl,
   setCoverPreviewUrl,
 ] = useState('');  
+
+const [
+  uploadingLeaderRole,
+  setUploadingLeaderRole,
+] =
+  useState<AssociationLeaderRole | null>(
+    null,
+  );
 
   const [
     pageError,
@@ -377,10 +525,90 @@ const [
     }));
   }
 
+  function updateLeaderField(
+  role: AssociationLeaderRole,
+  field:
+    | 'fullName'
+    | 'biography'
+    | 'message',
+  value: string,
+) {
+  setForm((current) => ({
+    ...current,
+
+    leaders:
+      current.leaders.map(
+        (leader) =>
+          leader.role === role
+            ? {
+                ...leader,
+                [field]: value,
+              }
+            : leader,
+      ),
+  }));
+
+  setModalError('');
+  setSuccess('');
+}
+
+function updateLeaderPublished(
+  role: AssociationLeaderRole,
+  isPublished: boolean,
+) {
+  setForm((current) => ({
+    ...current,
+
+    leaders:
+      current.leaders.map(
+        (leader) =>
+          leader.role === role
+            ? {
+                ...leader,
+                isPublished,
+              }
+            : leader,
+      ),
+  }));
+
+  setModalError('');
+  setSuccess('');
+}
+
+function removeLeaderPhoto(
+  role: AssociationLeaderRole,
+) {
+  setForm((current) => ({
+    ...current,
+
+    leaders:
+      current.leaders.map(
+        (leader) =>
+          leader.role === role
+            ? {
+                ...leader,
+                photoMediaAssetId: '',
+                photoUrl: '',
+              }
+            : leader,
+      ),
+  }));
+
+  setModalError('');
+
+  setSuccess(
+    'La photo sera retirée après l’enregistrement de l’association.',
+  );
+}
+
   function startCreate() {
     setSelected(null);
-    setForm(emptyForm);
+setForm(
+  createEmptyForm(),
+);
     setLogoPreviewUrl('');
+    setCoverPreviewUrl('');
+setUploadingLeaderRole(null);
     setPageError('');
     setModalError('');
     setSuccess('');
@@ -417,18 +645,29 @@ const [
     }
   }
 
-  function closeModal() {
-    if (saving || logoUploading || coverUploading) {
-      return;
-    }
-
-    setModalOpen(false);
-    setSelected(null);
-    setForm(emptyForm);
-    setLogoPreviewUrl('');
-    setCoverPreviewUrl('');
-    setModalError('');
+function closeModal() {
+  if (
+    saving ||
+    logoUploading ||
+    coverUploading ||
+    uploadingLeaderRole !== null
+  ) {
+    return;
   }
+
+  setModalOpen(false);
+  setSelected(null);
+
+  setForm(
+    createEmptyForm(),
+  );
+
+  setLogoPreviewUrl('');
+  setCoverPreviewUrl('');
+  setModalError('');
+  setSuccess('');
+  setUploadingLeaderRole(null);
+}
 
   async function handleLogoUpload(file?: File) {
     if (!file) {
@@ -497,6 +736,61 @@ async function handleCoverUpload(file?: File) {
     setCoverUploading(false);
   }
 }  
+
+async function handleLeaderPhotoUpload(
+  role: AssociationLeaderRole,
+  event: ChangeEvent<HTMLInputElement>,
+) {
+  const file =
+    event.target.files?.[0];
+
+  event.target.value = '';
+
+  if (!file) {
+    return;
+  }
+
+  setUploadingLeaderRole(role);
+  setModalError('');
+  setSuccess('');
+
+  try {
+    const uploaded =
+      await uploadAdminImage(file);
+
+    setForm((current) => ({
+      ...current,
+
+      leaders:
+        current.leaders.map(
+          (leader) =>
+            leader.role === role
+              ? {
+                  ...leader,
+
+                  photoMediaAssetId:
+                    uploaded.id,
+
+                  photoUrl:
+                    uploaded.url,
+                }
+              : leader,
+        ),
+    }));
+
+    setSuccess(
+      'Photo importée. Enregistrez l’association pour confirmer la modification.',
+    );
+  } catch (caughtError) {
+    showModalError(
+      caughtError instanceof Error
+        ? caughtError.message
+        : 'Import de la photo impossible.',
+    );
+  } finally {
+    setUploadingLeaderRole(null);
+  }
+}
 
   async function submit(
     event: FormEvent<HTMLFormElement>,
@@ -577,7 +871,75 @@ if (
   return;
 }
 
-setSaving(true);
+const president =
+  form.leaders.find(
+    (leader) =>
+      leader.role === 'PRESIDENT',
+  );
+
+const secretaryGeneral =
+  form.leaders.find(
+    (leader) =>
+      leader.role ===
+      'SECRETARY_GENERAL',
+  );
+
+if (
+  president?.biography.trim() &&
+  !president.fullName.trim()
+) {
+  showModalError(
+    'Renseignez le nom du président avant d’ajouter sa biographie.',
+  );
+
+  return;
+}
+
+if (
+  president?.message.trim() &&
+  !president.fullName.trim()
+) {
+  showModalError(
+    'Renseignez le nom du président avant d’ajouter son mot.',
+  );
+
+  return;
+}
+
+if (
+  president?.photoMediaAssetId &&
+  !president.fullName.trim()
+) {
+  showModalError(
+    'Renseignez le nom du président avant d’ajouter sa photo.',
+  );
+
+  return;
+}
+
+if (
+  secretaryGeneral?.biography.trim() &&
+  !secretaryGeneral.fullName.trim()
+) {
+  showModalError(
+    'Renseignez le nom du secrétaire général avant d’ajouter sa biographie.',
+  );
+
+  return;
+}
+
+if (
+  secretaryGeneral?.photoMediaAssetId &&
+  !secretaryGeneral.fullName.trim()
+) {
+  showModalError(
+    'Renseignez le nom du secrétaire général avant d’ajouter sa photo.',
+  );
+
+  return;
+}
+
+
 
     setSaving(true);
     setModalError('');
@@ -600,6 +962,10 @@ setSaving(true);
       setSelected(updated);
       setForm(formFromAssociation(updated));
       setLogoPreviewUrl(updated.logoUrl ?? '');
+
+setCoverPreviewUrl(
+  updated.coverImageUrl ?? '',
+);      
 
       await load();
       setModalOpen(false);
@@ -981,6 +1347,80 @@ setSaving(true);
                 }
               />
             </FormSection>
+
+<FormSection title="Équipe dirigeante">
+  <div className="rounded-2xl border border-[#bfdbfe] bg-[#eff6ff] p-5 text-sm leading-7 text-[#1e4f7a]">
+    <p className="font-extrabold text-[#07355d]">
+      Présentation institutionnelle
+    </p>
+
+    <p className="mt-2">
+      Ces informations seront affichées sur la page publique
+      de l’association. Le mot institutionnel est réservé au
+      président.
+    </p>
+  </div>
+
+  <div className="grid gap-6 xl:grid-cols-2">
+    {form.leaders.map(
+      (leader) => (
+        <AssociationLeaderEditor
+          key={leader.role}
+          role={leader.role}
+          fullName={leader.fullName}
+          photoUrl={leader.photoUrl}
+          biography={leader.biography}
+          message={leader.message}
+          isPublished={
+            leader.isPublished
+          }
+          uploading={
+            uploadingLeaderRole ===
+            leader.role
+          }
+          onFullNameChange={(value) =>
+            updateLeaderField(
+              leader.role,
+              'fullName',
+              value,
+            )
+          }
+          onBiographyChange={(value) =>
+            updateLeaderField(
+              leader.role,
+              'biography',
+              value,
+            )
+          }
+          onMessageChange={(value) =>
+            updateLeaderField(
+              leader.role,
+              'message',
+              value,
+            )
+          }
+          onPublishedChange={(value) =>
+            updateLeaderPublished(
+              leader.role,
+              value,
+            )
+          }
+          onPhotoChange={(event) =>
+            void handleLeaderPhotoUpload(
+              leader.role,
+              event,
+            )
+          }
+          onPhotoRemove={() =>
+            removeLeaderPhoto(
+              leader.role,
+            )
+          }
+        />
+      ),
+    )}
+  </div>
+</FormSection>            
 
             <FormSection title="Coordonnées">
               <div className="grid gap-5 lg:grid-cols-2">
@@ -1446,7 +1886,12 @@ setSaving(true);
                 <button
                   type="button"
                   onClick={closeModal}
-                  disabled={saving || logoUploading || coverUploading}
+disabled={
+  saving ||
+  logoUploading ||
+  coverUploading ||
+  uploadingLeaderRole !== null
+}
                   className="inline-flex h-11 items-center justify-center rounded-xl border border-[var(--flascam-border)] px-5 text-sm font-bold text-slate-700 hover:border-slate-400 disabled:opacity-60"
                 >
                   Annuler
@@ -1537,6 +1982,227 @@ function StatusButton({
   );
 }
 
+function AssociationLeaderEditor({
+  role,
+  fullName,
+  photoUrl,
+  biography,
+  message,
+  isPublished,
+  uploading,
+  onFullNameChange,
+  onBiographyChange,
+  onMessageChange,
+  onPublishedChange,
+  onPhotoChange,
+  onPhotoRemove,
+}: {
+  role: AssociationLeaderRole;
+  fullName: string;
+  photoUrl: string;
+  biography: string;
+  message: string;
+  isPublished: boolean;
+  uploading: boolean;
+
+  onFullNameChange:
+    (value: string) => void;
+
+  onBiographyChange:
+    (value: string) => void;
+
+  onMessageChange:
+    (value: string) => void;
+
+  onPublishedChange:
+    (value: boolean) => void;
+
+  onPhotoChange:
+    (
+      event:
+        ChangeEvent<HTMLInputElement>,
+    ) => void;
+
+  onPhotoRemove:
+    () => void;
+}) {
+  const isPresident =
+    role === 'PRESIDENT';
+
+  const title =
+    isPresident
+      ? 'Président'
+      : 'Secrétaire général';
+
+  return (
+    <article className="overflow-hidden rounded-2xl border border-[var(--flascam-border)] bg-[#f8fbfd]">
+      <header className="flex flex-col gap-4 border-b border-[var(--flascam-border)] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <span className="grid size-11 place-items-center rounded-xl bg-[#eaf4fb] text-[var(--flascam-blue)]">
+            <UserRound
+              size={20}
+              aria-hidden="true"
+            />
+          </span>
+
+          <div>
+            <h3 className="font-extrabold text-slate-950">
+              {title}
+            </h3>
+
+            <p className="mt-1 text-xs text-[var(--flascam-slate)]">
+              {isPresident
+                ? 'Biographie et mot du président'
+                : 'Biographie du secrétaire général'}
+            </p>
+          </div>
+        </div>
+
+        <label className="inline-flex cursor-pointer items-center gap-3 text-sm font-bold text-slate-700">
+          <input
+            type="checkbox"
+            checked={isPublished}
+            onChange={(event) =>
+              onPublishedChange(
+                event.target.checked,
+              )
+            }
+            className="size-4 accent-[var(--flascam-blue)]"
+          />
+
+          Afficher publiquement
+        </label>
+      </header>
+
+      <div className="space-y-5 p-5">
+        <div className="grid gap-5 sm:grid-cols-[9rem_minmax(0,1fr)]">
+          <div>
+            <div className="grid aspect-[4/5] w-full place-items-center overflow-hidden rounded-2xl border border-[var(--flascam-border)] bg-white">
+              {photoUrl ? (
+                <img
+                  src={photoUrl}
+                  alt={
+                    fullName
+                      ? `Photo de ${fullName}`
+                      : `Photo du ${title.toLowerCase()}`
+                  }
+                  className="h-full w-full object-cover object-center"
+                />
+              ) : (
+                <UserRound
+                  size={42}
+                  className="text-slate-300"
+                  aria-hidden="true"
+                />
+              )}
+            </div>
+
+            <label
+              className={`
+                mt-3
+                inline-flex
+                min-h-10
+                w-full
+                cursor-pointer
+                items-center
+                justify-center
+                gap-2
+                rounded-xl
+                border
+                border-[var(--flascam-border)]
+                bg-white
+                px-3
+                text-xs
+                font-bold
+                text-slate-700
+                transition
+                hover:border-[var(--flascam-blue)]
+                hover:text-[var(--flascam-blue)]
+                ${
+                  uploading
+                    ? 'pointer-events-none opacity-60'
+                    : ''
+                }
+              `}
+            >
+              {uploading ? (
+                <Loader2
+                  size={15}
+                  className="animate-spin"
+                />
+              ) : (
+                <Upload size={15} />
+              )}
+
+              Importer
+
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                disabled={uploading}
+                onChange={onPhotoChange}
+              />
+            </label>
+
+            {photoUrl && (
+              <button
+                type="button"
+                onClick={onPhotoRemove}
+                className="mt-2 min-h-9 w-full rounded-xl px-3 text-xs font-bold text-red-600 transition hover:bg-red-50"
+              >
+                Retirer la photo
+              </button>
+            )}
+          </div>
+
+          <AdminInput
+            label="Nom complet"
+            value={fullName}
+            onChange={
+              onFullNameChange
+            }
+            maxLength={180}
+            helper={
+              isPresident
+                ? 'Nom et prénom du président.'
+                : 'Nom et prénom du secrétaire général.'
+            }
+          />
+        </div>
+
+        <AdminTextarea
+          label="Biographie"
+          value={biography}
+          onChange={
+            onBiographyChange
+          }
+          maxLength={10_000}
+          rows={7}
+        />
+
+        {isPresident && (
+          <AdminTextarea
+            label="Mot du président"
+            value={message}
+            onChange={
+              onMessageChange
+            }
+            maxLength={10_000}
+            rows={9}
+          />
+        )}
+
+        <p className="text-xs leading-5 text-[var(--flascam-slate)]">
+          Formats acceptés : JPG, PNG ou WebP. Utilisez
+          idéalement une photo verticale au format 4:5 avec
+          le visage centré.
+        </p>
+      </div>
+    </article>
+  );
+}
+
 function FormSection({
   title,
   children,
@@ -1602,10 +2268,14 @@ function AdminTextarea({
   label,
   value,
   onChange,
+  maxLength,
+  rows = 5,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  maxLength?: number;
+  rows?: number;
 }) {
   return (
     <label className="block">
@@ -1615,11 +2285,21 @@ function AdminTextarea({
 
       <textarea
         value={value}
+        maxLength={maxLength}
+        rows={rows}
         onChange={(event) =>
           onChange(event.target.value)
         }
-        className="mt-2 min-h-32 w-full rounded-xl border border-[var(--flascam-border)] px-4 py-3 text-sm leading-6 outline-none transition focus:border-[var(--flascam-blue)]"
+        className="mt-2 min-h-32 w-full resize-y rounded-xl border border-[var(--flascam-border)] px-4 py-3 text-sm leading-6 outline-none transition focus:border-[var(--flascam-blue)]"
       />
+
+      {maxLength !== undefined && (
+        <span className="mt-1 block text-right text-xs text-[var(--flascam-slate)]">
+          {value.length.toLocaleString('fr-FR')}
+          {' / '}
+          {maxLength.toLocaleString('fr-FR')}
+        </span>
+      )}
     </label>
   );
 }
