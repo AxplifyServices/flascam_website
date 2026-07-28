@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
+    "@vnedyalk0v/react19-simple-maps": "^2.0.9",
     "clsx": "^2.1.1",
     "lucide-react": "^1.23.0",
     "next": "16.2.10",
@@ -21,10 +22,12 @@
     "recharts": "^3.9.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
+    "world-atlas": "^2.0.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/geojson": "^7946.0.16",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

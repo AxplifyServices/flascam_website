@@ -443,8 +443,27 @@ function associationPayload(
     slug: form.slug.trim(),
     acronym:
       emptyToUndefined(form.acronym),
-    region: form.region.trim(),
-    city: emptyToUndefined(form.city),
+    region:
+      form.region.trim(),
+
+    city:
+      emptyToUndefined(
+        form.city,
+      ),
+
+latitude:
+  numberOrUndefined(
+    form.latitude,
+  ),
+
+longitude:
+  numberOrUndefined(
+    form.longitude,
+  ),
+
+    mapIsVisible:
+      form.mapIsVisible,
+
     memberCount:
       numberOrUndefined(
         form.memberCount,

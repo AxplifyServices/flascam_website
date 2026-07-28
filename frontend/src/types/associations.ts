@@ -5,6 +5,11 @@ export type AssociationSummary = {
   acronym?: string | null;
   region: string;
   city?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  mapIsVisible?: boolean;
+  mapPositionX?: number | null;
+  mapPositionY?: number | null;
   memberCount?: number | null;
   affiliatedSinceYear?: number | null;
   logoText?: string | null;
@@ -113,6 +118,9 @@ export type AssociationFormState = {
   acronym: string;
   region: string;
   city: string;
+  latitude: string;
+  longitude: string;
+  mapIsVisible: boolean;
   memberCount: string;
   affiliatedSinceYear: string;
   logoMediaAssetId: string;

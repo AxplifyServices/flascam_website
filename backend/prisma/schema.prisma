@@ -365,6 +365,11 @@ model regional_associations {
   updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
   deleted_at              DateTime?                 @db.Timestamptz(6)
   cover_image_url         String?
+  map_position_x          Decimal?                  @db.Decimal(5, 2)
+  map_position_y          Decimal?                  @db.Decimal(5, 2)
+  map_is_visible          Boolean                   @default(true)
+  latitude                Decimal?                  @db.Decimal(9, 6)
+  longitude               Decimal?                  @db.Decimal(9, 6)
   association_media_items association_media_items[]
   association_posts       association_posts[]
   news_articles           news_articles[]
@@ -375,6 +380,8 @@ model regional_associations {
   @@index([is_featured, display_order], map: "regional_associations_featured_order_idx")
   @@index([region])
   @@index([status])
+  @@index([map_is_visible, display_order, name], map: "regional_associations_public_map_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'PUBLISHED'::text))"))
+  @@index([map_is_visible, latitude, longitude], map: "regional_associations_public_coordinates_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'PUBLISHED'::text) AND (latitude IS NOT NULL) AND (longitude IS NOT NULL))"))
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.

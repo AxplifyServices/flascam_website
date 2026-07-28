@@ -40,12 +40,21 @@ import type {
   AssociationSummary,
 } from '@/types/associations';
 
+import {
+  AssociationMapPositionEditor,
+} from '@/components/admin/association-map-position-editor';
+
 const emptyForm: AssociationFormState = {
   name: '',
   slug: '',
   acronym: '',
   region: '',
   city: '',
+
+  latitude: '',
+  longitude: '',
+  mapIsVisible: true,
+
   memberCount: '',
   affiliatedSinceYear: '',
   logoMediaAssetId: '',
@@ -93,8 +102,32 @@ function formFromAssociation(
     name: association.name ?? '',
     slug: association.slug ?? '',
     acronym: association.acronym ?? '',
-    region: association.region ?? '',
-    city: association.city ?? '',
+    region:
+      association.region ?? '',
+
+    city:
+      association.city ?? '',
+
+latitude:
+  association.latitude === null ||
+  association.latitude === undefined
+    ? ''
+    : String(
+        association.latitude,
+      ),
+
+longitude:
+  association.longitude === null ||
+  association.longitude === undefined
+    ? ''
+    : String(
+        association.longitude,
+      ),
+
+    mapIsVisible:
+      association.mapIsVisible ??
+      true,
+
     memberCount:
       association.memberCount === null ||
       association.memberCount === undefined
@@ -450,6 +483,82 @@ async function handleCoverUpload(file?: File) {
   ) {
     event.preventDefault();
 
+const hasLatitude =
+  form.latitude.trim() !== '';
+
+const hasLongitude =
+  form.longitude.trim() !== '';
+
+if (
+  hasLatitude !==
+  hasLongitude
+) {
+  showModalError(
+    'La latitude et la longitude doivent être renseignées ensemble.',
+  );
+
+  return;
+}
+
+if (
+  hasLatitude &&
+  hasLongitude
+) {
+  const latitude =
+    Number(
+      form.latitude,
+    );
+
+  const longitude =
+    Number(
+      form.longitude,
+    );
+
+  if (
+    !Number.isFinite(
+      latitude,
+    ) ||
+    latitude < -90 ||
+    latitude > 90
+  ) {
+    showModalError(
+      'La latitude doit être comprise entre -90 et 90.',
+    );
+
+    return;
+  }
+
+  if (
+    !Number.isFinite(
+      longitude,
+    ) ||
+    longitude < -180 ||
+    longitude > 180
+  ) {
+    showModalError(
+      'La longitude doit être comprise entre -180 et 180.',
+    );
+
+    return;
+  }
+}
+
+if (
+  form.mapIsVisible &&
+  (
+    !hasLatitude ||
+    !hasLongitude
+  )
+) {
+  showModalError(
+    'Placez l’association sur la carte ou désactivez son affichage public.',
+  );
+
+  return;
+}
+
+setSaving(true);
+
     setSaving(true);
     setModalError('');
     setSuccess('');
@@ -658,6 +767,8 @@ async function handleCoverUpload(file?: File) {
                       : association.region}
                   </p>
 
+                  
+
                   <span className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-extrabold text-slate-700">
                     {
                       statusLabels[
@@ -812,6 +923,8 @@ async function handleCoverUpload(file?: File) {
                   }
                 />
 
+
+
                 <AdminInput
                   label="Nombre de loueurs membres"
                   type="number"
@@ -888,6 +1001,133 @@ async function handleCoverUpload(file?: File) {
                 />
               </div>
             </FormSection>
+
+<FormSection title="Localisation sur la carte du Maroc">
+  <div className="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(440px,1.2fr)] xl:items-start">
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-[#bfdbfe] bg-[#eff6ff] p-5 text-sm leading-7 text-[#1e4f7a]">
+        <p className="font-extrabold text-[#07355d]">
+          Position publique de l’association
+        </p>
+
+        <p className="mt-2">
+          La position définie ici sera utilisée sur la carte interactive de la
+          page d’accueil. Cliquez directement sur la carte pour placer le
+          marqueur.
+        </p>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <AdminInput
+          label="Latitude"
+          type="number"
+          value={
+            form.latitude
+          }
+          onChange={(value) =>
+            updateField(
+              'latitude',
+              value,
+            )
+          }
+          helper="Exemple Casablanca : 33.573110"
+        />
+
+        <AdminInput
+          label="Longitude"
+          type="number"
+          value={
+            form.longitude
+          }
+          onChange={(value) =>
+            updateField(
+              'longitude',
+              value,
+            )
+          }
+          helper="Exemple Casablanca : -7.589843"
+        />
+      </div>
+
+      <label className="flex items-start gap-3 rounded-xl border border-[var(--flascam-border)] p-4">
+        <input
+          type="checkbox"
+          checked={
+            form.mapIsVisible
+          }
+          onChange={(event) =>
+            updateField(
+              'mapIsVisible',
+              event.target.checked,
+            )
+          }
+          className="mt-1"
+        />
+
+        <span>
+          <span className="block text-sm font-bold text-slate-800">
+            Afficher cette association sur la carte publique
+          </span>
+
+          <span className="mt-1 block text-xs leading-5 text-[var(--flascam-slate)]">
+            L’association doit être publiée et posséder une latitude et une
+            longitude valides.
+          </span>
+        </span>
+      </label>
+
+      {(form.latitude ||
+        form.longitude) && (
+        <button
+          type="button"
+          onClick={() => {
+            updateField(
+              'latitude',
+              '',
+            );
+
+            updateField(
+              'longitude',
+              '',
+            );
+          }}
+          className="inline-flex h-11 items-center justify-center rounded-xl border border-red-200 px-4 text-sm font-bold text-red-700 transition hover:bg-red-50"
+        >
+          Retirer le point de la carte
+        </button>
+      )}
+    </div>
+
+    <AssociationMapPositionEditor
+      associationName={
+        form.name
+      }
+      latitude={
+        form.latitude
+      }
+      longitude={
+        form.longitude
+      }
+      disabled={
+        saving
+      }
+      onChange={(
+        latitude,
+        longitude,
+      ) => {
+        setForm(
+          (
+            current,
+          ) => ({
+            ...current,
+            latitude,
+            longitude,
+          }),
+        );
+      }}
+    />
+  </div>
+</FormSection>            
 
             <FormSection title="Réseaux sociaux">
               <div className="grid gap-5 lg:grid-cols-2">
@@ -1229,7 +1469,7 @@ function Modal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-5">
-      <div className="max-h-[94vh] w-full overflow-hidden rounded-t-[1.5rem] bg-white shadow-2xl sm:max-w-5xl sm:rounded-[1.5rem]">
+      <div className="max-h-[96vh] w-full overflow-hidden rounded-t-[1.5rem] bg-white shadow-2xl sm:max-w-[min(96vw,90rem)] sm:rounded-[1.5rem]">
         <div className="flex items-center justify-between border-b border-[var(--flascam-border)] px-6 py-4 sm:px-7">
           <h2 className="text-lg font-extrabold text-slate-950">
             {title}
@@ -1247,7 +1487,7 @@ function Modal({
 
         <div
           ref={scrollRef}
-          className="max-h-[calc(94vh-4.5rem)] overflow-y-auto px-6 py-6 sm:px-7 sm:py-7"
+          className="max-h-[calc(96vh-4.5rem)] overflow-y-auto px-5 py-5 sm:px-7 sm:py-7 lg:px-9"
         >
           {children}
         </div>

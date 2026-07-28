@@ -2,10 +2,12 @@ import {
   IsBoolean,
   IsEmail,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   IsUrl,
   IsUUID,
+  Max,
   MaxLength,
   Min,
   MinLength,
@@ -33,6 +35,38 @@ export class UpsertAssociationDto {
   @IsString()
   @MaxLength(180)
   city?: string;
+
+@IsOptional()
+@IsNumber(
+  {
+    maxDecimalPlaces: 6,
+  },
+  {
+    message:
+      'La latitude doit être un nombre valide.',
+  },
+)
+@Min(-90)
+@Max(90)
+latitude?: number;
+
+@IsOptional()
+@IsNumber(
+  {
+    maxDecimalPlaces: 6,
+  },
+  {
+    message:
+      'La longitude doit être un nombre valide.',
+  },
+)
+@Min(-180)
+@Max(180)
+longitude?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  mapIsVisible?: boolean;  
 
   @IsOptional()
   @IsInt()

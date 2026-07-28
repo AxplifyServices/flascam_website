@@ -12,7 +12,13 @@ import {
 import { PublicFooter } from '@/components/site/public-footer';
 import { PublicHeader } from '@/components/site/public-header';
 
-import { getFeaturedAssociations } from '@/lib/associations-api';
+import {
+  getPublicAssociations,
+} from '@/lib/associations-api';
+
+import {
+  AssociationsMapSection,
+} from '@/components/site/associations-map-section';
 
 import {
   HomepageHeroSlider,
@@ -278,98 +284,14 @@ function FederationPreview() {
 }
 
 async function AssociationsPreview() {
-  const associations = await getFeaturedAssociations();
+  const associations =
+    await getPublicAssociations();
 
-  if (associations.length === 0) {
-    return null;
-  }
-
-return (
-  <section className="relative overflow-hidden bg-[#f5f9fc] py-16 sm:py-24 lg:py-28">
-    <div
-      aria-hidden="true"
-      className="absolute -left-40 top-16 h-80 w-80 rounded-full bg-[#0f5f9f]/[0.06] blur-3xl"
+  return (
+    <AssociationsMapSection
+      associations={associations}
     />
-
-    <div
-      aria-hidden="true"
-      className="absolute -right-40 bottom-0 h-96 w-96 rounded-full bg-[#c96f4a]/[0.08] blur-3xl"
-    />
-
-    <div className="site-container relative">
-      <div className="grid gap-8 border-b border-[#dbe5ef] pb-10 lg:grid-cols-[1fr_auto] lg:items-end">
-        <div className="max-w-3xl">
-          <p className="flex items-center gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-[#0f5f9f]">
-            <span className="h-[3px] w-10 bg-[#c96f4a]" />
-            Associations régionales
-          </p>
-
-          <h2 className="mt-5 text-3xl font-extrabold leading-[1.1] tracking-[-0.04em] text-[#101820] sm:text-4xl lg:text-[3.25rem]">
-            Un réseau régional proche des professionnels.
-          </h2>
-
-          <p className="mt-6 max-w-2xl text-base leading-8 text-[#536273] sm:text-lg">
-            Les associations affiliées relaient les réalités du terrain,
-            accompagnent les loueurs et participent à la représentation
-            nationale du secteur.
-          </p>
-        </div>
-
-        <Link
-          href="/associations"
-          className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md border border-[#07355d] px-5 text-sm font-extrabold text-[#07355d] transition duration-200 hover:bg-[#07355d] hover:text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0f5f9f]/20"
-        >
-          Voir tout le réseau
-
-          <ArrowRight
-            size={17}
-            aria-hidden="true"
-          />
-        </Link>
-      </div>
-
-      <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {associations.map((association) => (
-          <AssociationCard
-            key={association.id}
-            association={association}
-          />
-        ))}
-      </div>
-
-      <div className="mt-12 grid overflow-hidden rounded-[1.25rem] bg-[#07355d] text-white lg:grid-cols-[1fr_auto] lg:items-center">
-        <div className="p-7 sm:p-9">
-          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#f0a27f]">
-            Rejoindre le réseau
-          </p>
-
-          <h3 className="mt-3 text-2xl font-extrabold tracking-[-0.03em] sm:text-3xl">
-            Votre association souhaite rejoindre la FLASCAM ?
-          </h3>
-
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-white/75 sm:text-base">
-            Découvrez les conditions d’affiliation et échangez avec la
-            fédération pour intégrer le réseau national.
-          </p>
-        </div>
-
-        <div className="border-t border-white/15 p-7 lg:border-l lg:border-t-0 lg:p-9">
-          <Link
-            href="/contact"
-            className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-[#c96f4a] px-6 text-sm font-extrabold text-white transition hover:bg-[#a95235] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30"
-          >
-            Contacter la fédération
-
-            <ArrowRight
-              size={17}
-              aria-hidden="true"
-            />
-          </Link>
-        </div>
-      </div>
-    </div>
-  </section>
-);
+  );
 }
 
 export default function Home() {

@@ -567,6 +567,20 @@ return {
         acronym: dto.acronym,
         region: dto.region,
         city: dto.city,
+
+latitude:
+  dto.latitude === undefined
+    ? null
+    : dto.latitude,
+
+longitude:
+  dto.longitude === undefined
+    ? null
+    : dto.longitude,
+
+        map_is_visible:
+          dto.mapIsVisible ?? true,
+
         member_count: dto.memberCount,
         affiliated_since_year: dto.affiliatedSinceYear,
         logo_media_asset_id: dto.logoMediaAssetId,
@@ -649,6 +663,20 @@ return {
         acronym: dto.acronym,
         region: dto.region,
         city: dto.city,
+
+latitude:
+  dto.latitude === undefined
+    ? null
+    : dto.latitude,
+
+longitude:
+  dto.longitude === undefined
+    ? null
+    : dto.longitude,
+
+        map_is_visible:
+          dto.mapIsVisible ?? true,
+
         member_count: dto.memberCount,
         affiliated_since_year: dto.affiliatedSinceYear,
         logo_media_asset_id: dto.logoMediaAssetId,
@@ -1294,7 +1322,25 @@ return {
     return `${baseUrl.replace(/\/$/, '')}/${asset.object_key.replace(/^\//, '')}`;
   }
 
-  private formatAssociationSummary(association: any) {
+  private formatAssociationSummary(
+    association: any,
+  ) {
+const latitude =
+  association.latitude === null ||
+  association.latitude === undefined
+    ? null
+    : Number(
+        association.latitude,
+      );
+
+const longitude =
+  association.longitude === null ||
+  association.longitude === undefined
+    ? null
+    : Number(
+        association.longitude,
+      );
+
     return {
       id: association.id,
       name: association.name,
@@ -1302,16 +1348,45 @@ return {
       acronym: association.acronym,
       region: association.region,
       city: association.city,
-      memberCount: association.member_count,
-      affiliatedSinceYear: association.affiliated_since_year,
-      logoText: association.logo_text,
-      logoUrl: this.mediaUrl(association.media_assets),
-      coverImageUrl: association.cover_image_url,
-      status: association.status,
-      isFeatured: association.is_featured,
-      displayOrder: association.display_order,
-      seoTitle: association.seo_title,
-      seoDescription: association.seo_description,
+
+      latitude,
+      longitude,
+
+      mapIsVisible:
+        association.map_is_visible ??
+        true,
+
+      memberCount:
+        association.member_count,
+
+      affiliatedSinceYear:
+        association.affiliated_since_year,
+
+      logoText:
+        association.logo_text,
+
+      logoUrl:
+        this.mediaUrl(
+          association.media_assets,
+        ),
+
+      coverImageUrl:
+        association.cover_image_url,
+
+      status:
+        association.status,
+
+      isFeatured:
+        association.is_featured,
+
+      displayOrder:
+        association.display_order,
+
+      seoTitle:
+        association.seo_title,
+
+      seoDescription:
+        association.seo_description,
     };
   }
 
