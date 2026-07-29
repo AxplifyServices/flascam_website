@@ -551,14 +551,22 @@ const article =
               },
             });
 
-          await this.replaceMedia(
-            tx,
-            created.id,
-            dto.media ??
-              [],
-          );
+await this.replaceMedia(
+  tx,
+  created.id,
+  dto.media ??
+    [],
+);
 
-          return created;
+await this.synchronizeArticleVideos(
+  tx,
+  created.id,
+  dto.youtubeVideos ??
+    [],
+  user.id,
+);
+
+return created;
         },
       );
 
@@ -751,14 +759,22 @@ const article =
               },
             });
 
-          await this.replaceMedia(
-            tx,
-            updated.id,
-            dto.media ??
-              [],
-          );
+await this.replaceMedia(
+  tx,
+  updated.id,
+  dto.media ??
+    [],
+);
 
-          return updated;
+await this.synchronizeArticleVideos(
+  tx,
+  updated.id,
+  dto.youtubeVideos ??
+    [],
+  user.id,
+);
+
+return updated;
         },
       );
 
@@ -849,41 +865,55 @@ const article =
     const submittedAt =
       new Date();
 
-    const updated =
-      await this.prisma.news_articles.update({
-        where: {
-          id,
-        },
+const updated =
+  await this.prisma.$transaction(
+    async (
+      tx,
+    ) => {
+      const article =
+        await tx.news_articles.update({
+          where: {
+            id,
+          },
 
-        data: {
-          status:
-            'PENDING_REVIEW',
+          data: {
+            status:
+              'PENDING_REVIEW',
 
-          published_at:
-            null,
+            published_at:
+              null,
 
-          scheduled_at:
-            null,
+            scheduled_at:
+              null,
 
-          submitted_at:
-            submittedAt,
+            submitted_at:
+              submittedAt,
 
-          reviewed_at:
-            null,
+            reviewed_at:
+              null,
 
-          reviewed_by_user_id:
-            null,
+            reviewed_by_user_id:
+              null,
 
-          rejection_reason:
-            null,
+            rejection_reason:
+              null,
 
-          updated_by_user_id:
-            user.id,
+            updated_by_user_id:
+              user.id,
 
-          updated_at:
-            submittedAt,
-        },
-      });
+            updated_at:
+              submittedAt,
+          },
+        });
+
+      await this.synchronizeArticleVideoStatus(
+        tx,
+        article,
+      );
+
+      return article;
+    },
+  );
 
     await this.auditLogs.log({
       userId:
@@ -967,41 +997,55 @@ const article =
     const updatedAt =
       new Date();
 
-    const updated =
-      await this.prisma.news_articles.update({
-        where: {
-          id,
-        },
+const updated =
+  await this.prisma.$transaction(
+    async (
+      tx,
+    ) => {
+      const article =
+        await tx.news_articles.update({
+          where: {
+            id,
+          },
 
-        data: {
-          status:
-            'DRAFT',
+          data: {
+            status:
+              'DRAFT',
 
-          published_at:
-            null,
+            published_at:
+              null,
 
-          scheduled_at:
-            null,
+            scheduled_at:
+              null,
 
-          submitted_at:
-            null,
+            submitted_at:
+              null,
 
-          reviewed_at:
-            null,
+            reviewed_at:
+              null,
 
-          reviewed_by_user_id:
-            null,
+            reviewed_by_user_id:
+              null,
 
-          rejection_reason:
-            null,
+            rejection_reason:
+              null,
 
-          updated_by_user_id:
-            user.id,
+            updated_by_user_id:
+              user.id,
 
-          updated_at:
-            updatedAt,
-        },
-      });
+            updated_at:
+              updatedAt,
+          },
+        });
+
+      await this.synchronizeArticleVideoStatus(
+        tx,
+        article,
+      );
+
+      return article;
+    },
+  );
 
     await this.auditLogs.log({
       userId:
@@ -1083,22 +1127,46 @@ const article =
       );
     }
 
-    await this.prisma.news_articles.update({
-      where: {
-        id,
-      },
+const deletedAt =
+  new Date();
 
-      data: {
-        deleted_at:
-          new Date(),
+await this.prisma.$transaction(
+  async (
+    tx,
+  ) => {
+    const deletedArticle =
+      await tx.news_articles.update({
+        where: {
+          id,
+        },
 
-        updated_by_user_id:
-          user.id,
+        data: {
+          status:
+            'ARCHIVED',
 
-        updated_at:
-          new Date(),
-      },
-    });
+          published_at:
+            null,
+
+          scheduled_at:
+            null,
+
+          deleted_at:
+            deletedAt,
+
+          updated_by_user_id:
+            user.id,
+
+          updated_at:
+            deletedAt,
+        },
+      });
+
+    await this.synchronizeArticleVideoStatus(
+      tx,
+      deletedArticle,
+    );
+  },
+);
 
     await this.auditLogs.log({
       userId:
@@ -1413,14 +1481,22 @@ const article =
               },
             });
 
-          await this.replaceMedia(
-            tx,
-            created.id,
-            dto.media ??
-              [],
-          );
+await this.replaceMedia(
+  tx,
+  created.id,
+  dto.media ??
+    [],
+);
 
-          return created;
+await this.synchronizeArticleVideos(
+  tx,
+  created.id,
+  dto.youtubeVideos ??
+    [],
+  user.id,
+);
+
+return created;
         },
       );
 
@@ -1569,14 +1645,22 @@ const article =
               },
             });
 
-          await this.replaceMedia(
-            tx,
-            id,
-            dto.media ??
-              [],
-          );
+await this.replaceMedia(
+  tx,
+  updated.id,
+  dto.media ??
+    [],
+);
 
-          return updated;
+await this.synchronizeArticleVideos(
+  tx,
+  updated.id,
+  dto.youtubeVideos ??
+    [],
+  user.id,
+);
+
+return updated;
         },
       );
 
@@ -1656,32 +1740,46 @@ const article =
     const now =
       new Date();
 
-    const article =
-      await this.prisma.news_articles.update({
-        where: {
-          id,
-        },
+const article =
+  await this.prisma.$transaction(
+    async (
+      tx,
+    ) => {
+      const updatedArticle =
+        await tx.news_articles.update({
+          where: {
+            id,
+          },
 
-        data: {
-          status:
-            dto.status,
+          data: {
+            status:
+              dto.status,
 
-          published_at:
-            dto.status ===
-            'PUBLISHED'
-              ? now
-              : null,
+            published_at:
+              dto.status ===
+              'PUBLISHED'
+                ? now
+                : null,
 
-          scheduled_at:
-            null,
+            scheduled_at:
+              null,
 
-          updated_by_user_id:
-            user.id,
+            updated_by_user_id:
+              user.id,
 
-          updated_at:
-            now,
-        },
-      });
+            updated_at:
+              now,
+          },
+        });
+
+      await this.synchronizeArticleVideoStatus(
+        tx,
+        updatedArticle,
+      );
+
+      return updatedArticle;
+    },
+  );
 
     if (
       dto.status ===
@@ -1713,6 +1811,7 @@ const article =
               true,
           },
         });
+        
 
       if (
         !publiclyVisibleArticle
@@ -1721,6 +1820,45 @@ const article =
           'L’actualité a été publiée, mais elle ne satisfait pas les conditions de visibilité publique.',
         );
       }
+const hiddenPublishedVideo =
+  await this.prisma.videos.findFirst({
+    where: {
+      news_article_id:
+        article.id,
+
+      source_type:
+        'NEWS',
+
+      deleted_at:
+        null,
+
+      OR: [
+        {
+          status: {
+            not:
+              'PUBLISHED',
+          },
+        },
+        {
+          published_at:
+            null,
+        },
+      ],
+    },
+
+    select: {
+      id:
+        true,
+    },
+  });
+
+if (
+  hiddenPublishedVideo
+) {
+  throw new BadRequestException(
+    'L’actualité est publiée, mais au moins une de ses vidéos n’a pas été correctement publiée.',
+  );
+}      
     }
 
     await this.auditLogs.log({
@@ -1815,38 +1953,52 @@ const article =
     const reviewedAt =
       new Date();
 
-    const updated =
-      await this.prisma.news_articles.update({
-        where: {
-          id,
-        },
+const updated =
+  await this.prisma.$transaction(
+    async (
+      tx,
+    ) => {
+      const approvedArticle =
+        await tx.news_articles.update({
+          where: {
+            id,
+          },
 
-        data: {
-          status:
-            'PUBLISHED',
+          data: {
+            status:
+              'PUBLISHED',
 
-          published_at:
-            reviewedAt,
+            published_at:
+              reviewedAt,
 
-          scheduled_at:
-            null,
+            scheduled_at:
+              null,
 
-          reviewed_at:
-            reviewedAt,
+            reviewed_at:
+              reviewedAt,
 
-          reviewed_by_user_id:
-            user.id,
+            reviewed_by_user_id:
+              user.id,
 
-          rejection_reason:
-            null,
+            rejection_reason:
+              null,
 
-          updated_by_user_id:
-            user.id,
+            updated_by_user_id:
+              user.id,
 
-          updated_at:
-            reviewedAt,
-        },
-      });
+            updated_at:
+              reviewedAt,
+          },
+        });
+
+      await this.synchronizeArticleVideoStatus(
+        tx,
+        approvedArticle,
+      );
+
+      return approvedArticle;
+    },
+  );
 
     await this.auditLogs.log({
       userId:
@@ -1935,38 +2087,52 @@ const article =
     const reviewedAt =
       new Date();
 
-    const updated =
-      await this.prisma.news_articles.update({
-        where: {
-          id,
-        },
+const updated =
+  await this.prisma.$transaction(
+    async (
+      tx,
+    ) => {
+      const rejectedArticle =
+        await tx.news_articles.update({
+          where: {
+            id,
+          },
 
-        data: {
-          status:
-            'REJECTED',
+          data: {
+            status:
+              'REJECTED',
 
-          published_at:
-            null,
+            published_at:
+              null,
 
-          scheduled_at:
-            null,
+            scheduled_at:
+              null,
 
-          reviewed_at:
-            reviewedAt,
+            reviewed_at:
+              reviewedAt,
 
-          reviewed_by_user_id:
-            user.id,
+            reviewed_by_user_id:
+              user.id,
 
-          rejection_reason:
-            reason,
+            rejection_reason:
+              reason,
 
-          updated_by_user_id:
-            user.id,
+            updated_by_user_id:
+              user.id,
 
-          updated_at:
-            reviewedAt,
-        },
-      });
+            updated_at:
+              reviewedAt,
+          },
+        });
+
+      await this.synchronizeArticleVideoStatus(
+        tx,
+        rejectedArticle,
+      );
+
+      return rejectedArticle;
+    },
+  );
 
     await this.auditLogs.log({
       userId:
@@ -2085,29 +2251,43 @@ if (
       );
     }
 
-    const updated =
-      await this.prisma.news_articles.update({
-        where: {
-          id,
-        },
+const updated =
+  await this.prisma.$transaction(
+    async (
+      tx,
+    ) => {
+      const scheduledArticle =
+        await tx.news_articles.update({
+          where: {
+            id,
+          },
 
-        data: {
-          status:
-            'DRAFT',
+          data: {
+            status:
+              'DRAFT',
 
-          published_at:
-            null,
+            published_at:
+              null,
 
-          scheduled_at:
-            scheduledAt,
+            scheduled_at:
+              scheduledAt,
 
-          updated_by_user_id:
-            user.id,
+            updated_by_user_id:
+              user.id,
 
-          updated_at:
-            new Date(),
-        },
-      });
+            updated_at:
+              new Date(),
+          },
+        });
+
+      await this.synchronizeArticleVideoStatus(
+        tx,
+        scheduledArticle,
+      );
+
+      return scheduledArticle;
+    },
+  );
 
     await this.auditLogs.log({
       userId:
@@ -2185,23 +2365,37 @@ if (
       );
     }
 
-    const updated =
-      await this.prisma.news_articles.update({
-        where: {
-          id,
-        },
+const updated =
+  await this.prisma.$transaction(
+    async (
+      tx,
+    ) => {
+      const cancelledArticle =
+        await tx.news_articles.update({
+          where: {
+            id,
+          },
 
-        data: {
-          scheduled_at:
-            null,
+          data: {
+            scheduled_at:
+              null,
 
-          updated_by_user_id:
-            user.id,
+            updated_by_user_id:
+              user.id,
 
-          updated_at:
-            new Date(),
-        },
-      });
+            updated_at:
+              new Date(),
+          },
+        });
+
+      await this.synchronizeArticleVideoStatus(
+        tx,
+        cancelledArticle,
+      );
+
+      return cancelledArticle;
+    },
+  );
 
     await this.auditLogs.log({
       userId:
@@ -2286,41 +2480,78 @@ if (
           const publicationDate =
             new Date();
 
-          const result =
-            await this.prisma.news_articles.updateMany({
-              where: {
-                id:
-                  article.id,
+const result =
+  await this.prisma.$transaction(
+    async (
+      tx,
+    ) => {
+      const updateResult =
+        await tx.news_articles.updateMany({
+          where: {
+            id:
+              article.id,
 
-                status:
-                  'DRAFT',
+            status:
+              'DRAFT',
 
-                scheduled_at: {
-                  not:
-                    null,
+            scheduled_at: {
+              not:
+                null,
 
-                  lte:
-                    publicationDate,
-                },
+              lte:
+                publicationDate,
+            },
 
-                deleted_at:
-                  null,
-              },
+            deleted_at:
+              null,
+          },
 
-              data: {
-                status:
-                  'PUBLISHED',
+          data: {
+            status:
+              'PUBLISHED',
 
-                published_at:
-                  publicationDate,
+            published_at:
+              publicationDate,
 
-                scheduled_at:
-                  null,
+            scheduled_at:
+              null,
 
-                updated_at:
-                  publicationDate,
-              },
-            });
+            updated_at:
+              publicationDate,
+          },
+        });
+
+      if (
+        updateResult.count !==
+        1
+      ) {
+        return updateResult;
+      }
+
+      const publishedArticle =
+        await tx.news_articles.findUnique({
+          where: {
+            id:
+              article.id,
+          },
+        });
+
+      if (
+        !publishedArticle
+      ) {
+        throw new NotFoundException(
+          'L’actualité programmée est introuvable après sa publication.',
+        );
+      }
+
+      await this.synchronizeArticleVideoStatus(
+        tx,
+        publishedArticle,
+      );
+
+      return updateResult;
+    },
+  );
 
           if (
             result.count ===
@@ -2405,31 +2636,46 @@ if (
       );
     }
 
-    await this.prisma.news_articles.update({
-      where: {
-        id,
-      },
+const deletedAt =
+  new Date();
 
-      data: {
-        status:
-          'ARCHIVED',
+await this.prisma.$transaction(
+  async (
+    tx,
+  ) => {
+    const deletedArticle =
+      await tx.news_articles.update({
+        where: {
+          id,
+        },
 
-        published_at:
-          null,
+        data: {
+          status:
+            'ARCHIVED',
 
-        scheduled_at:
-          null,
+          published_at:
+            null,
 
-        deleted_at:
-          new Date(),
+          scheduled_at:
+            null,
 
-        updated_by_user_id:
-          user.id,
+          deleted_at:
+            deletedAt,
 
-        updated_at:
-          new Date(),
-      },
-    });
+          updated_by_user_id:
+            user.id,
+
+          updated_at:
+            deletedAt,
+        },
+      });
+
+    await this.synchronizeArticleVideoStatus(
+      tx,
+      deletedArticle,
+    );
+  },
+);
 
     await this.auditLogs.log({
       userId:
@@ -2767,6 +3013,16 @@ if (
       dto.media ??
         [],
     );
+
+await this.validateMedia(
+  dto.media ??
+    [],
+);
+
+this.validateYoutubeVideos(
+  dto.youtubeVideos ??
+    [],
+);    
   }
 
   private async validateMedia(
@@ -2868,6 +3124,169 @@ if (
     }
   }
 
+private validateYoutubeVideos(
+  videos:
+    NonNullable<
+      UpsertNewsArticleDto['youtubeVideos']
+    >,
+) {
+  if (
+    !videos.length
+  ) {
+    return;
+  }
+
+  const videoIds =
+    videos.map(
+      (
+        video,
+      ) =>
+        this.extractYoutubeVideoId(
+          video.url,
+        ),
+    );
+
+  const uniqueVideoIds =
+    new Set(
+      videoIds,
+    );
+
+  if (
+    uniqueVideoIds.size !==
+    videoIds.length
+  ) {
+    throw new BadRequestException(
+      'Une même vidéo YouTube ne peut pas être ajoutée plusieurs fois à une actualité.',
+    );
+  }
+
+  const displayOrders =
+    videos.map(
+      (
+        video,
+      ) =>
+        video.displayOrder,
+    );
+
+  const uniqueDisplayOrders =
+    new Set(
+      displayOrders,
+    );
+
+  if (
+    uniqueDisplayOrders.size !==
+    displayOrders.length
+  ) {
+    throw new BadRequestException(
+      'Deux vidéos YouTube ne peuvent pas avoir le même ordre d’affichage.',
+    );
+  }
+}
+
+private extractYoutubeVideoId(
+  rawUrl: string,
+) {
+  const value =
+    rawUrl.trim();
+
+  if (
+    !value
+  ) {
+    throw new BadRequestException(
+      'Le lien YouTube est obligatoire.',
+    );
+  }
+
+  let url:
+    URL;
+
+  try {
+    url =
+      new URL(
+        value,
+      );
+  } catch {
+    throw new BadRequestException(
+      'Le lien YouTube est invalide.',
+    );
+  }
+
+  const hostname =
+    url.hostname
+      .toLowerCase()
+      .replace(
+        /^www\./,
+        '',
+      );
+
+  let videoId:
+    string | null =
+      null;
+
+  if (
+    hostname ===
+    'youtu.be'
+  ) {
+    videoId =
+      url.pathname
+        .split('/')
+        .filter(Boolean)[0] ??
+      null;
+  }
+
+  if (
+    [
+      'youtube.com',
+      'm.youtube.com',
+    ].includes(
+      hostname,
+    )
+  ) {
+    if (
+      url.pathname ===
+      '/watch'
+    ) {
+      videoId =
+        url.searchParams.get(
+          'v',
+        );
+    } else {
+      const parts =
+        url.pathname
+          .split('/')
+          .filter(Boolean);
+
+      if (
+        [
+          'embed',
+          'shorts',
+          'live',
+        ].includes(
+          parts[0] ??
+            '',
+        )
+      ) {
+        videoId =
+          parts[1] ??
+          null;
+      }
+    }
+  }
+
+  if (
+    !videoId ||
+    !/^[a-zA-Z0-9_-]{6,20}$/.test(
+      videoId,
+    )
+  ) {
+    throw new BadRequestException(
+      'Le lien fourni ne correspond pas à une vidéo YouTube valide.',
+    );
+  }
+
+  return videoId;
+}  
+
   private ensureArticleCanBePublished(
     article: PublishableNewsArticle,
   ) {
@@ -2957,6 +3376,460 @@ if (
     });
   }
 
+private async synchronizeArticleVideos(
+  tx: Prisma.TransactionClient,
+  articleId: string,
+  youtubeVideos:
+    NonNullable<
+      UpsertNewsArticleDto['youtubeVideos']
+    >,
+  userId: string | null,
+) {
+  const article =
+    await tx.news_articles.findFirst({
+      where: {
+        id:
+          articleId,
+
+        deleted_at:
+          null,
+      },
+    });
+
+  if (
+    !article
+  ) {
+    throw new NotFoundException(
+      'Actualité introuvable pendant la synchronisation des vidéos.',
+    );
+  }
+
+  const articleMedia =
+    await tx.news_article_media.findMany({
+      where: {
+        news_article_id:
+          articleId,
+      },
+
+      include: {
+        media_assets:
+          true,
+      },
+
+      orderBy: [
+        {
+          display_order:
+            'asc',
+        },
+        {
+          created_at:
+            'asc',
+        },
+      ],
+    });
+
+  const importedVideos =
+    articleMedia.filter(
+      (
+        item,
+      ) =>
+        item.media_assets.media_type ===
+        'VIDEO',
+    );
+
+  const firstImage =
+    articleMedia.find(
+      (
+        item,
+      ) =>
+        item.media_assets.media_type ===
+        'IMAGE',
+    );
+
+  /*
+   * Les vidéos issues d’une actualité sont des données dérivées.
+   * Elles peuvent donc être supprimées puis reconstruites
+   * à chaque modification de l’actualité.
+   *
+   * Cela évite :
+   * - les doublons ;
+   * - les vidéos retirées qui restent dans la vidéothèque ;
+   * - les anciennes miniatures ;
+   * - les anciennes associations.
+   */
+  await tx.videos.deleteMany({
+    where: {
+      news_article_id:
+        articleId,
+
+      source_type:
+        'NEWS',
+    },
+  });
+
+  const videoStatus =
+    article.status ===
+    'PUBLISHED'
+      ? 'PUBLISHED'
+      : article.status ===
+          'ARCHIVED'
+      ? 'ARCHIVED'
+      : article.status ===
+          'PENDING_REVIEW'
+      ? 'PENDING_REVIEW'
+      : article.status ===
+          'REJECTED'
+      ? 'REJECTED'
+      : 'DRAFT';
+
+  const publishedAt =
+    videoStatus ===
+    'PUBLISHED'
+      ? article.published_at ??
+        new Date()
+      : null;
+
+  const now =
+    new Date();
+
+  const generatedVideos:
+    Prisma.videosCreateManyInput[] =
+      [];
+
+  importedVideos.forEach(
+    (
+      item,
+      index,
+    ) => {
+      const asset =
+        item.media_assets;
+
+      const title =
+        item.caption?.trim() ||
+        item.alt_text?.trim() ||
+        asset.title?.trim() ||
+        `${article.title} — vidéo ${index + 1}`;
+
+      generatedVideos.push({
+        regional_association_id:
+          article.regional_association_id,
+
+        news_article_id:
+          article.id,
+
+        created_by_user_id:
+          userId ??
+          article.created_by_user_id,
+
+        updated_by_user_id:
+          userId ??
+          article.updated_by_user_id,
+
+        reviewed_by_user_id:
+          article.reviewed_by_user_id,
+
+        media_asset_id:
+          asset.id,
+
+        thumbnail_media_asset_id:
+          firstImage?.media_asset_id ??
+          null,
+
+        source_type:
+          'NEWS',
+
+        provider:
+          'UPLOADED',
+
+        status:
+          videoStatus,
+
+        title,
+
+        /*
+         * L’identifiant du média rend le slug stable et unique,
+         * même si plusieurs vidéos ont le même titre.
+         */
+        slug:
+          `${article.slug}-video-${asset.id
+            .replace(
+              /-/g,
+              '',
+            )
+            .slice(
+              0,
+              12,
+            )}`,
+
+        excerpt:
+          item.caption?.trim() ||
+          article.excerpt,
+
+        description:
+          article.body,
+
+        external_url:
+          null,
+
+        external_video_id:
+          null,
+
+        duration_seconds:
+          asset.duration_seconds,
+
+        seo_title:
+          article.seo_title,
+
+        seo_description:
+          article.seo_description,
+
+        display_order:
+          item.display_order,
+
+        is_featured:
+          false,
+
+        published_at:
+          publishedAt,
+
+        scheduled_at:
+          null,
+
+        submitted_at:
+          article.submitted_at,
+
+        reviewed_at:
+          article.reviewed_at,
+
+        rejection_reason:
+          article.rejection_reason,
+
+        created_at:
+          now,
+
+        updated_at:
+          now,
+
+        deleted_at:
+          null,
+      });
+    },
+  );
+
+  youtubeVideos.forEach(
+    (
+      item,
+      index,
+    ) => {
+      const youtubeId =
+        this.extractYoutubeVideoId(
+          item.url,
+        );
+
+      const title =
+        item.title?.trim() ||
+        `${article.title} — vidéo YouTube ${index + 1}`;
+
+      generatedVideos.push({
+        regional_association_id:
+          article.regional_association_id,
+
+        news_article_id:
+          article.id,
+
+        created_by_user_id:
+          userId ??
+          article.created_by_user_id,
+
+        updated_by_user_id:
+          userId ??
+          article.updated_by_user_id,
+
+        reviewed_by_user_id:
+          article.reviewed_by_user_id,
+
+        media_asset_id:
+          null,
+
+        thumbnail_media_asset_id:
+          firstImage?.media_asset_id ??
+          null,
+
+        source_type:
+          'NEWS',
+
+        provider:
+          'YOUTUBE',
+
+        status:
+          videoStatus,
+
+        title,
+
+        slug:
+          `${article.slug}-youtube-${youtubeId.toLowerCase()}`,
+
+        excerpt:
+          item.description?.trim() ||
+          article.excerpt,
+
+        description:
+          item.description?.trim() ||
+          article.body,
+
+        external_url:
+          item.url.trim(),
+
+        external_video_id:
+          youtubeId,
+
+        duration_seconds:
+          null,
+
+        seo_title:
+          article.seo_title,
+
+        seo_description:
+          article.seo_description,
+
+        display_order:
+          item.displayOrder,
+
+        is_featured:
+          false,
+
+        published_at:
+          publishedAt,
+
+        scheduled_at:
+          null,
+
+        submitted_at:
+          article.submitted_at,
+
+        reviewed_at:
+          article.reviewed_at,
+
+        rejection_reason:
+          article.rejection_reason,
+
+        created_at:
+          now,
+
+        updated_at:
+          now,
+
+        deleted_at:
+          null,
+      });
+    },
+  );
+
+  if (
+    !generatedVideos.length
+  ) {
+    return;
+  }
+
+  await tx.videos.createMany({
+    data:
+      generatedVideos,
+  });
+}  
+
+private async synchronizeArticleVideoStatus(
+  tx: Prisma.TransactionClient,
+  article: {
+    id: string;
+    status: string;
+    published_at: Date | null;
+    scheduled_at: Date | null;
+    submitted_at: Date | null;
+    reviewed_at: Date | null;
+    reviewed_by_user_id: string | null;
+    rejection_reason: string | null;
+    updated_by_user_id: string | null;
+    deleted_at: Date | null;
+  },
+) {
+  const isDeleted =
+    article.deleted_at !==
+    null;
+
+  const videoStatus =
+    isDeleted
+      ? 'ARCHIVED'
+      : article.status ===
+          'PUBLISHED'
+      ? 'PUBLISHED'
+      : article.status ===
+          'PENDING_REVIEW'
+      ? 'PENDING_REVIEW'
+      : article.status ===
+          'REJECTED'
+      ? 'REJECTED'
+      : article.status ===
+          'ARCHIVED'
+      ? 'ARCHIVED'
+      : 'DRAFT';
+
+  const publishedAt =
+    videoStatus ===
+    'PUBLISHED'
+      ? article.published_at ??
+        new Date()
+      : null;
+
+  await tx.videos.updateMany({
+    where: {
+      news_article_id:
+        article.id,
+
+      source_type:
+        'NEWS',
+    },
+
+    data: {
+      status:
+        videoStatus,
+
+      published_at:
+        publishedAt,
+
+      /*
+       * Une vidéo provenant d’une actualité ne possède jamais
+       * de programmation autonome. Elle dépend exclusivement
+       * de la programmation de l’actualité.
+       */
+      scheduled_at:
+        null,
+
+      submitted_at:
+        article.submitted_at,
+
+      reviewed_at:
+        article.reviewed_at,
+
+      reviewed_by_user_id:
+        article.reviewed_by_user_id,
+
+      rejection_reason:
+        article.rejection_reason,
+
+      updated_by_user_id:
+        article.updated_by_user_id,
+
+      deleted_at:
+        isDeleted
+          ? article.deleted_at
+          : null,
+
+      updated_at:
+        new Date(),
+    },
+  });
+}
+
   private async formatArticles(
     articles: NewsArticleRecord[],
   ) {
@@ -3045,11 +3918,15 @@ if (
     );
   }
 
-  private async formatArticle(
-    article: NewsArticleRecord,
-  ) {
-    const media =
-      await this.prisma.news_article_media.findMany({
+private async formatArticle(
+  article: NewsArticleRecord,
+) {
+  const [
+    media,
+    youtubeVideos,
+  ] =
+    await Promise.all([
+      this.prisma.news_article_media.findMany({
         where: {
           news_article_id:
             article.id,
@@ -3070,9 +3947,61 @@ if (
               'asc',
           },
         ],
-      });
+      }),
 
-    return this.formatArticleData(
+      this.prisma.videos.findMany({
+        where: {
+          news_article_id:
+            article.id,
+
+          source_type:
+            'NEWS',
+
+          provider:
+            'YOUTUBE',
+
+          deleted_at:
+            null,
+        },
+
+        orderBy: [
+          {
+            display_order:
+              'asc',
+          },
+          {
+            created_at:
+              'asc',
+          },
+        ],
+
+        select: {
+          id:
+            true,
+
+          external_url:
+            true,
+
+          external_video_id:
+            true,
+
+          title:
+            true,
+
+          excerpt:
+            true,
+
+          description:
+            true,
+
+          display_order:
+            true,
+        },
+      }),
+    ]);
+
+  return {
+    ...this.formatArticleData(
       article,
 
       media.map(
@@ -3083,8 +4012,40 @@ if (
             item,
           ),
       ),
-    );
-  }
+    ),
+
+    youtubeVideos:
+      youtubeVideos.map(
+        (
+          video,
+        ) => ({
+          id:
+            video.id,
+
+          url:
+            video.external_url,
+
+          videoId:
+            video.external_video_id,
+
+          embedUrl:
+            video.external_video_id
+              ? `https://www.youtube-nocookie.com/embed/${video.external_video_id}`
+              : null,
+
+          title:
+            video.title,
+
+          description:
+            video.description ??
+            video.excerpt,
+
+          displayOrder:
+            video.display_order,
+        }),
+      ),
+  };
+}
 
 private formatArticleData(
   article: NewsArticleRecord,

@@ -99,6 +99,9 @@ model users {
   refresh_tokens                                         refresh_tokens[]
   regional_associations                                  regional_associations? @relation(fields: [regional_association_id], references: [id], onUpdate: NoAction)
   roles                                                  roles                  @relation(fields: [role_id], references: [id], onUpdate: NoAction)
+  videos_videos_created_by_user_idTousers                videos[]               @relation("videos_created_by_user_idTousers")
+  videos_videos_reviewed_by_user_idTousers               videos[]               @relation("videos_reviewed_by_user_idTousers")
+  videos_videos_updated_by_user_idTousers                videos[]               @relation("videos_updated_by_user_idTousers")
 
   @@index([deleted_at])
   @@index([is_active])
@@ -109,39 +112,41 @@ model users {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model media_assets {
-  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  uploaded_by_user_id     String?                   @db.Uuid
-  storage_provider        String                    @default("S3") @db.VarChar(30)
-  bucket_name             String                    @db.VarChar(100)
-  object_key              String
-  original_filename       String
-  stored_filename         String
-  file_extension          String?                   @db.VarChar(20)
-  mime_type               String                    @db.VarChar(150)
-  media_type              String                    @db.VarChar(30)
-  visibility              String                    @default("PRIVATE") @db.VarChar(20)
-  status                  String                    @default("PENDING") @db.VarChar(30)
-  size_bytes              BigInt
-  checksum_sha256         String?                   @db.VarChar(64)
-  width                   Int?
-  height                  Int?
-  duration_seconds        Decimal?                  @db.Decimal(12, 3)
-  title                   String?                   @db.VarChar(255)
-  alt_text                String?                   @db.VarChar(255)
-  caption                 String?
-  metadata                Json                      @default("{}")
-  uploaded_at             DateTime                  @default(now()) @db.Timestamptz(6)
-  validated_at            DateTime?                 @db.Timestamptz(6)
-  deleted_at              DateTime?                 @db.Timestamptz(6)
-  created_at              DateTime                  @default(now()) @db.Timestamptz(6)
-  updated_at              DateTime                  @default(now()) @db.Timestamptz(6)
-  association_leaders     association_leaders[]
-  association_media_items association_media_items[]
-  association_posts       association_posts[]
-  homepage_hero_slides    homepage_hero_slides?
-  users                   users?                    @relation(fields: [uploaded_by_user_id], references: [id], onUpdate: NoAction)
-  news_article_media      news_article_media[]
-  regional_associations   regional_associations[]
+  id                                                   String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  uploaded_by_user_id                                  String?                   @db.Uuid
+  storage_provider                                     String                    @default("S3") @db.VarChar(30)
+  bucket_name                                          String                    @db.VarChar(100)
+  object_key                                           String
+  original_filename                                    String
+  stored_filename                                      String
+  file_extension                                       String?                   @db.VarChar(20)
+  mime_type                                            String                    @db.VarChar(150)
+  media_type                                           String                    @db.VarChar(30)
+  visibility                                           String                    @default("PRIVATE") @db.VarChar(20)
+  status                                               String                    @default("PENDING") @db.VarChar(30)
+  size_bytes                                           BigInt
+  checksum_sha256                                      String?                   @db.VarChar(64)
+  width                                                Int?
+  height                                               Int?
+  duration_seconds                                     Decimal?                  @db.Decimal(12, 3)
+  title                                                String?                   @db.VarChar(255)
+  alt_text                                             String?                   @db.VarChar(255)
+  caption                                              String?
+  metadata                                             Json                      @default("{}")
+  uploaded_at                                          DateTime                  @default(now()) @db.Timestamptz(6)
+  validated_at                                         DateTime?                 @db.Timestamptz(6)
+  deleted_at                                           DateTime?                 @db.Timestamptz(6)
+  created_at                                           DateTime                  @default(now()) @db.Timestamptz(6)
+  updated_at                                           DateTime                  @default(now()) @db.Timestamptz(6)
+  association_leaders                                  association_leaders[]
+  association_media_items                              association_media_items[]
+  association_posts                                    association_posts[]
+  homepage_hero_slides                                 homepage_hero_slides?
+  users                                                users?                    @relation(fields: [uploaded_by_user_id], references: [id], onUpdate: NoAction)
+  news_article_media                                   news_article_media[]
+  regional_associations                                regional_associations[]
+  videos_videos_media_asset_idTomedia_assets           videos[]                  @relation("videos_media_asset_idTomedia_assets")
+  videos_videos_thumbnail_media_asset_idTomedia_assets videos[]                  @relation("videos_thumbnail_media_asset_idTomedia_assets")
 
   @@unique([bucket_name, object_key], map: "media_assets_bucket_object_unique")
   @@index([created_at(sort: Desc)])
@@ -377,6 +382,7 @@ model regional_associations {
   news_articles           news_articles[]
   media_assets            media_assets?             @relation(fields: [logo_media_asset_id], references: [id], onUpdate: NoAction)
   users                   users[]
+  videos                  videos[]
 
   @@index([deleted_at])
   @@index([is_featured, display_order], map: "regional_associations_featured_order_idx")
@@ -456,6 +462,7 @@ model news_articles {
   regional_associations                          regional_associations? @relation(fields: [regional_association_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "news_articles_regional_association_fk")
   users_news_articles_reviewed_by_user_idTousers users?                 @relation("news_articles_reviewed_by_user_idTousers", fields: [reviewed_by_user_id], references: [id], onUpdate: NoAction, map: "news_articles_reviewed_by_user_fk")
   users_news_articles_updated_by_user_idTousers  users?                 @relation("news_articles_updated_by_user_idTousers", fields: [updated_by_user_id], references: [id], onUpdate: NoAction, map: "news_articles_updated_by_user_fk")
+  videos                                         videos[]
 
   @@index([content_type, status, published_at(sort: Desc)], map: "news_articles_content_type_idx", where: raw("(deleted_at IS NULL)"))
   @@index([created_at(sort: Desc)])
@@ -490,4 +497,58 @@ model association_leaders {
   @@unique([regional_association_id, role], map: "association_leaders_association_role_unique")
   @@index([regional_association_id], map: "association_leaders_association_idx")
   @@index([regional_association_id, is_published, display_order], map: "association_leaders_public_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model videos {
+  id                                                         String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  regional_association_id                                    String?                @db.Uuid
+  news_article_id                                            String?                @db.Uuid
+  created_by_user_id                                         String?                @db.Uuid
+  updated_by_user_id                                         String?                @db.Uuid
+  reviewed_by_user_id                                        String?                @db.Uuid
+  media_asset_id                                             String?                @db.Uuid
+  thumbnail_media_asset_id                                   String?                @db.Uuid
+  source_type                                                String                 @default("STANDALONE") @db.VarChar(30)
+  provider                                                   String                 @db.VarChar(30)
+  status                                                     String                 @default("DRAFT") @db.VarChar(30)
+  title                                                      String                 @db.VarChar(255)
+  slug                                                       String                 @unique(map: "videos_slug_unique") @db.VarChar(180)
+  excerpt                                                    String?
+  description                                                String?
+  external_url                                               String?
+  external_video_id                                          String?                @db.VarChar(150)
+  duration_seconds                                           Decimal?               @db.Decimal(12, 3)
+  seo_title                                                  String?                @db.VarChar(255)
+  seo_description                                            String?                @db.VarChar(320)
+  display_order                                              Int                    @default(0)
+  is_featured                                                Boolean                @default(false)
+  published_at                                               DateTime?              @db.Timestamptz(6)
+  scheduled_at                                               DateTime?              @db.Timestamptz(6)
+  submitted_at                                               DateTime?              @db.Timestamptz(6)
+  reviewed_at                                                DateTime?              @db.Timestamptz(6)
+  rejection_reason                                           String?
+  created_at                                                 DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                                                 DateTime               @default(now()) @db.Timestamptz(6)
+  deleted_at                                                 DateTime?              @db.Timestamptz(6)
+  regional_associations                                      regional_associations? @relation(fields: [regional_association_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "videos_association_fk")
+  users_videos_created_by_user_idTousers                     users?                 @relation("videos_created_by_user_idTousers", fields: [created_by_user_id], references: [id], onUpdate: NoAction, map: "videos_created_by_user_fk")
+  media_assets_videos_media_asset_idTomedia_assets           media_assets?          @relation("videos_media_asset_idTomedia_assets", fields: [media_asset_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "videos_media_asset_fk")
+  news_articles                                              news_articles?         @relation(fields: [news_article_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "videos_news_article_fk")
+  users_videos_reviewed_by_user_idTousers                    users?                 @relation("videos_reviewed_by_user_idTousers", fields: [reviewed_by_user_id], references: [id], onUpdate: NoAction, map: "videos_reviewed_by_user_fk")
+  media_assets_videos_thumbnail_media_asset_idTomedia_assets media_assets?          @relation("videos_thumbnail_media_asset_idTomedia_assets", fields: [thumbnail_media_asset_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "videos_thumbnail_media_asset_fk")
+  users_videos_updated_by_user_idTousers                     users?                 @relation("videos_updated_by_user_idTousers", fields: [updated_by_user_id], references: [id], onUpdate: NoAction, map: "videos_updated_by_user_fk")
+
+  @@unique([news_article_id, media_asset_id], map: "videos_news_uploaded_media_unique", where: raw("((deleted_at IS NULL) AND ((source_type)::text = 'NEWS'::text) AND ((provider)::text = 'UPLOADED'::text))"))
+  @@unique([news_article_id, external_video_id], map: "videos_news_youtube_unique", where: raw("((deleted_at IS NULL) AND ((source_type)::text = 'NEWS'::text) AND ((provider)::text = 'YOUTUBE'::text))"))
+  @@index([regional_association_id, updated_at(sort: Desc)], map: "videos_association_admin_idx", where: raw("(deleted_at IS NULL)"))
+  @@index([regional_association_id, published_at(sort: Desc)], map: "videos_association_public_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'PUBLISHED'::text) AND (published_at IS NOT NULL))"))
+  @@index([display_order, published_at(sort: Desc)], map: "videos_featured_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'PUBLISHED'::text) AND (is_featured = true))"))
+  @@index([news_article_id], map: "videos_news_article_idx", where: raw("((deleted_at IS NULL) AND (news_article_id IS NOT NULL))"))
+  @@index([submitted_at, updated_at(sort: Desc)], map: "videos_pending_review_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'PENDING_REVIEW'::text))"))
+  @@index([provider, published_at(sort: Desc)], map: "videos_provider_idx", where: raw("(deleted_at IS NULL)"))
+  @@index([published_at(sort: Desc), created_at(sort: Desc)], map: "videos_public_visible_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'PUBLISHED'::text) AND (published_at IS NOT NULL))"))
+  @@index([status, published_at(sort: Desc)], map: "videos_publication_idx", where: raw("(deleted_at IS NULL)"))
+  @@index([scheduled_at], map: "videos_scheduled_publication_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'DRAFT'::text) AND (scheduled_at IS NOT NULL))"))
 }

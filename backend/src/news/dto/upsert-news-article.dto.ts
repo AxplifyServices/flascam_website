@@ -17,6 +17,10 @@ import {
   NewsMediaInputDto,
 } from './news-media-input.dto';
 
+import {
+  NewsYoutubeVideoInputDto,
+} from './news-youtube-video-input.dto';
+
 export const NEWS_CONTENT_TYPES = [
   'ACTUALITY',
   'EVENT',
@@ -95,4 +99,15 @@ export class UpsertNewsArticleDto {
     () => NewsMediaInputDto,
   )
   media?: NewsMediaInputDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @ValidateNested({
+    each: true,
+  })
+  @Type(
+    () => NewsYoutubeVideoInputDto,
+  )
+  youtubeVideos?: NewsYoutubeVideoInputDto[];  
 }

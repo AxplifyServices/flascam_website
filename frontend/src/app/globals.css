@@ -477,3 +477,23 @@ summary::-webkit-details-marker {
     );
   }
 }
+
+/*
+ * Stabilise la hauteur du back-office lorsque le navigateur
+ * ouvre ou ferme un sélecteur natif de fichiers.
+ */
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+.admin-viewport {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  overflow: hidden;
+}

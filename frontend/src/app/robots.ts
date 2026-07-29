@@ -2,6 +2,13 @@ import type {
   MetadataRoute,
 } from 'next';
 
+const baseUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(
+    /\/+$/,
+    '',
+  ) ||
+  'https://flascam.axplitest.com';
+
 export default function robots():
   MetadataRoute.Robots {
   return {
@@ -19,6 +26,6 @@ export default function robots():
     },
 
     sitemap:
-      'https://flascam.axplitest.com/sitemap.xml',
+      `${baseUrl}/sitemap.xml`,
   };
 }

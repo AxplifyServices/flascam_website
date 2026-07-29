@@ -78,6 +78,10 @@ import {
 } from './news/news.module';
 
 import {
+  VideosModule,
+} from './videos/videos.module';
+
+import {
   ScheduleModule,
 } from '@nestjs/schedule';
 
@@ -107,6 +111,7 @@ import {
     MediaModule,
     HomepageHeroModule,
     NewsModule,
+    VideosModule,
   ],
   controllers: [
     AppController,

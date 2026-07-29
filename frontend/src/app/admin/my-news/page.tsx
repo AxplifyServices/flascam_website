@@ -6,6 +6,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -172,6 +173,8 @@ const emptyForm:
     media:
       [],
   };
+
+
 
 function slugify(
   value: string,
@@ -468,6 +471,11 @@ export default function AssociationNewsPage() {
     useState(
       false,
     );
+
+const mediaInputRef =
+  useRef<HTMLInputElement | null>(
+    null,
+  );    
 
   const [
     actionLoading,
@@ -952,18 +960,18 @@ await loadArticles();
       }
     };
 
-  const handleMediaUpload =
-    async (
-      event: ChangeEvent<HTMLInputElement>,
-    ) => {
-      const files =
-        Array.from(
-          event.target.files ??
-            [],
-        );
+const handleMediaUpload =
+  async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const input =
+      event.currentTarget;
 
-      event.target.value =
-        '';
+    const files =
+      Array.from(
+        input.files ??
+          [],
+      );
 
       if (
         files.length ===
@@ -1038,11 +1046,14 @@ await loadArticles();
             ? caught.message
             : 'Impossible d’envoyer le média.',
         );
-      } finally {
-        setUploading(
-          false,
-        );
-      }
+} finally {
+  setUploading(
+    false,
+  );
+
+  input.value =
+    '';
+}
     };
 
   const moveMedia =
@@ -1802,42 +1813,99 @@ if (
                     </p>
                   </div>
 
-                  <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#0f5f9f] bg-white px-4 py-2.5 text-sm font-extrabold text-[#0f5f9f] transition hover:bg-[#eaf5ff]">
-                    {uploading ? (
-                      <Loader2
-                        className="animate-spin"
-                        size={
-                          17
-                        }
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <Upload
-                        size={
-                          17
-                        }
-                        aria-hidden="true"
-                      />
-                    )}
+<div>
+  <button
+    type="button"
+    disabled={
+      uploading ||
+      !canEdit
+    }
+    onClick={() => {
+      if (
+        uploading ||
+        !canEdit
+      ) {
+        return;
+      }
 
-                    {uploading
-                      ? 'Envoi...'
-                      : 'Ajouter des médias'}
+      mediaInputRef.current?.click();
+    }}
+    className="
+      inline-flex
+      min-h-11
+      items-center
+      justify-center
+      gap-2
+      rounded-xl
+      border
+      border-[#0f5f9f]
+      bg-white
+      px-4
+      py-2.5
+      text-sm
+      font-extrabold
+      text-[#0f5f9f]
+      transition
+      hover:bg-[#eaf5ff]
+      focus:outline-none
+      focus:ring-4
+      focus:ring-[#0f5f9f]/10
+      disabled:cursor-not-allowed
+      disabled:opacity-50
+    "
+  >
+    {uploading ? (
+      <Loader2
+        className="animate-spin"
+        size={17}
+        aria-hidden="true"
+      />
+    ) : (
+      <Upload
+        size={17}
+        aria-hidden="true"
+      />
+    )}
 
-                    <input
-                      type="file"
-                      accept="image/*,video/*"
-                      multiple
-                      disabled={
-                        uploading ||
-                        !canEdit
-                      }
-                      onChange={
-                        handleMediaUpload
-                      }
-                      className="sr-only"
-                    />
-                  </label>
+    {uploading
+      ? 'Envoi...'
+      : 'Ajouter des médias'}
+  </button>
+
+  <input
+    ref={mediaInputRef}
+    type="file"
+    accept="
+      image/jpeg,
+      image/png,
+      image/webp,
+      video/mp4,
+      video/webm,
+      video/quicktime
+    "
+    multiple
+    disabled={
+      uploading ||
+      !canEdit
+    }
+    onClick={(
+      event,
+    ) => {
+      /*
+       * Permet de sélectionner de nouveau
+       * le même fichier après un premier import.
+       */
+      event.currentTarget.value =
+        '';
+    }}
+    onChange={
+      handleMediaUpload
+    }
+    className="hidden"
+    tabIndex={-1}
+    aria-hidden="true"
+  />
+</div>
                 </div>
 
                 {form.media.length ===

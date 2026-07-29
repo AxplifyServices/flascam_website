@@ -345,17 +345,18 @@ export function AdminShell({
   }
 
   if (loading) {
-    return (
-      <main
-        className="
-          grid
-          min-h-screen
-          place-items-center
-          bg-[#f3f9ff]
-          px-4
-          text-[var(--flascam-black)]
-        "
-      >
+return (
+  <main
+    className="
+      fixed
+      inset-0
+      h-auto
+      w-full
+      overflow-hidden
+      bg-[#f3f9ff]
+      text-[var(--flascam-black)]
+    "
+  >
         <div
           className="
             rounded-3xl
@@ -836,6 +837,7 @@ return (
     overscroll-contain
     px-4
     py-5
+    [scrollbar-gutter:stable]
     sm:px-6
     lg:px-8
     lg:py-8

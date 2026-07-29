@@ -37,6 +37,14 @@ import {
   AdaptiveImage,
 } from '@/components/site/adaptive-image';
 
+import {
+  VideoCard,
+} from '@/components/site/video-card';
+
+import {
+  getPublicAssociationVideos,
+} from '@/lib/videos-api';
+
 type PageProps = {
   params: Promise<{
     slug: string;
@@ -226,8 +234,20 @@ const events =
   const photos =
     association.photos ?? [];
 
-  const videos =
-    association.videos ?? [];
+const associationVideosResponse =
+  await getPublicAssociationVideos(
+    association.slug,
+    {
+      page:
+        1,
+
+      limit:
+        4,
+    },
+  );
+
+const videos =
+  associationVideosResponse.items;
 
 const leaders =
   association.leaders ?? [];
@@ -871,54 +891,85 @@ const presidentMessage =
                 )}
               </section>
 
-              <section>
-                <div className="flex items-center gap-3 border-b border-[#dbe5ef] pb-5">
-                  <span className="h-[3px] w-10 bg-[#c96f4a]" />
+<section>
+  <div
+    className="
+      flex
+      flex-wrap
+      items-center
+      justify-between
+      gap-4
+      border-b
+      border-[#dbe5ef]
+      pb-5
+    "
+  >
+    <div className="flex items-center gap-3">
+      <span className="h-[3px] w-10 bg-[#c96f4a]" />
 
-                  <h2 className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#0f5f9f]">
-                    Vidéos
-                  </h2>
-                </div>
+      <h2 className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#0f5f9f]">
+        Vidéos de l’association
+      </h2>
+    </div>
 
-                {videos.length === 0 ? (
-                  <div className="mt-6 border border-dashed border-[#b9c9d8] bg-white p-6 text-sm leading-7 text-[#536273]">
-                    Aucune vidéo publiée pour le moment.
-                  </div>
-                ) : (
-                  <div className="mt-6 grid gap-6 md:grid-cols-2">
-                    {videos.map((video) => (
-                      <article
-                        key={video.id}
-                        className="overflow-hidden border border-[#dbe5ef] bg-white"
-                      >
-                        {video.url && (
-                          <video
-                            controls
-                            className="aspect-video w-full bg-[#07355d]"
-                            src={video.url}
-                          />
-                        )}
+    {videos.length >
+      0 && (
+      <Link
+        href={`/videotheque?association=${encodeURIComponent(
+          association.slug,
+        )}`}
+        className="
+          inline-flex
+          items-center
+          gap-2
+          text-sm
+          font-extrabold
+          text-[#0f5f9f]
+          transition
+          hover:text-[#07355d]
+        "
+      >
+        Voir toutes les vidéos
 
-                        {(video.title || video.caption) && (
-                          <div className="p-5">
-                            {video.title && (
-                              <h3 className="font-extrabold text-[#07355d]">
-                                {video.title}
-                              </h3>
-                            )}
+        <ArrowRight
+          size={16}
+          aria-hidden="true"
+        />
+      </Link>
+    )}
+  </div>
 
-                            {video.caption && (
-                              <p className="mt-2 text-sm leading-7 text-[#536273]">
-                                {video.caption}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </article>
-                    ))}
-                  </div>
-                )}
-              </section>
+  {videos.length ===
+  0 ? (
+    <div className="mt-6 border border-dashed border-[#b9c9d8] bg-white p-6 text-sm leading-7 text-[#536273]">
+      Aucune vidéo publiée pour le moment.
+    </div>
+  ) : (
+    <div
+      className="
+        mt-6
+        grid
+        gap-6
+        md:grid-cols-2
+      "
+    >
+      {videos.map(
+        (
+          video,
+        ) => (
+          <VideoCard
+            key={
+              video.id
+            }
+            video={
+              video
+            }
+          />
+        ),
+      )}
+    </div>
+  )}
+</section>
             </div>
 
             <aside className="space-y-6 lg:sticky lg:top-28 lg:self-start">

@@ -5,6 +5,7 @@ import {
   FormEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -449,6 +450,11 @@ export default function AdminNewsPage() {
     setUploading,
   ] = useState(false);
 
+const mediaInputRef =
+  useRef<HTMLInputElement | null>(
+    null,
+  );  
+
   const [
     loadingDetails,
     setLoadingDetails,
@@ -697,18 +703,18 @@ function handleTitleChange(
     );
   }
 
-  async function handleUpload(
-    event:
-      ChangeEvent<HTMLInputElement>,
-  ) {
-    const files =
-      Array.from(
-        event.target.files ??
-        [],
-      );
+async function handleUpload(
+  event:
+    ChangeEvent<HTMLInputElement>,
+) {
+  const input =
+    event.currentTarget;
 
-    event.target.value =
-      '';
+  const files =
+    Array.from(
+      input.files ??
+        [],
+    );
 
     if (!files.length) {
       return;
@@ -785,9 +791,14 @@ function handleTitleChange(
           ? caughtError.message
           : 'Impossible d’importer les médias.',
       );
-    } finally {
-      setUploading(false);
-    }
+} finally {
+  setUploading(
+    false,
+  );
+
+  input.value =
+    '';
+}
   }
 
   function removeMedia(
@@ -3002,57 +3013,86 @@ if (!generatedSlug) {
                         </p>
                       </div>
 
-                      <label
-                        className={`
-                          inline-flex
-                          min-h-12
-                          cursor-pointer
-                          items-center
-                          justify-center
-                          gap-2
-                          rounded-2xl
-                          border
-                          border-[var(--flascam-blue)]
-                          px-5
-                          text-sm
-                          font-extrabold
-                          text-[var(--flascam-blue)]
-                          transition
-                          hover:bg-blue-50
-                          ${
-                            uploading
-                              ? 'pointer-events-none opacity-50'
-                              : ''
-                          }
-                        `}
-                      >
-                        {uploading ? (
-                          <Loader2
-                            size={18}
-                            className="animate-spin"
-                          />
-                        ) : (
-                          <Upload
-                            size={18}
-                          />
-                        )}
+<div>
+  <button
+    type="button"
+    disabled={
+      uploading
+    }
+    onClick={() => {
+      if (
+        uploading
+      ) {
+        return;
+      }
 
-                        {uploading
-                          ? 'Import en cours…'
-                          : 'Ajouter des médias'}
+      mediaInputRef.current?.click();
+    }}
+    className="
+      inline-flex
+      min-h-12
+      items-center
+      justify-center
+      gap-2
+      rounded-2xl
+      border
+      border-[var(--flascam-blue)]
+      bg-white
+      px-5
+      text-sm
+      font-extrabold
+      text-[var(--flascam-blue)]
+      transition
+      hover:bg-blue-50
+      focus:outline-none
+      focus:ring-4
+      focus:ring-blue-100
+      disabled:cursor-not-allowed
+      disabled:opacity-50
+    "
+  >
+    {uploading ? (
+      <Loader2
+        size={18}
+        className="animate-spin"
+        aria-hidden="true"
+      />
+    ) : (
+      <Upload
+        size={18}
+        aria-hidden="true"
+      />
+    )}
 
-                        <input
-                          type="file"
-                          multiple
-                          accept={
-                            mediaInputAccept
-                          }
-                          onChange={
-                            handleUpload
-                          }
-                          className="sr-only"
-                        />
-                      </label>
+    {uploading
+      ? 'Import en cours…'
+      : 'Ajouter des médias'}
+  </button>
+
+  <input
+    ref={mediaInputRef}
+    type="file"
+    multiple
+    accept={
+      mediaInputAccept
+    }
+    disabled={
+      uploading
+    }
+    onClick={(
+      event,
+    ) => {
+      event.currentTarget.value =
+        '';
+    }}
+    onChange={
+      handleUpload
+    }
+    className="hidden"
+    tabIndex={-1}
+    aria-hidden="true"
+  />
+</div>
                     </div>
 
                     {primaryMedia && (
