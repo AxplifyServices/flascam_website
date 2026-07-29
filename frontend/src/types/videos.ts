@@ -105,3 +105,71 @@ export type PublicVideoFilters = {
   provider?: VideoProvider | '';
   associationSlug?: string;
 };
+
+export type VideoAdminFilters = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: VideoStatus | '';
+  provider?: VideoProvider | '';
+  sourceType?: VideoSourceType | '';
+  regionalAssociationId?: string;
+};
+
+export type VideoAssociationFilters = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: VideoStatus | '';
+  provider?: VideoProvider | '';
+};
+
+export type VideoFormState = {
+  title: string;
+  slug: string;
+
+  excerpt: string;
+  description: string;
+
+  provider: VideoProvider;
+
+  externalUrl: string;
+
+  mediaAssetId: string;
+  mediaUrl: string;
+  mediaOriginalFilename: string;
+
+  thumbnailMediaAssetId: string;
+  thumbnailUrl: string;
+  thumbnailOriginalFilename: string;
+
+  regionalAssociationId: string;
+
+  seoTitle: string;
+  seoDescription: string;
+
+  displayOrder: string;
+  isFeatured: boolean;
+
+  scheduledAt: string;
+};
+
+export type UploadedVideoMedia = {
+  id: string;
+  url: string;
+  mediaType: 'VIDEO';
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  associationId?: string | null;
+};
+
+export type UploadedVideoThumbnail = {
+  id: string;
+  url: string;
+  mediaType: 'IMAGE';
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  associationId?: string | null;
+};

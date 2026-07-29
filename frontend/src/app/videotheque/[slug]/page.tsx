@@ -384,25 +384,31 @@ export default async function VideoDetailPage({
                 "
               >
                 {video.association && (
-                  <Link
-                    href={`/associations/${video.association.slug}`}
-                    className="
-                      inline-flex
-                      min-h-11
-                      items-center
-                      justify-center
-                      rounded-xl
-                      bg-[#0f5f9f]
-                      px-5
-                      text-sm
-                      font-extrabold
-                      text-white
-                      transition
-                      hover:bg-[#07355d]
-                    "
-                  >
-                    Voir l’association
-                  </Link>
+<Link
+  href={`/associations/${video.association.slug}`}
+  className="
+    inline-flex
+    min-h-11
+    items-center
+    justify-center
+    rounded-xl
+    bg-[#c96f4a]
+    px-5
+    text-sm
+    font-extrabold
+    !text-white
+    transition
+    hover:bg-[#ad5938]
+    hover:!text-white
+    visited:!text-white
+    focus:!text-white
+    focus:outline-none
+    focus:ring-4
+    focus:ring-[#c96f4a]/20
+  "
+>
+  Voir l’association
+</Link>
                 )}
 
                 {video.sourceType ===

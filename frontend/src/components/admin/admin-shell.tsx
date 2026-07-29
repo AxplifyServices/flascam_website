@@ -13,6 +13,7 @@ import Link from 'next/link';
 import {
   BarChart3,
   Building2,
+  Clapperboard,
   ChevronLeft,
   ChevronRight,
   Home,
@@ -98,6 +99,25 @@ const navItems: AdminNavItem[] = [
     ],
   },
 
+{
+  label:
+    'Vidéothèque',
+
+  href:
+    '/admin/videos',
+
+  icon:
+    Clapperboard,
+
+  permission:
+    'videos.manage',
+
+  roles: [
+    'SUPER_ADMIN',
+    'FLASCAM_ADMIN',
+  ],
+},  
+
   {
   label:
     'Mes actualités',
@@ -110,6 +130,24 @@ const navItems: AdminNavItem[] = [
 
   permission:
     'association.content.manage',
+
+  roles: [
+    'ASSOCIATION_ADMIN',
+  ],
+},
+
+{
+  label:
+    'Mes vidéos',
+
+  href:
+    '/admin/my-videos',
+
+  icon:
+    Clapperboard,
+
+  permission:
+    'association.videos.manage',
 
   roles: [
     'ASSOCIATION_ADMIN',

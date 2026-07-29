@@ -1,4 +1,7 @@
-serv :ssh ubuntu@51.75.252.139
+** serv :
+
+ssh ubuntu@51.75.252.139
+
 Code serveur : zitanezac
 
 cd OneDrive\Bureau\Projet Dev\Flascam\webapp
