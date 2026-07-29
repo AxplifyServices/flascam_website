@@ -19,6 +19,7 @@ import {
   Phone,
   UsersRound,
   ArrowDown,
+  Play,
 } from 'lucide-react';
 
 import {
@@ -44,6 +45,10 @@ import {
 import {
   getPublicAssociationVideos,
 } from '@/lib/videos-api';
+
+import {
+  VideoFirstFrame,
+} from '@/components/site/video-first-frame';
 
 type PageProps = {
   params: Promise<{
@@ -679,28 +684,78 @@ const presidentMessage =
               className="group flex min-w-0 flex-col overflow-hidden border border-[#dbe5ef] bg-white transition duration-300 hover:-translate-y-1 hover:border-[#c96f4a]/50 hover:shadow-[0_22px_55px_rgba(7,53,93,0.1)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0f5f9f]/20"
             >
               <div className="relative h-44 overflow-hidden bg-[#eaf5ff] sm:h-48">
-                {post.coverUrl ? (
-                  <AdaptiveImage
-                    src={
-                      post.coverUrl
-                    }
-                    alt={
-                      post.coverAltText ||
-                      post.title
-                    }
-                    fit="cover"
-                    position="center"
-                    imageClassName="
-                      transition
-                      duration-500
-                      group-hover:scale-105
-                    "
-                  />
-                ) : (
-                  <div className="grid h-full place-items-center px-5 text-center text-sm font-bold text-[#0f5f9f]">
-                    Actualité de l’association
-                  </div>
-                )}
+{post.coverUrl &&
+post.coverMediaType ===
+  'VIDEO' ? (
+  <>
+    <VideoFirstFrame
+      src={
+        post.coverUrl
+      }
+      title={
+        post.coverAltText ||
+        post.title
+      }
+      className="
+        transition
+        duration-500
+        group-hover:scale-105
+      "
+    />
+
+    <span
+      className="
+        pointer-events-none
+        absolute
+        inset-0
+        grid
+        place-items-center
+        bg-slate-950/15
+      "
+    >
+      <span
+        className="
+          grid
+          size-12
+          place-items-center
+          rounded-full
+          bg-white/95
+          text-[#07355d]
+          shadow-xl
+        "
+      >
+        <Play
+          size={
+            19
+          }
+          fill="currentColor"
+          aria-hidden="true"
+        />
+      </span>
+    </span>
+  </>
+) : post.coverUrl ? (
+  <AdaptiveImage
+    src={
+      post.coverUrl
+    }
+    alt={
+      post.coverAltText ||
+      post.title
+    }
+    fit="cover"
+    position="center"
+    imageClassName="
+      transition
+      duration-500
+      group-hover:scale-105
+    "
+  />
+) : (
+  <div className="grid h-full place-items-center px-5 text-center text-sm font-bold text-[#0f5f9f]">
+    Actualité de l’association
+  </div>
+)}
 
                 <div className="absolute bottom-0 left-0 h-1 w-20 bg-[#c96f4a] transition-all duration-300 group-hover:w-full" />
               </div>
@@ -773,28 +828,78 @@ const presidentMessage =
                   className="group flex min-w-0 flex-col overflow-hidden border border-[#dbe5ef] bg-white transition duration-300 hover:-translate-y-1 hover:border-[#c96f4a]/50 hover:shadow-[0_22px_55px_rgba(7,53,93,0.1)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#0f5f9f]/20"
                 >
                   <div className="relative h-44 overflow-hidden bg-[#eaf5ff] sm:h-48">
-                    {post.coverUrl ? (
-                      <AdaptiveImage
-                        src={
-                          post.coverUrl
-                        }
-                        alt={
-                          post.coverAltText ||
-                          post.title
-                        }
-                        fit="cover"
-                        position="center"
-                        imageClassName="
-                          transition
-                          duration-500
-                          group-hover:scale-105
-                        "
-                      />
-                    ) : (
-                      <div className="grid h-full place-items-center px-5 text-center text-sm font-bold text-[#0f5f9f]">
-                        Actualité de l’association
-                      </div>
-                    )}
+{post.coverUrl &&
+post.coverMediaType ===
+  'VIDEO' ? (
+  <>
+    <VideoFirstFrame
+      src={
+        post.coverUrl
+      }
+      title={
+        post.coverAltText ||
+        post.title
+      }
+      className="
+        transition
+        duration-500
+        group-hover:scale-105
+      "
+    />
+
+    <span
+      className="
+        pointer-events-none
+        absolute
+        inset-0
+        grid
+        place-items-center
+        bg-slate-950/15
+      "
+    >
+      <span
+        className="
+          grid
+          size-12
+          place-items-center
+          rounded-full
+          bg-white/95
+          text-[#07355d]
+          shadow-xl
+        "
+      >
+        <Play
+          size={
+            19
+          }
+          fill="currentColor"
+          aria-hidden="true"
+        />
+      </span>
+    </span>
+  </>
+) : post.coverUrl ? (
+  <AdaptiveImage
+    src={
+      post.coverUrl
+    }
+    alt={
+      post.coverAltText ||
+      post.title
+    }
+    fit="cover"
+    position="center"
+    imageClassName="
+      transition
+      duration-500
+      group-hover:scale-105
+    "
+  />
+) : (
+  <div className="grid h-full place-items-center px-5 text-center text-sm font-bold text-[#0f5f9f]">
+    Actualité de l’association
+  </div>
+)}
 
                     <div className="absolute bottom-0 left-0 h-1 w-20 bg-[#c96f4a] transition-all duration-300 group-hover:w-full" />
                   </div>

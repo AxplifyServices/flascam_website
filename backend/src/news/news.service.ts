@@ -3830,25 +3830,29 @@ private async synchronizeArticleVideoStatus(
   });
 }
 
-  private async formatArticles(
-    articles: NewsArticleRecord[],
+private async formatArticles(
+  articles: NewsArticleRecord[],
+) {
+  if (
+    !articles.length
   ) {
-    if (
-      !articles.length
-    ) {
-      return [];
-    }
+    return [];
+  }
 
-    const articleIds =
-      articles.map(
-        (
-          article,
-        ) =>
-          article.id,
-      );
+  const articleIds =
+    articles.map(
+      (
+        article,
+      ) =>
+        article.id,
+    );
 
-    const media =
-      await this.prisma.news_article_media.findMany({
+  const [
+    media,
+    youtubeVideos,
+  ] =
+    await Promise.all([
+      this.prisma.news_article_media.findMany({
         where: {
           news_article_id: {
             in:
@@ -3871,52 +3875,140 @@ private async synchronizeArticleVideoStatus(
               'asc',
           },
         ],
-      });
+      }),
 
-    const mediaByArticle =
-      new Map<
-        string,
-        ReturnType<
-          NewsService['formatMedia']
-        >[]
-      >();
+      this.prisma.videos.findMany({
+        where: {
+          news_article_id: {
+            in:
+              articleIds,
+          },
 
-    for (
-      const item
-      of media
-    ) {
-      const current =
-        mediaByArticle.get(
-          item.news_article_id,
-        ) ??
-        [];
+          source_type:
+            'NEWS',
 
-      current.push(
-        this.formatMedia(
-          item,
-        ),
-      );
+          provider:
+            'YOUTUBE',
 
-      mediaByArticle.set(
+          deleted_at:
+            null,
+        },
+
+        orderBy: [
+          {
+            display_order:
+              'asc',
+          },
+          {
+            created_at:
+              'asc',
+          },
+        ],
+
+        select: {
+          id:
+            true,
+
+          news_article_id:
+            true,
+
+          external_video_id:
+            true,
+
+          title:
+            true,
+        },
+      }),
+    ]);
+
+  const mediaByArticle =
+    new Map<
+      string,
+      ReturnType<
+        NewsService['formatMedia']
+      >[]
+    >();
+
+  for (
+    const item
+    of media
+  ) {
+    const current =
+      mediaByArticle.get(
         item.news_article_id,
-        current,
-      );
-    }
+      ) ??
+      [];
 
-    return articles.map(
-      (
-        article,
-      ) =>
-        this.formatArticleData(
-          article,
+    current.push(
+      this.formatMedia(
+        item,
+      ),
+    );
 
-          mediaByArticle.get(
-            article.id,
-          ) ??
-            [],
-        ),
+    mediaByArticle.set(
+      item.news_article_id,
+      current,
     );
   }
+
+  const youtubeVideoByArticle =
+    new Map<
+      string,
+      {
+        id: string;
+        externalVideoId: string;
+        title: string;
+      }
+    >();
+
+  for (
+    const video
+    of youtubeVideos
+  ) {
+    if (
+      !video.news_article_id ||
+      !video.external_video_id ||
+      youtubeVideoByArticle.has(
+        video.news_article_id,
+      )
+    ) {
+      continue;
+    }
+
+    youtubeVideoByArticle.set(
+      video.news_article_id,
+      {
+        id:
+          video.id,
+
+        externalVideoId:
+          video.external_video_id,
+
+        title:
+          video.title,
+      },
+    );
+  }
+
+  return articles.map(
+    (
+      article,
+    ) =>
+      this.formatArticleData(
+        article,
+
+        mediaByArticle.get(
+          article.id,
+        ) ??
+          [],
+
+        youtubeVideoByArticle.get(
+          article.id,
+        ) ??
+          null,
+      ),
+  );
+}
 
 private async formatArticle(
   article: NewsArticleRecord,
@@ -4000,19 +4092,43 @@ private async formatArticle(
       }),
     ]);
 
-  return {
-    ...this.formatArticleData(
-      article,
-
-      media.map(
-        (
-          item,
-        ) =>
-          this.formatMedia(
-            item,
-          ),
+const firstYoutubeVideo =
+  youtubeVideos.find(
+    (
+      video,
+    ) =>
+      Boolean(
+        video.external_video_id,
       ),
-    ),
+  ) ??
+  null;    
+
+  return {
+...this.formatArticleData(
+  article,
+
+  media.map(
+    (
+      item,
+    ) =>
+      this.formatMedia(
+        item,
+      ),
+  ),
+
+  firstYoutubeVideo?.external_video_id
+    ? {
+        id:
+          firstYoutubeVideo.id,
+
+        externalVideoId:
+          firstYoutubeVideo.external_video_id,
+
+        title:
+          firstYoutubeVideo.title,
+      }
+    : null,
+),
 
     youtubeVideos:
       youtubeVideos.map(
@@ -4052,7 +4168,53 @@ private formatArticleData(
   media: ReturnType<
     NewsService['formatMedia']
   >[],
+  youtubeFallback:
+    | {
+        id: string;
+        externalVideoId: string;
+        title: string;
+      }
+    | null = null,
 ) {
+
+const youtubePrimaryMedia =
+  youtubeFallback
+    ? {
+        id:
+          youtubeFallback.id,
+
+        mediaAssetId:
+          youtubeFallback.id,
+
+        mediaType:
+          'IMAGE',
+
+        mimeType:
+          'image/jpeg',
+
+        url:
+          `https://i.ytimg.com/vi/${youtubeFallback.externalVideoId}/hqdefault.jpg`,
+
+        displayOrder:
+          0,
+
+        altText:
+          youtubeFallback.title ||
+          article.title,
+
+        caption:
+          null,
+
+        width:
+          480,
+
+        height:
+          360,
+
+        durationSeconds:
+          null,
+      }
+    : null;  
   return {
     id:
       article.id,
@@ -4146,9 +4308,10 @@ submittedAt:
 
     media,
 
-    primaryMedia:
-      media[0] ??
-      null,
+primaryMedia:
+  media[0] ??
+  youtubePrimaryMedia ??
+  null,
   };
 }
 

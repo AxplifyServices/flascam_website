@@ -237,25 +237,63 @@ const [
       take:
         5,
 
-      include: {
-        news_article_media: {
-          include: {
-            media_assets:
-              true,
-          },
+include: {
+  news_article_media: {
+    include: {
+      media_assets:
+        true,
+    },
 
-          orderBy: [
-            {
-              display_order:
-                'asc',
-            },
-            {
-              created_at:
-                'asc',
-            },
-          ],
-        },
+    orderBy: [
+      {
+        display_order:
+          'asc',
       },
+      {
+        created_at:
+          'asc',
+      },
+    ],
+  },
+
+  videos: {
+    where: {
+      deleted_at:
+        null,
+
+      source_type:
+        'NEWS',
+
+      provider:
+        'YOUTUBE',
+    },
+
+    orderBy: [
+      {
+        display_order:
+          'asc',
+      },
+      {
+        created_at:
+          'asc',
+      },
+    ],
+
+    select: {
+      id:
+        true,
+
+      external_video_id:
+        true,
+
+      title:
+        true,
+
+      display_order:
+        true,
+    },
+  },
+},
     }),
 
     this.prisma.association_media_items.findMany({
@@ -1737,6 +1775,34 @@ private formatAssociationNewsArticle(
     article.news_article_media?.[0] ??
     null;
 
+  const primaryYoutubeVideo =
+    article.videos?.[0] ??
+    null;
+
+  const primaryMediaType =
+    primaryMedia?.media_assets?.media_type ??
+    null;
+
+  const youtubeThumbnailUrl =
+    primaryYoutubeVideo?.external_video_id
+      ? `https://i.ytimg.com/vi/${primaryYoutubeVideo.external_video_id}/hqdefault.jpg`
+      : null;
+
+  const coverUrl =
+    primaryMedia
+      ? this.mediaUrl(
+          primaryMedia.media_assets,
+        )
+      : youtubeThumbnailUrl;
+
+  const coverMediaType =
+    primaryMediaType ===
+      'VIDEO'
+      ? 'VIDEO'
+      : coverUrl
+        ? 'IMAGE'
+        : null;
+
   return {
     id:
       article.id,
@@ -1765,14 +1831,14 @@ private formatAssociationNewsArticle(
     body:
       article.body,
 
-    coverUrl:
-      this.mediaUrl(
-        primaryMedia?.media_assets,
-      ),
+    coverUrl,
+
+    coverMediaType,
 
     coverAltText:
       primaryMedia?.alt_text ??
       primaryMedia?.media_assets?.alt_text ??
+      primaryYoutubeVideo?.title ??
       article.title,
 
     eventStartAt:

@@ -23,6 +23,10 @@ import {
   AdaptiveImage,
 } from '@/components/site/adaptive-image';
 
+import {
+  VideoFirstFrame,
+} from '@/components/site/video-first-frame';
+
 type NewsCardProps = {
   article: NewsArticle;
   priority?: boolean;
@@ -129,20 +133,20 @@ compact
     ) : media?.mediaType ===
       'VIDEO' ? (
       <>
-        <video
-          src={media.url}
-          muted
-          playsInline
-          preload="metadata"
-          className="
-            h-full
-            w-full
-            object-cover
-            transition
-            duration-500
-            group-hover:scale-[1.04]
-          "
-        />
+<VideoFirstFrame
+  src={
+    media.url
+  }
+  title={
+    media.altText ??
+    article.title
+  }
+  className="
+    transition
+    duration-500
+    group-hover:scale-[1.04]
+  "
+/>
 
         <span
           className="

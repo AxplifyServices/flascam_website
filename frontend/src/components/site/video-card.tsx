@@ -9,6 +9,10 @@ import type {
   VideoItem,
 } from '@/types/videos';
 
+import {
+  VideoFirstFrame,
+} from '@/components/site/video-first-frame';
+
 type VideoCardProps = {
   video: VideoItem;
   priority?: boolean;
@@ -155,44 +159,62 @@ export function VideoCard({
         "
         aria-label={`Regarder ${video.title}`}
       >
-        {video.thumbnail?.url ? (
-          <img
-            src={video.thumbnail.url}
-            alt={
-              video.thumbnail.altText ||
-              video.title
-            }
-            loading={
-              priority
-                ? 'eager'
-                : 'lazy'
-            }
-            fetchPriority={
-              priority
-                ? 'high'
-                : 'auto'
-            }
-            className="
-              h-full
-              w-full
-              object-cover
-              transition
-              duration-500
-              group-hover:scale-[1.04]
-            "
-          />
-        ) : (
-          <span
-            className="
-              absolute
-              inset-0
-              bg-gradient-to-br
-              from-[#07355d]
-              via-[#0a487b]
-              to-[#0f5f9f]
-            "
-          />
-        )}
+{video.thumbnail?.url ? (
+  <img
+    src={
+      video.thumbnail.url
+    }
+    alt={
+      video.thumbnail.altText ||
+      video.title
+    }
+    loading={
+      priority
+        ? 'eager'
+        : 'lazy'
+    }
+    fetchPriority={
+      priority
+        ? 'high'
+        : 'auto'
+    }
+    className="
+      h-full
+      w-full
+      object-cover
+      transition
+      duration-500
+      group-hover:scale-[1.04]
+    "
+  />
+) : video.provider ===
+    'UPLOADED' &&
+  video.media?.url ? (
+  <VideoFirstFrame
+    src={
+      video.media.url
+    }
+    title={
+      video.title
+    }
+    className="
+      transition
+      duration-500
+      group-hover:scale-[1.04]
+    "
+  />
+) : (
+  <span
+    className="
+      absolute
+      inset-0
+      bg-gradient-to-br
+      from-[#07355d]
+      via-[#0a487b]
+      to-[#0f5f9f]
+    "
+  />
+)}
 
         <span
           className="

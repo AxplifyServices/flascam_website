@@ -41,9 +41,14 @@ export type AssociationPost = {
 
   body?: string | null;
 
-  coverUrl?: string | null;
+coverUrl?: string | null;
 
-  coverAltText?: string | null;
+coverMediaType?:
+  | 'IMAGE'
+  | 'VIDEO'
+  | null;
+
+coverAltText?: string | null;
 
   coverMediaAssetId?: string | null;
 
