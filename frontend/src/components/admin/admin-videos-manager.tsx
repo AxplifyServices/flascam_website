@@ -1706,38 +1706,6 @@ export function AdminVideosManager({
               </Field>
             </div>
 
-            {isAdmin && (
-              <label className="mt-5 flex cursor-pointer items-center gap-3 rounded-2xl border border-[#dbe5ef] p-4">
-                <input
-                  type="checkbox"
-                  checked={
-                    form.isFeatured
-                  }
-                  disabled={
-                    !canEditSelected
-                  }
-                  onChange={(
-                    event,
-                  ) =>
-                    updateForm(
-                      'isFeatured',
-                      event.target.checked,
-                    )
-                  }
-                  className="size-5 accent-[#0f5f9f]"
-                />
-
-                <span>
-                  <span className="block font-extrabold text-[#07355d]">
-                    Mettre cette vidéo en avant
-                  </span>
-
-                  <span className="mt-1 block text-sm text-[#6b7b8d]">
-                    Elle pourra être utilisée dans une sélection éditoriale.
-                  </span>
-                </span>
-              </label>
-            )}
           </section>
 
           <div className="sticky bottom-4 z-20 rounded-2xl border border-[#dbe5ef] bg-white/95 p-4 shadow-xl backdrop-blur">
@@ -1852,16 +1820,21 @@ export function AdminVideosManager({
                         'La vidéo a été soumise à la FLASCAM.',
                       )
                     }
-                    onUnpublish={() =>
-                      runItemAction(
-                        selectedVideo.id,
-                        () =>
-                          unpublishAssociationVideo(
-                            selectedVideo.id,
-                          ),
-                        'La vidéo a été dépubliée et replacée en brouillon.',
-                      )
-                    }
+onUnpublish={() =>
+  runItemAction(
+    selectedVideo.id,
+    () =>
+      isAdmin
+        ? updateAdminVideoStatus(
+            selectedVideo.id,
+            'DRAFT',
+          )
+        : unpublishAssociationVideo(
+            selectedVideo.id,
+          ),
+    'La vidéo a été dépubliée et replacée en brouillon.',
+  )
+}
                     onSchedule={() =>
                       handleSchedule(
                         selectedVideo,
@@ -2549,25 +2522,44 @@ function EditorActions({
             </button>
           )}
 
-        {video.status ===
-          'PUBLISHED' && (
-          <button
-            type="button"
-            disabled={
-              loading
-            }
-            onClick={
-              onArchive
-            }
-            className={secondaryButtonClass}
-          >
-            <Archive
-              size={17}
-            />
+{video.status ===
+  'PUBLISHED' && (
+  <>
+    <button
+      type="button"
+      disabled={
+        loading
+      }
+      onClick={
+        onUnpublish
+      }
+      className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 text-sm font-extrabold text-amber-800 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      <RefreshCw
+        size={17}
+      />
 
-            Archiver
-          </button>
-        )}
+      Dépublier
+    </button>
+
+    <button
+      type="button"
+      disabled={
+        loading
+      }
+      onClick={
+        onArchive
+      }
+      className={secondaryButtonClass}
+    >
+      <Archive
+        size={17}
+      />
+
+      Archiver
+    </button>
+  </>
+)}
 
         {video.status ===
           'DRAFT' &&
