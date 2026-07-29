@@ -10,6 +10,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
   Max,
   MaxLength,
   Min,
@@ -54,6 +55,21 @@ export class CreateContactMessageDto {
   @IsEmail()
   @MaxLength(255)
   email!: string;
+
+  @Transform(({ value }) =>
+    String(value ?? '').trim(),
+  )
+  @IsString()
+  @MinLength(8)
+  @MaxLength(30)
+  @Matches(
+    /^\+?[0-9][0-9\s().-]*$/,
+    {
+      message:
+        'Le numéro de téléphone contient un format invalide.',
+    },
+  )
+  phone!: string;
 
   @Transform(({ value }) =>
     String(value ?? '')

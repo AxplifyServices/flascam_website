@@ -6,6 +6,10 @@ import {
   AgentationProvider,
 } from '@/components/dev/agentation-provider';
 
+import {
+  FloatingMembershipButton,
+} from '@/components/site/floating-membership-button';
+
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -115,6 +119,8 @@ export default function RootLayout({
   "
 >
   {children}
+
+  <FloatingMembershipButton />
 
   <AgentationProvider />
 </body>

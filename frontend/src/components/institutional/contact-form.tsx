@@ -32,6 +32,7 @@ type FormState = {
   lastName: string;
   city: string;
   email: string;
+  phone: string;
   requesterType:
     RequesterType;
   description: string;
@@ -45,6 +46,7 @@ const initialState: FormState = {
   lastName: '',
   city: '',
   email: '',
+  phone: '',
   requesterType:
     'INDIVIDUAL',
   description: '',
@@ -130,8 +132,13 @@ export function ContactForm({
         form.lastName,
       city:
         form.city,
+
       email:
         form.email,
+
+      phone:
+        form.phone,
+
       requesterType:
         form.requesterType,
       description:
@@ -481,6 +488,34 @@ export function ContactForm({
             maxLength={255}
           />
         </label>
+
+        <label className="field-label sm:col-span-2">
+          Numéro de téléphone
+
+          <input
+            className="field-input"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            value={
+              form.phone
+            }
+            onChange={(
+              event,
+            ) =>
+              update(
+                'phone',
+                event.target
+                  .value,
+              )
+            }
+            required
+            minLength={8}
+            maxLength={30}
+            pattern="\+?[0-9][0-9\s().-]*"
+            placeholder="+212 6 12 34 56 78"
+          />
+        </label>        
       </div>
 
       {form.requesterType ===

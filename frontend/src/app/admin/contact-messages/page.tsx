@@ -7,6 +7,7 @@ import {
 } from 'react';
 
 import {
+  Ban,
   Building2,
   CalendarDays,
   CheckCircle2,
@@ -15,6 +16,8 @@ import {
   Loader2,
   Mail,
   MapPin,
+  PlayCircle,
+  Phone,
 } from 'lucide-react';
 
 import {
@@ -49,6 +52,10 @@ type ContactMessage = {
     | null;
 
   email: string;
+
+  phone:
+    | string
+    | null;
 
   requesterType:
     ContactRequesterType;
@@ -129,6 +136,36 @@ const statusClasses: Record<
   CANCELLED:
     'border-slate-200 bg-slate-100 text-slate-600',
 };
+
+const allowedStatusTransitions: Record<
+  ContactMessageStatus,
+  ContactMessageStatus[]
+> = {
+  NEW: [
+    'IN_PROGRESS',
+    'CANCELLED',
+  ],
+
+  IN_PROGRESS: [
+    'COMPLETED',
+    'CANCELLED',
+  ],
+
+  COMPLETED: [],
+
+  CANCELLED: [],
+};
+
+function canChangeStatus(
+  currentStatus:
+    ContactMessageStatus,
+  nextStatus:
+    ContactMessageStatus,
+) {
+  return allowedStatusTransitions[
+    currentStatus
+  ].includes(nextStatus);
+}
 
 function formatDate(
   value:
@@ -343,13 +380,22 @@ export default function ContactMessagesPage() {
           message.id === id,
       );
 
-    if (
-      !currentMessage ||
-      currentMessage.status ===
-        status
-    ) {
-      return;
-    }
+if (!currentMessage) {
+  return;
+}
+
+if (
+  !canChangeStatus(
+    currentMessage.status,
+    status,
+  )
+) {
+  setError(
+    'Cette transition de statut n’est pas autorisée.',
+  );
+
+  return;
+}
 
     setUpdatingMessageId(
       id,
@@ -451,14 +497,11 @@ export default function ContactMessagesPage() {
 
                     status,
 
-                    processedAt:
-                      updatedMessage
-                        ?.processedAt ??
-                      (status ===
-                      'NEW'
-                        ? null
-                        : new Date()
-                            .toISOString()),
+processedAt:
+  updatedMessage
+    ?.processedAt ??
+  new Date()
+    .toISOString(),
 
                     updatedAt:
                       updatedMessage
@@ -810,109 +853,271 @@ export default function ContactMessagesPage() {
                           </div>
                         </div>
 
-                        <div
-                          className="
-                            w-full
-                            lg:w-64
-                          "
-                        >
-                          <label
-                            htmlFor={`status-${message.id}`}
-                            className="
-                              mb-2
-                              block
-                              text-xs
-                              font-extrabold
-                              uppercase
-                              tracking-wide
-                              text-slate-500
-                            "
-                          >
-                            État du ticket
-                          </label>
+<div
+  className="
+    w-full
+    lg:w-72
+  "
+>
+  <p
+    className="
+      mb-2
+      text-xs
+      font-extrabold
+      uppercase
+      tracking-wide
+      text-slate-500
+    "
+  >
+    Actions disponibles
+  </p>
 
-                          <div className="relative">
-                            <select
-                              id={`status-${message.id}`}
-                              value={
-                                message.status
-                              }
-                              disabled={
-                                isUpdating
-                              }
-                              onChange={(
-                                event,
-                              ) =>
-                                void changeStatus(
-                                  message.id,
-                                  event
-                                    .target
-                                    .value as
-                                    ContactMessageStatus,
-                                )
-                              }
-                              className="
-                                h-11
-                                w-full
-                                rounded-xl
-                                border
-                                border-slate-300
-                                bg-white
-                                px-3
-                                pr-10
-                                text-sm
-                                font-semibold
-                                text-slate-800
-                                outline-none
-                                transition
-                                focus:border-[#0f5f9f]
-                                focus:ring-4
-                                focus:ring-[#0f5f9f]/10
-                                disabled:cursor-not-allowed
-                                disabled:opacity-60
-                              "
-                            >
-                              {Object.entries(
-                                statusLabels,
-                              ).map(
-                                ([
-                                  value,
-                                  label,
-                                ]) => (
-                                  <option
-                                    key={
-                                      value
-                                    }
-                                    value={
-                                      value
-                                    }
-                                  >
-                                    {
-                                      label
-                                    }
-                                  </option>
-                                ),
-                              )}
-                            </select>
+  {message.status ===
+    'NEW' && (
+    <div
+      className="
+        grid
+        gap-2
+        sm:grid-cols-2
+        lg:grid-cols-1
+      "
+    >
+      <button
+        type="button"
+        disabled={isUpdating}
+        onClick={() =>
+          void changeStatus(
+            message.id,
+            'IN_PROGRESS',
+          )
+        }
+        className="
+          inline-flex
+          min-h-11
+          w-full
+          items-center
+          justify-center
+          gap-2
+          rounded-xl
+          bg-[#0f5f9f]
+          px-4
+          text-sm
+          font-extrabold
+          !text-white
+          transition
+          hover:bg-[#0b4c80]
+          hover:!text-white
+          disabled:cursor-not-allowed
+          disabled:opacity-60
+        "
+      >
+        {isUpdating ? (
+          <Loader2
+            size={17}
+            className="animate-spin"
+            aria-hidden="true"
+          />
+        ) : (
+          <PlayCircle
+            size={17}
+            aria-hidden="true"
+          />
+        )}
 
-                            {isUpdating && (
-                              <Loader2
-                                size={
-                                  17
-                                }
-                                className="
-                                  pointer-events-none
-                                  absolute
-                                  right-9
-                                  top-3
-                                  animate-spin
-                                  text-[#0f5f9f]
-                                "
-                                aria-hidden="true"
-                              />
-                            )}
-                          </div>
-                        </div>
+        Prendre en charge
+      </button>
+
+      <button
+        type="button"
+        disabled={isUpdating}
+        onClick={() =>
+          void changeStatus(
+            message.id,
+            'CANCELLED',
+          )
+        }
+        className="
+          inline-flex
+          min-h-11
+          w-full
+          items-center
+          justify-center
+          gap-2
+          rounded-xl
+          border
+          border-red-200
+          bg-white
+          px-4
+          text-sm
+          font-extrabold
+          text-red-700
+          transition
+          hover:bg-red-50
+          disabled:cursor-not-allowed
+          disabled:opacity-60
+        "
+      >
+        <Ban
+          size={17}
+          aria-hidden="true"
+        />
+
+        Annuler
+      </button>
+    </div>
+  )}
+
+  {message.status ===
+    'IN_PROGRESS' && (
+    <div
+      className="
+        grid
+        gap-2
+        sm:grid-cols-2
+        lg:grid-cols-1
+      "
+    >
+      <button
+        type="button"
+        disabled={isUpdating}
+        onClick={() =>
+          void changeStatus(
+            message.id,
+            'COMPLETED',
+          )
+        }
+        className="
+          inline-flex
+          min-h-11
+          w-full
+          items-center
+          justify-center
+          gap-2
+          rounded-xl
+          bg-emerald-700
+          px-4
+          text-sm
+          font-extrabold
+          !text-white
+          transition
+          hover:bg-emerald-800
+          hover:!text-white
+          disabled:cursor-not-allowed
+          disabled:opacity-60
+        "
+      >
+        {isUpdating ? (
+          <Loader2
+            size={17}
+            className="animate-spin"
+            aria-hidden="true"
+          />
+        ) : (
+          <CheckCircle2
+            size={17}
+            aria-hidden="true"
+          />
+        )}
+
+        Marquer comme terminé
+      </button>
+
+      <button
+        type="button"
+        disabled={isUpdating}
+        onClick={() =>
+          void changeStatus(
+            message.id,
+            'CANCELLED',
+          )
+        }
+        className="
+          inline-flex
+          min-h-11
+          w-full
+          items-center
+          justify-center
+          gap-2
+          rounded-xl
+          border
+          border-red-200
+          bg-white
+          px-4
+          text-sm
+          font-extrabold
+          text-red-700
+          transition
+          hover:bg-red-50
+          disabled:cursor-not-allowed
+          disabled:opacity-60
+        "
+      >
+        <Ban
+          size={17}
+          aria-hidden="true"
+        />
+
+        Annuler
+      </button>
+    </div>
+  )}
+
+  {message.status ===
+    'COMPLETED' && (
+    <div
+      className="
+        flex
+        min-h-11
+        items-center
+        gap-2
+        rounded-xl
+        border
+        border-emerald-200
+        bg-emerald-50
+        px-4
+        text-sm
+        font-bold
+        text-emerald-800
+      "
+    >
+      <CheckCircle2
+        size={18}
+        className="shrink-0"
+        aria-hidden="true"
+      />
+
+      Ticket terminé
+    </div>
+  )}
+
+  {message.status ===
+    'CANCELLED' && (
+    <div
+      className="
+        flex
+        min-h-11
+        items-center
+        gap-2
+        rounded-xl
+        border
+        border-slate-200
+        bg-slate-100
+        px-4
+        text-sm
+        font-bold
+        text-slate-600
+      "
+    >
+      <Ban
+        size={18}
+        className="shrink-0"
+        aria-hidden="true"
+      />
+
+      Ticket annulé
+    </div>
+  )}
+</div>
                       </div>
 
                       <div
@@ -1004,7 +1209,8 @@ export default function ContactMessagesPage() {
                           mt-5
                           flex
                           flex-wrap
-                          gap-4
+                          gap-x-6
+                          gap-y-3
                           text-sm
                           text-slate-600
                         "
@@ -1015,6 +1221,7 @@ export default function ContactMessagesPage() {
                             inline-flex
                             items-center
                             gap-2
+                            break-all
                             font-semibold
                             text-[#0f5f9f]
                             transition
@@ -1022,16 +1229,39 @@ export default function ContactMessagesPage() {
                           "
                         >
                           <Mail
-                            size={
-                              16
-                            }
+                            size={16}
+                            className="shrink-0"
                             aria-hidden="true"
                           />
 
-                          {
-                            message.email
-                          }
+                          {message.email}
                         </a>
+
+                        {message.phone && (
+                          <a
+                            href={`tel:${message.phone.replace(
+                              /[^\d+]/g,
+                              '',
+                            )}`}
+                            className="
+                              inline-flex
+                              items-center
+                              gap-2
+                              font-semibold
+                              text-[#0f5f9f]
+                              transition
+                              hover:underline
+                            "
+                          >
+                            <Phone
+                              size={16}
+                              className="shrink-0"
+                              aria-hidden="true"
+                            />
+
+                            {message.phone}
+                          </a>
+                        )}
                       </div>
 
                       {message.requesterType ===

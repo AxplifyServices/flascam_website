@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -31,6 +32,31 @@ import {
 import {
   UpdateInstitutionalContentDto,
 } from './dto/update-institutional-content.dto';
+
+type ContactMessageStatus =
+  | 'NEW'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'CANCELLED';
+
+const CONTACT_STATUS_TRANSITIONS: Record<
+  ContactMessageStatus,
+  ContactMessageStatus[]
+> = {
+  NEW: [
+    'IN_PROGRESS',
+    'CANCELLED',
+  ],
+
+  IN_PROGRESS: [
+    'COMPLETED',
+    'CANCELLED',
+  ],
+
+  COMPLETED: [],
+
+  CANCELLED: [],
+};
 
 @Injectable()
 export class InstitutionalService {
@@ -600,8 +626,13 @@ async createContactMessage(
             fullName,
           city:
             dto.city,
+
           email:
             dto.email,
+
+          phone:
+            dto.phone,
+
           requester_type:
             dto.requesterType,
 
@@ -656,6 +687,10 @@ async createContactMessage(
     metadata: {
       email:
         dto.email,
+
+      phone:
+        dto.phone,
+
       requesterType:
         dto.requesterType,
       associationId:
@@ -748,6 +783,9 @@ async getContactMessages(
 
       email:
         message.email,
+
+      phone:
+        message.phone,
 
       requesterType:
         message.requester_type,
@@ -843,14 +881,34 @@ async updateContactStatus(
         },
       });
 
-  if (!existing) {
-    throw new NotFoundException(
-      'Ticket introuvable ou inaccessible.',
-    );
-  }
+if (!existing) {
+  throw new NotFoundException(
+    'Ticket introuvable ou inaccessible.',
+  );
+}
 
-  const isResetToNew =
-    dto.status === 'NEW';
+const currentStatus =
+  existing.status as
+    ContactMessageStatus;
+
+const nextStatus =
+  dto.status as
+    ContactMessageStatus;
+
+const allowedTransitions =
+  CONTACT_STATUS_TRANSITIONS[
+    currentStatus
+  ] ?? [];
+
+if (
+  !allowedTransitions.includes(
+    nextStatus,
+  )
+) {
+  throw new BadRequestException(
+    `Le ticket ne peut pas passer du statut "${currentStatus}" au statut "${nextStatus}".`,
+  );
+}
 
   const message =
     await this.prisma
@@ -859,23 +917,19 @@ async updateContactStatus(
         where: {
           id,
         },
-        data: {
-          status:
-            dto.status,
+data: {
+  status:
+    dto.status,
 
-          processed_by_user_id:
-            isResetToNew
-              ? null
-              : user.id,
+  processed_by_user_id:
+    user.id,
 
-          processed_at:
-            isResetToNew
-              ? null
-              : new Date(),
+  processed_at:
+    new Date(),
 
-          updated_at:
-            new Date(),
-        },
+  updated_at:
+    new Date(),
+},
         select: {
           id: true,
           status: true,
