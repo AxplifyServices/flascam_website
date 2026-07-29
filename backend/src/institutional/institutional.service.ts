@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -544,157 +545,387 @@ export class InstitutionalService {
     return this.getAdminContent();
   }
 
-  async createContactMessage(
-    dto: CreateContactMessageDto,
-    request: Request,
-  ) {
-    const message =
+async createContactMessage(
+  dto: CreateContactMessageDto,
+  request: Request,
+) {
+  let association:
+    | {
+        id: string;
+        name: string;
+      }
+    | null = null;
+
+  if (dto.associationId) {
+    association =
       await this.prisma
-        .contact_messages
-        .create({
-          data: {
-            full_name:
-              dto.fullName,
-            email: dto.email,
-            phone: dto.phone,
-            subject: dto.subject,
-            message: dto.message,
+        .regional_associations
+        .findFirst({
+          where: {
+            id: dto.associationId,
+            deleted_at: null,
+            status: 'PUBLISHED',
           },
           select: {
             id: true,
-            created_at: true,
+            name: true,
           },
         });
 
-    await this.auditLogs.log({
-      action:
-        'CONTACT_MESSAGE_CREATED',
-      entityType:
-        'CONTACT_MESSAGE',
-      entityId: message.id,
-      description:
-        'Nouveau message reçu depuis le portail public.',
-      metadata: {
-        email: dto.email,
-        subject: dto.subject,
-      },
-      ipAddress:
-        request.ip,
-      userAgent:
-        request.get('user-agent'),
-    });
-
-    return {
-      success: true,
-      id: message.id,
-      createdAt:
-        message.created_at,
-    };
+    if (!association) {
+      throw new NotFoundException(
+        'L’association sélectionnée est introuvable.',
+      );
+    }
   }
 
-  async getContactMessages() {
-    const messages =
-      await this.prisma
-        .contact_messages
-        .findMany({
-          orderBy: {
-            created_at: 'desc',
-          },
-        });
+  const isProfessional =
+    dto.requesterType ===
+    'PROFESSIONAL';
 
-    return messages.map(
-      (message) => ({
-        id: message.id,
-        fullName:
-          message.full_name,
-        email: message.email,
-        phone: message.phone,
-        subject:
-          message.subject,
-        message:
-          message.message,
-        status: message.status,
-        processedByUserId:
-          message.processed_by_user_id,
-        processedAt:
-          message.processed_at,
-        createdAt:
-          message.created_at,
-      }),
+  const fullName =
+    `${dto.firstName} ${dto.lastName}`
+      .trim();
+
+  const message =
+    await this.prisma
+      .contact_messages
+      .create({
+        data: {
+          first_name:
+            dto.firstName,
+          last_name:
+            dto.lastName,
+          full_name:
+            fullName,
+          city:
+            dto.city,
+          email:
+            dto.email,
+          requester_type:
+            dto.requesterType,
+
+          company_name:
+            isProfessional
+              ? dto.companyName
+              : null,
+
+          business_sector:
+            isProfessional
+              ? dto.businessSector
+              : null,
+
+          years_in_business:
+            isProfessional
+              ? dto.yearsInBusiness
+              : null,
+
+          regional_association_id:
+            association?.id ?? null,
+
+          subject:
+            association
+              ? `Demande adressée à ${association.name}`
+              : 'Demande de contact FLASCAM',
+
+          message:
+            dto.description,
+
+          status:
+            'NEW',
+        },
+        select: {
+          id: true,
+          created_at: true,
+          regional_association_id:
+            true,
+        },
+      });
+
+  await this.auditLogs.log({
+    action:
+      'CONTACT_MESSAGE_CREATED',
+    entityType:
+      'CONTACT_MESSAGE',
+    entityId:
+      message.id,
+    description:
+      association
+        ? `Nouvelle demande adressée à l’association ${association.name}.`
+        : 'Nouvelle demande adressée à FLASCAM.',
+    metadata: {
+      email:
+        dto.email,
+      requesterType:
+        dto.requesterType,
+      associationId:
+        association?.id ?? null,
+      associationName:
+        association?.name ?? null,
+    },
+    ipAddress:
+      request.ip,
+    userAgent:
+      request.get(
+        'user-agent',
+      ),
+  });
+
+  return {
+    success: true,
+    id:
+      message.id,
+    createdAt:
+      message.created_at,
+    destination:
+      association
+        ? 'ASSOCIATION'
+        : 'FLASCAM',
+  };
+}
+
+async getContactMessages(
+  user: AuthUser,
+) {
+  const associationId =
+    await this.getContactAssociationScope(
+      user,
+    );
+
+  const messages =
+    await this.prisma
+      .contact_messages
+      .findMany({
+        where:
+          associationId
+            ? {
+                regional_association_id:
+                  associationId,
+              }
+            : undefined,
+
+        include: {
+          regional_associations: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+
+          users: {
+            select: {
+              id: true,
+              first_name: true,
+              last_name: true,
+              email: true,
+            },
+          },
+        },
+
+        orderBy: {
+          created_at:
+            'desc',
+        },
+      });
+
+  return messages.map(
+    (message) => ({
+      id:
+        message.id,
+
+      firstName:
+        message.first_name,
+
+      lastName:
+        message.last_name,
+
+      fullName:
+        message.full_name,
+
+      city:
+        message.city,
+
+      email:
+        message.email,
+
+      requesterType:
+        message.requester_type,
+
+      companyName:
+        message.company_name,
+
+      businessSector:
+        message.business_sector,
+
+      yearsInBusiness:
+        message.years_in_business,
+
+      subject:
+        message.subject,
+
+      description:
+        message.message,
+
+      status:
+        message.status,
+
+      association:
+        message.regional_associations
+          ? {
+              id:
+                message
+                  .regional_associations
+                  .id,
+              name:
+                message
+                  .regional_associations
+                  .name,
+              slug:
+                message
+                  .regional_associations
+                  .slug,
+            }
+          : null,
+
+      processedBy:
+        message.users
+          ? {
+              id:
+                message.users.id,
+              firstName:
+                message.users
+                  .first_name,
+              lastName:
+                message.users
+                  .last_name,
+              email:
+                message.users.email,
+            }
+          : null,
+
+      processedAt:
+        message.processed_at,
+
+      createdAt:
+        message.created_at,
+
+      updatedAt:
+        message.updated_at,
+    }),
+  );
+}
+
+async updateContactStatus(
+  id: string,
+  dto: UpdateContactStatusDto,
+  user: AuthUser,
+  request: Request,
+) {
+  const associationId =
+    await this.getContactAssociationScope(
+      user,
+    );
+
+  const existing =
+    await this.prisma
+      .contact_messages
+      .findFirst({
+        where: {
+          id,
+
+          ...(associationId
+            ? {
+                regional_association_id:
+                  associationId,
+              }
+            : {}),
+        },
+      });
+
+  if (!existing) {
+    throw new NotFoundException(
+      'Ticket introuvable ou inaccessible.',
     );
   }
 
-  async updateContactStatus(
-    id: string,
-    dto: UpdateContactStatusDto,
-    user: AuthUser,
-    request: Request,
-  ) {
-    const existing =
-      await this.prisma
-        .contact_messages
-        .findUnique({
-          where: {
-            id,
-          },
-        });
+  const isResetToNew =
+    dto.status === 'NEW';
 
-    if (!existing) {
-      throw new NotFoundException(
-        'Message introuvable.',
-      );
-    }
+  const message =
+    await this.prisma
+      .contact_messages
+      .update({
+        where: {
+          id,
+        },
+        data: {
+          status:
+            dto.status,
 
-    const message =
-      await this.prisma
-        .contact_messages
-        .update({
-          where: {
-            id,
-          },
-          data: {
-            status: dto.status,
-            processed_by_user_id:
-              dto.status === 'NEW'
-                ? null
-                : user.id,
-            processed_at:
-              dto.status === 'NEW'
-                ? null
-                : new Date(),
-            updated_at:
-              new Date(),
-          },
-        });
+          processed_by_user_id:
+            isResetToNew
+              ? null
+              : user.id,
 
-    await this.auditLogs.log({
-      userId: user.id,
-      action:
-        'CONTACT_MESSAGE_STATUS_UPDATED',
-      entityType:
-        'CONTACT_MESSAGE',
-      entityId: id,
-      description:
-        `Statut du message modifié : ${dto.status}.`,
-      metadata: {
-        previousStatus:
-          existing.status,
-        newStatus:
-          dto.status,
-      },
-      ipAddress:
-        request.ip,
-      userAgent:
-        request.get('user-agent'),
-    });
+          processed_at:
+            isResetToNew
+              ? null
+              : new Date(),
 
-    return {
-      id: message.id,
-      status: message.status,
-      processedAt:
-        message.processed_at,
-    };
-  }
+          updated_at:
+            new Date(),
+        },
+        select: {
+          id: true,
+          status: true,
+          processed_by_user_id:
+            true,
+          processed_at: true,
+          updated_at: true,
+        },
+      });
+
+  await this.auditLogs.log({
+    userId:
+      user.id,
+    action:
+      'CONTACT_MESSAGE_STATUS_UPDATED',
+    entityType:
+      'CONTACT_MESSAGE',
+    entityId:
+      id,
+    description:
+      `Statut du ticket modifié : ${dto.status}.`,
+    metadata: {
+      previousStatus:
+        existing.status,
+      newStatus:
+        dto.status,
+      associationId:
+        existing.regional_association_id,
+    },
+    ipAddress:
+      request.ip,
+    userAgent:
+      request.get(
+        'user-agent',
+      ),
+  });
+
+  return {
+    id:
+      message.id,
+    status:
+      message.status,
+    processedByUserId:
+      message.processed_by_user_id,
+    processedAt:
+      message.processed_at,
+    updatedAt:
+      message.updated_at,
+  };
+}
 
   private formatContent(data: {
     content: {
@@ -1030,4 +1261,52 @@ export class InstitutionalService {
         content.updated_at,
     };
   }
+
+private async getContactAssociationScope(
+  user: AuthUser,
+): Promise<string | null> {
+  if (
+    user.role ===
+      'SUPER_ADMIN' ||
+    user.role ===
+      'FLASCAM_ADMIN'
+  ) {
+    return null;
+  }
+
+  if (
+    user.role !==
+    'ASSOCIATION_ADMIN'
+  ) {
+    throw new ForbiddenException(
+      'Vous ne pouvez pas accéder aux tickets de contact.',
+    );
+  }
+
+  const account =
+    await this.prisma
+      .users
+      .findUnique({
+        where: {
+          id:
+            user.id,
+        },
+        select: {
+          regional_association_id:
+            true,
+        },
+      });
+
+  if (
+    !account
+      ?.regional_association_id
+  ) {
+    throw new ForbiddenException(
+      'Votre compte n’est rattaché à aucune association.',
+    );
+  }
+
+  return account
+    .regional_association_id;
+}  
 }

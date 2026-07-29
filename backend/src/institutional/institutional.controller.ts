@@ -49,6 +49,10 @@ import {
   InstitutionalService,
 } from './institutional.service';
 
+import {
+  Roles,
+} from '../auth/decorators/roles.decorator';
+
 @Controller('institutional')
 export class InstitutionalController {
   constructor(
@@ -110,18 +114,31 @@ export class InstitutionalController {
       );
   }
 
-  @Get('contact-messages')
-  @Permissions('content.manage')
-  getContactMessages() {
-    return this.service
-      .getContactMessages();
-  }
+@Get('contact-messages')
+@Roles(
+  'SUPER_ADMIN',
+  'FLASCAM_ADMIN',
+  'ASSOCIATION_ADMIN',
+)
+getContactMessages(
+  @CurrentUser()
+  user: AuthUser,
+) {
+  return this.service
+    .getContactMessages(
+      user,
+    );
+}
 
-  @Patch(
-    'contact-messages/:id/status',
-  )
-  @Permissions('content.manage')
-  updateContactStatus(
+@Patch(
+  'contact-messages/:id/status',
+)
+@Roles(
+  'SUPER_ADMIN',
+  'FLASCAM_ADMIN',
+  'ASSOCIATION_ADMIN',
+)
+updateContactStatus(
     @Param('id')
     id: string,
     @Body()

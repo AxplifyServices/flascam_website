@@ -504,19 +504,19 @@ const presidentMessage =
         </div>
       </div>
 
-      {association.email && (
-        <a
-          href={`mailto:${association.email}`}
-          className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-[#c96f4a] px-6 text-sm font-extrabold !text-white transition hover:bg-[#a95235] hover:!text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#c96f4a]/25"
-        >
-          Contacter l’association
+<Link
+  href={`/contact?association=${encodeURIComponent(
+    association.slug,
+  )}`}
+  className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-[#c96f4a] px-6 text-sm font-extrabold !text-white transition hover:bg-[#a95235] hover:!text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#c96f4a]/25"
+>
+  Contacter l’association
 
-          <ArrowRight
-            size={17}
-            aria-hidden="true"
-          />
-        </a>
-      )}
+  <ArrowRight
+    size={17}
+    aria-hidden="true"
+  />
+</Link>
     </div>
   </div>
 </section>

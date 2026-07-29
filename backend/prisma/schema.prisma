@@ -187,6 +187,7 @@ model contact_messages {
   @@index([regional_association_id], map: "contact_messages_association_idx")
   @@index([regional_association_id, status], map: "contact_messages_association_status_idx")
   @@index([requester_type])
+  @@index([phone])
 }
 
 model executive_members {
