@@ -26,12 +26,12 @@ Mot de passe : flascam_minio_local_password_2026
 
 ** Execution d'un script
 
-psql -U postgres -d flascam_db -f "database\migrations\022_create_videos.sql
+psql -U postgres -d flascam_db -f "database\migrations\023_contact_tickets.sql
 
 
 cd /opt/apps/flascam/repo
 
-sudo -u postgres psql -d flascam_db  -f database/migrations/022_create_videos.sql
+sudo -u postgres psql -d flascam_db  -f database/migrations/023_contact_tickets.sql
 
 
 ** Build l'appli

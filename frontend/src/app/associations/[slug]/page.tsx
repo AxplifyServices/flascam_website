@@ -507,7 +507,7 @@ const presidentMessage =
       {association.email && (
         <a
           href={`mailto:${association.email}`}
-          className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-[#c96f4a] px-6 text-sm font-extrabold text-white transition hover:bg-[#a95235] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#c96f4a]/25"
+          className="inline-flex min-h-12 items-center justify-center gap-3 rounded-md bg-[#c96f4a] px-6 text-sm font-extrabold !text-white transition hover:bg-[#a95235] hover:!text-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#c96f4a]/25"
         >
           Contacter l’association
 
@@ -943,58 +943,6 @@ post.coverMediaType ===
     </div>
   )}
 </section>
-
-              <section>
-                <div className="flex items-center gap-3 border-b border-[#dbe5ef] pb-5">
-                  <span className="h-[3px] w-10 bg-[#c96f4a]" />
-
-                  <h2 className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#0f5f9f]">
-                    Galerie
-                  </h2>
-                </div>
-
-                {photos.length === 0 ? (
-                  <div className="mt-6 border border-dashed border-[#b9c9d8] bg-white p-6 text-sm leading-7 text-[#536273]">
-                    Aucune photo publiée pour le moment.
-                  </div>
-                ) : (
-                  <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                    {photos.map((photo) => (
-                      <figure
-                        key={photo.id}
-                        className="group relative overflow-hidden bg-[#eaf5ff]"
-                      >
-                        {photo.url && (
-<div className="aspect-[4/3] w-full">
-<AdaptiveImage
-  src={photo.url}
-  alt={
-    photo.title ||
-    `Photo de ${association.name}`
-  }
-  fit="cover"
-  position="center"
-  imageClassName="
-    transition
-    duration-500
-    group-hover:scale-105
-  "
-/>
-</div>
-                        )}
-
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#07355d]/55 via-transparent to-transparent opacity-0 transition duration-300 group-hover:opacity-100" />
-
-                        {photo.title && (
-                          <figcaption className="absolute inset-x-0 bottom-0 translate-y-full p-4 text-sm font-bold text-white transition duration-300 group-hover:translate-y-0">
-                            {photo.title}
-                          </figcaption>
-                        )}
-                      </figure>
-                    ))}
-                  </div>
-                )}
-              </section>
 
 <section>
   <div

@@ -160,21 +160,33 @@ model media_assets {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model contact_messages {
-  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  full_name            String    @db.VarChar(180)
-  email                String    @db.VarChar(255)
-  phone                String?   @db.VarChar(50)
-  subject              String    @db.VarChar(255)
-  message              String
-  status               String    @default("NEW") @db.VarChar(30)
-  processed_by_user_id String?   @db.Uuid
-  processed_at         DateTime? @db.Timestamptz(6)
-  created_at           DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at           DateTime  @default(now()) @db.Timestamptz(6)
-  users                users?    @relation(fields: [processed_by_user_id], references: [id], onUpdate: NoAction)
+  id                      String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  full_name               String                 @db.VarChar(180)
+  email                   String                 @db.VarChar(255)
+  phone                   String?                @db.VarChar(50)
+  subject                 String                 @db.VarChar(255)
+  message                 String
+  status                  String                 @default("NEW") @db.VarChar(30)
+  processed_by_user_id    String?                @db.Uuid
+  processed_at            DateTime?              @db.Timestamptz(6)
+  created_at              DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime               @default(now()) @db.Timestamptz(6)
+  first_name              String?                @db.VarChar(100)
+  last_name               String?                @db.VarChar(100)
+  city                    String?                @db.VarChar(180)
+  requester_type          String                 @default("INDIVIDUAL") @db.VarChar(20)
+  company_name            String?                @db.VarChar(255)
+  business_sector         String?                @db.VarChar(255)
+  years_in_business       Int?
+  regional_association_id String?                @db.Uuid
+  users                   users?                 @relation(fields: [processed_by_user_id], references: [id], onUpdate: NoAction)
+  regional_associations   regional_associations? @relation(fields: [regional_association_id], references: [id], onUpdate: NoAction)
 
   @@index([created_at(sort: Desc)])
   @@index([status])
+  @@index([regional_association_id], map: "contact_messages_association_idx")
+  @@index([regional_association_id, status], map: "contact_messages_association_status_idx")
+  @@index([requester_type])
 }
 
 model executive_members {
@@ -379,6 +391,7 @@ model regional_associations {
   association_leaders     association_leaders[]
   association_media_items association_media_items[]
   association_posts       association_posts[]
+  contact_messages        contact_messages[]
   news_articles           news_articles[]
   media_assets            media_assets?             @relation(fields: [logo_media_asset_id], references: [id], onUpdate: NoAction)
   users                   users[]
