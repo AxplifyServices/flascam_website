@@ -28,6 +28,7 @@ import {
   UserRound,
   UserRoundPlus,
   UsersRound,
+  CarFront,
 } from 'lucide-react';
 
 import type {
@@ -102,6 +103,27 @@ const navItems: AdminNavItem[] = [
     UserRound,
 
   roles: [
+    'ADHERENT',
+  ],
+},
+
+{
+  label:
+    'Mes annonces',
+
+  href:
+    '/admin/my-marketplace-listings',
+
+  icon:
+    CarFront,
+
+  permission:
+    'marketplace.listings.create',
+
+  roles: [
+    'SUPER_ADMIN',
+    'FLASCAM_ADMIN',
+    'ASSOCIATION_ADMIN',
     'ADHERENT',
   ],
 },
@@ -431,20 +453,29 @@ useEffect(() => {
     return;
   }
 
-  /*
-   * L’adhérent ne possède pour le moment
-   * aucun module fonctionnel.
-   *
-   * Même s’il saisit manuellement une autre
-   * URL du back-office, il est renvoyé vers
-   * son espace professionnel.
-   */
   if (
-    user.role.code ===
-      'ADHERENT' &&
-    pathname !==
-      '/admin/member-area'
+    user.role.code !==
+    'ADHERENT'
   ) {
+    return;
+  }
+
+  const allowedAdherentPaths = [
+    '/admin/member-area',
+    '/admin/my-marketplace-listings',
+  ];
+
+  const isAllowedPath =
+    allowedAdherentPaths.some(
+      (allowedPath) =>
+        pathname ===
+          allowedPath ||
+        pathname.startsWith(
+          `${allowedPath}/`,
+        ),
+    );
+
+  if (!isAllowedPath) {
     router.replace(
       '/admin/member-area',
     );
@@ -455,7 +486,7 @@ useEffect(() => {
   pathname,
   router,
   user,
-]);  
+]);
 
   async function logout() {
     await apiFetch(
