@@ -317,3 +317,17 @@ export async function updateAdherentStatus(
     },
   );
 }
+
+export async function resubmitAdherent(
+  id: string,
+) {
+  return await authenticatedFetch<
+    Adherent
+  >(
+    `/adherents/${id}/resubmit`,
+    {
+      method:
+        'PATCH',
+    },
+  );
+}

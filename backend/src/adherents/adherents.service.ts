@@ -414,12 +414,26 @@ export class AdherentsService {
         user,
       );
 
-    const isFlascamAdmin =
-      this.isFlascamAdmin(
-        user,
-      );
+const isFlascamAdmin =
+  this.isFlascamAdmin(
+    user,
+  );
 
-    const targetAssociationId =
+if (
+  !isFlascamAdmin &&
+  ![
+    'PENDING',
+    'REJECTED',
+  ].includes(
+    adherent.status,
+  )
+) {
+  throw new ForbiddenException(
+    'Un adhérent validé ou suspendu ne peut plus être modifié par son association.',
+  );
+}
+
+const targetAssociationId =
       isFlascamAdmin &&
       dto.regionalAssociationId
         ? dto.regionalAssociationId
@@ -673,6 +687,120 @@ export class AdherentsService {
     );
   }
 
+async resubmit(
+  id: string,
+  user: AuthUser,
+  request: Request,
+) {
+  if (
+    user.role !==
+    'ASSOCIATION_ADMIN'
+  ) {
+    throw new ForbiddenException(
+      'Seule une association peut resoumettre ce dossier.',
+    );
+  }
+
+  const adherent =
+    await this.getAccessibleAdherent(
+      id,
+      user,
+    );
+
+  if (
+    adherent.status !==
+    'REJECTED'
+  ) {
+    throw new BadRequestException(
+      'Seul un dossier refusé peut être soumis à nouveau.',
+    );
+  }
+
+  const now =
+    new Date();
+
+  const updated =
+    await this.prisma.adherents.update({
+      where: {
+        id,
+      },
+
+      data: {
+        status:
+          'PENDING',
+
+        rejection_reason:
+          null,
+
+        reviewed_by_user_id:
+          null,
+
+        reviewed_at:
+          null,
+
+        submitted_at:
+          now,
+
+        updated_at:
+          now,
+      },
+
+      include: {
+        regional_associations:
+          true,
+
+        users_adherents_user_idTousers: {
+          select: {
+            id: true,
+            email: true,
+            first_name: true,
+            last_name: true,
+            phone: true,
+            is_active: true,
+            last_login_at: true,
+            created_at: true,
+          },
+        },
+      },
+    });
+
+  await this.auditLogs.log({
+    userId:
+      user.id,
+
+    action:
+      'ADHERENT_RESUBMITTED',
+
+    entityType:
+      'ADHERENT',
+
+    entityId:
+      id,
+
+    description:
+      'Un dossier adhérent refusé a été soumis à nouveau.',
+
+    metadata: {
+      associationId:
+        updated.regional_association_id,
+    },
+
+    ipAddress:
+      this.getIp(
+        request,
+      ),
+
+    userAgent:
+      request.get(
+        'user-agent',
+      ),
+  });
+
+  return this.formatAdherent(
+    updated,
+  );
+}  
+
   async updateStatus(
     id: string,
     dto: UpdateAdherentStatusDto,
@@ -807,11 +935,12 @@ export class AdherentsService {
                   ? null
                   : now,
 
-              approved_at:
-                dto.status ===
-                'APPROVED'
-                  ? now
-                  : adherent.approved_at,
+approved_at:
+  dto.status ===
+  'APPROVED'
+    ? adherent.approved_at ??
+      now
+    : adherent.approved_at,
 
               suspended_at:
                 dto.status ===

@@ -70,3 +70,6 @@ Rôle : SUPER_ADMIN
 
 association : assotest@gmail.com
 mdp : assotest123
+
+Adhérent : hire@flascam.ma
+mdp : admin123456789

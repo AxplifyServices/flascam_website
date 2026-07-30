@@ -226,6 +226,30 @@ export class AdherentsController {
     );
   }
 
+@Patch(':id/resubmit')
+@Roles(
+  'ASSOCIATION_ADMIN',
+)
+@Permissions(
+  'association.adherents.create',
+)
+resubmit(
+  @Param('id')
+  id: string,
+
+  @CurrentUser()
+  user: AuthUser,
+
+  @Req()
+  request: Request,
+) {
+  return this.adherentsService.resubmit(
+    id,
+    user,
+    request,
+  );
+}  
+
   /*
    * Validation, refus, suspension et réactivation :
    * exclusivement FLASCAM.

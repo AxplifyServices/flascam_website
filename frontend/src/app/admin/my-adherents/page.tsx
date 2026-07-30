@@ -1517,29 +1517,29 @@ export default function MyAdherentsPage() {
             onClick={
               openForm
             }
-            className="
-              inline-flex
-              min-h-12
-              w-full
-              items-center
-              justify-center
-              gap-2
-              rounded-2xl
-              bg-[var(--flascam-terracotta)]
-              px-5
-              py-3
-              text-sm
-              font-extrabold
-              text-white
-              shadow-[0_14px_30px_rgba(190,94,67,0.22)]
-              transition
-              hover:-translate-y-0.5
-              hover:brightness-95
-              focus-visible:outline-none
-              focus-visible:ring-4
-              focus-visible:ring-[#f3c7b8]
-              sm:w-auto
-            "
+className="
+  inline-flex
+  min-h-12
+  w-full
+  items-center
+  justify-center
+  gap-2
+  rounded-2xl
+  bg-[#A9472B]
+  px-5
+  py-3
+  text-sm
+  font-extrabold
+  text-white
+  shadow-[0_14px_30px_rgba(169,71,43,0.30)]
+  transition
+  hover:-translate-y-0.5
+  hover:bg-[#913B24]
+  focus-visible:outline-none
+  focus-visible:ring-4
+  focus-visible:ring-[#f1c6b8]
+  sm:w-auto
+"
           >
             <Plus
               size={19}
@@ -2191,7 +2191,7 @@ export default function MyAdherentsPage() {
                   justify-center
                   gap-2
                   rounded-2xl
-                  bg-[var(--flascam-terracotta)]
+                  bg-[#A9472B]
                   px-5
                   py-3
                   text-sm
@@ -3680,7 +3680,7 @@ export default function MyAdherentsPage() {
                     justify-center
                     gap-2
                     rounded-2xl
-                    bg-[var(--flascam-terracotta)]
+                    bg-[#A9472B]
                     px-6
                     text-sm
                     font-extrabold
