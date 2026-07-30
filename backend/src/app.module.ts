@@ -89,6 +89,11 @@ import {
   AdherentsModule,
 } from './adherents/adherents.module';
 
+import {
+  MarketplaceModule,
+} from './marketplace/marketplace.module';
+
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -117,6 +122,7 @@ import {
     NewsModule,
     VideosModule,
     AdherentsModule,
+    MarketplaceModule,
   ],
   controllers: [
     AppController,

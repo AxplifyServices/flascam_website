@@ -22,6 +22,7 @@ import {
   MARKETPLACE_FUEL_TYPES,
   MARKETPLACE_MAX_DURATION_DAYS,
   MARKETPLACE_MAX_IMAGES,
+  MARKETPLACE_MAX_VIDEOS,
   MARKETPLACE_MIN_DURATION_DAYS,
   MARKETPLACE_TRANSMISSIONS,
   MARKETPLACE_VEHICLE_TYPES,
@@ -214,9 +215,10 @@ export class UpsertMarketplaceListingDto {
    */
   @IsOptional()
   @IsArray()
-  @ArrayMaxSize(
-    MARKETPLACE_MAX_IMAGES,
-  )
+    @ArrayMaxSize(
+    MARKETPLACE_MAX_IMAGES +
+        MARKETPLACE_MAX_VIDEOS,
+    )
   @ValidateNested({
     each: true,
   })

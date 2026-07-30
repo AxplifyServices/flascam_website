@@ -35,6 +35,10 @@ type VideoUploadContext = {
   associationId: string | null;
 };
 
+type MarketplaceMediaKind =
+  | 'IMAGE'
+  | 'VIDEO';
+
 @Injectable()
 export class MediaService {
   constructor(
@@ -433,6 +437,322 @@ const objectKey =
         ),
     };
   } 
+
+async uploadMarketplaceMedia(
+  file: Express.Multer.File,
+  user: AuthUser,
+  mediaKind: MarketplaceMediaKind,
+) {
+  if (!file) {
+    throw new BadRequestException(
+      mediaKind === 'IMAGE'
+        ? 'Aucune image reçue.'
+        : 'Aucune vidéo reçue.',
+    );
+  }
+
+  const imageMimeTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+  ];
+
+  const imageExtensions = [
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.webp',
+  ];
+
+  const videoMimeTypes = [
+    'video/mp4',
+    'video/webm',
+    'video/quicktime',
+  ];
+
+  const videoExtensions = [
+    '.mp4',
+    '.webm',
+    '.mov',
+  ];
+
+  const mimeType =
+    file.mimetype
+      .trim()
+      .toLowerCase();
+
+  const extension =
+    extname(
+      file.originalname,
+    ).toLowerCase();
+
+  const isImage =
+    mediaKind ===
+    'IMAGE';
+
+  const allowedMimeTypes =
+    isImage
+      ? imageMimeTypes
+      : videoMimeTypes;
+
+  const allowedExtensions =
+    isImage
+      ? imageExtensions
+      : videoExtensions;
+
+  if (
+    !allowedMimeTypes.includes(
+      mimeType,
+    ) ||
+    !allowedExtensions.includes(
+      extension,
+    )
+  ) {
+    throw new BadRequestException(
+      isImage
+        ? 'Format image non autorisé. Formats acceptés : JPG, PNG et WEBP.'
+        : 'Format vidéo non autorisé. Formats acceptés : MP4, WEBM et MOV.',
+    );
+  }
+
+  const extensionMatchesMimeType =
+    isImage
+      ? (
+          (
+            mimeType ===
+              'image/jpeg' &&
+            [
+              '.jpg',
+              '.jpeg',
+            ].includes(
+              extension,
+            )
+          ) ||
+          (
+            mimeType ===
+              'image/png' &&
+            extension ===
+              '.png'
+          ) ||
+          (
+            mimeType ===
+              'image/webp' &&
+            extension ===
+              '.webp'
+          )
+        )
+      : (
+          (
+            mimeType ===
+              'video/mp4' &&
+            extension ===
+              '.mp4'
+          ) ||
+          (
+            mimeType ===
+              'video/webm' &&
+            extension ===
+              '.webm'
+          ) ||
+          (
+            mimeType ===
+              'video/quicktime' &&
+            extension ===
+              '.mov'
+          )
+        );
+
+  if (
+    !extensionMatchesMimeType
+  ) {
+    throw new BadRequestException(
+      isImage
+        ? 'L’extension du fichier ne correspond pas à son format image.'
+        : 'L’extension du fichier ne correspond pas à son format vidéo.',
+    );
+  }
+
+  const configuredLimit =
+    Number(
+      this.config.get<string>(
+        isImage
+          ? 'UPLOAD_MAX_IMAGE_SIZE_MB'
+          : 'UPLOAD_MAX_VIDEO_SIZE_MB',
+
+        isImage
+          ? '10'
+          : '250',
+      ),
+    );
+
+  if (
+    !Number.isFinite(
+      configuredLimit,
+    ) ||
+    configuredLimit <= 0
+  ) {
+    throw new BadRequestException(
+      'La limite de taille des fichiers marketplace est mal configurée.',
+    );
+  }
+
+  const maxSizeBytes =
+    configuredLimit *
+    1024 *
+    1024;
+
+  if (
+    file.size >
+    maxSizeBytes
+  ) {
+    throw new BadRequestException(
+      `Fichier trop lourd. Taille maximale : ${configuredLimit} Mo.`,
+    );
+  }
+
+  const bucket =
+    this.getPublicBucket();
+
+  /*
+   * Chaque utilisateur possède son propre dossier.
+   * Cela simplifie l’administration du stockage tout en
+   * évitant les collisions entre vendeurs.
+   */
+  const folder =
+    this.normalizeFolder(
+      `marketplace/${user.id}/${
+        isImage
+          ? 'images'
+          : 'videos'
+      }`,
+    );
+
+  const storedFilename =
+    `${randomUUID()}${extension}`;
+
+  const objectKey =
+    `${folder}/${storedFilename}`;
+
+  const checksum =
+    createHash(
+      'sha256',
+    )
+      .update(
+        file.buffer,
+      )
+      .digest(
+        'hex',
+      );
+
+  await this.putObject({
+    bucket,
+    objectKey,
+    buffer:
+      file.buffer,
+    mimeType,
+  });
+
+  const asset =
+    await this.prisma.media_assets.create({
+      data: {
+        uploaded_by_user_id:
+          user.id,
+
+        storage_provider:
+          'MINIO',
+
+        bucket_name:
+          bucket,
+
+        object_key:
+          objectKey,
+
+        original_filename:
+          file.originalname,
+
+        stored_filename:
+          storedFilename,
+
+        file_extension:
+          extension.replace(
+            '.',
+            '',
+          ),
+
+        mime_type:
+          mimeType,
+
+        media_type:
+          mediaKind,
+
+        visibility:
+          'PUBLIC',
+
+        /*
+         * PUBLISHED signifie ici que le fichier est exploitable.
+         * Cela ne publie pas automatiquement une annonce.
+         */
+        status:
+          'PUBLISHED',
+
+        size_bytes:
+          file.size,
+
+        checksum_sha256:
+          checksum,
+
+        title:
+          file.originalname,
+
+        alt_text:
+          isImage
+            ? file.originalname
+            : null,
+
+        metadata: {
+          module:
+            'MARKETPLACE',
+
+          uploadPurpose:
+            mediaKind,
+
+          uploadedByRole:
+            user.role,
+
+          regionalAssociationId:
+            user.regionalAssociationId ??
+            null,
+        },
+      },
+    });
+
+  return {
+    id:
+      asset.id,
+
+    mediaAssetId:
+      asset.id,
+
+    url:
+      this.mediaUrl(
+        asset.object_key,
+      ),
+
+    mediaType:
+      asset.media_type,
+
+    originalFilename:
+      asset.original_filename,
+
+    mimeType:
+      asset.mime_type,
+
+    sizeBytes:
+      Number(
+        asset.size_bytes,
+      ),
+  };
+}  
   
 async uploadVideo(
   file: Express.Multer.File,

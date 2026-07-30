@@ -407,4 +407,98 @@ export class MediaController {
       },
     );
   }
+/*
+ * Médias destinés aux annonces de la marketplace.
+ *
+ * L’import d’un média ne crée pas et ne publie pas
+ * automatiquement une annonce.
+ */
+
+@Post('marketplace/images')
+@Roles(
+  'SUPER_ADMIN',
+  'FLASCAM_ADMIN',
+  'ASSOCIATION_ADMIN',
+  'ADHERENT',
+)
+@Permissions(
+  'marketplace.listings.create',
+)
+@UseInterceptors(
+  FileInterceptor('file', {
+    storage:
+      memoryStorage(),
+
+    /*
+     * La limite Multer doit rester égale ou supérieure
+     * à la limite métier vérifiée dans MediaService.
+     */
+    limits: {
+      fileSize:
+        20 *
+        1024 *
+        1024,
+    },
+  }),
+)
+uploadMarketplaceImage(
+  @UploadedFile()
+  file:
+    Express.Multer.File,
+
+  @CurrentUser()
+  user:
+    AuthUser,
+) {
+  return this.service
+    .uploadMarketplaceMedia(
+      file,
+      user,
+      'IMAGE',
+    );
+}
+
+@Post('marketplace/videos')
+@Roles(
+  'SUPER_ADMIN',
+  'FLASCAM_ADMIN',
+  'ASSOCIATION_ADMIN',
+  'ADHERENT',
+)
+@Permissions(
+  'marketplace.listings.create',
+)
+@UseInterceptors(
+  FileInterceptor('file', {
+    storage:
+      memoryStorage(),
+
+    /*
+     * La vraie limite métier reste contrôlée à partir
+     * de UPLOAD_MAX_VIDEO_SIZE_MB.
+     */
+limits: {
+  fileSize:
+    50 *
+    1024 *
+    1024,
+},
+  }),
+)
+uploadMarketplaceVideo(
+  @UploadedFile()
+  file:
+    Express.Multer.File,
+
+  @CurrentUser()
+  user:
+    AuthUser,
+) {
+  return this.service
+    .uploadMarketplaceMedia(
+      file,
+      user,
+      'VIDEO',
+    );
+}  
 }
