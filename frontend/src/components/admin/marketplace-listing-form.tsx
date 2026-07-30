@@ -30,12 +30,14 @@ import {
 
 import {
   createMarketplaceListing,
+  updateMarketplaceListing,
   uploadMarketplaceImage,
   uploadMarketplaceVideo,
 } from '@/lib/marketplace-api';
 
 import type {
   MarketplaceFuelType,
+  MarketplaceListing,
   MarketplaceListingMediaInput,
   MarketplaceListingPayload,
   MarketplaceTransmission,
@@ -48,6 +50,15 @@ import {
   MARKETPLACE_TRANSMISSION_LABELS,
   MARKETPLACE_VEHICLE_TYPE_LABELS,
 } from '@/types/marketplace';
+
+type MarketplaceListingFormProps = {
+  mode?:
+    | 'create'
+    | 'edit';
+
+  initialListing?:
+    MarketplaceListing;
+};
 
 type FormState = {
   title: string;
@@ -104,7 +115,8 @@ type PendingMedia = {
 
   originalFilename: string;
   mimeType: string;
-  sizeBytes: number;
+sizeBytes:
+  number | null;
 
   altText: string;
   caption: string;
@@ -189,6 +201,209 @@ const INITIAL_STATE:
     seoDescription:
       '',
   };
+
+function stringValue(
+  value?:
+    string | number | null,
+) {
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return '';
+  }
+
+  return String(
+    value,
+  );
+}
+
+function dateInputValue(
+  value?:
+    string | null,
+) {
+  if (!value) {
+    return '';
+  }
+
+  const date =
+    new Date(
+      value,
+    );
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    return '';
+  }
+
+  return date
+    .toISOString()
+    .slice(
+      0,
+      10,
+    );
+}
+
+function listingToFormState(
+  listing:
+    MarketplaceListing,
+): FormState {
+  return {
+    title:
+      listing.title,
+
+    description:
+      listing.description ??
+      '',
+
+    vehicleType:
+      listing.vehicleType,
+
+    brand:
+      listing.brand,
+
+    model:
+      listing.model,
+
+    version:
+      listing.version ??
+      '',
+
+    registrationYear:
+      String(
+        listing.registrationYear,
+      ),
+
+    firstRegistrationDate:
+      dateInputValue(
+        listing.firstRegistrationDate,
+      ),
+
+    mileageKm:
+      String(
+        listing.mileageKm,
+      ),
+
+    fuelType:
+      listing.fuelType,
+
+    transmission:
+      listing.transmission,
+
+    fiscalPower:
+      stringValue(
+        listing.fiscalPower,
+      ),
+
+    enginePowerHp:
+      stringValue(
+        listing.enginePowerHp,
+      ),
+
+    engineCapacityCc:
+      stringValue(
+        listing.engineCapacityCc,
+      ),
+
+    bodyType:
+      listing.bodyType ??
+      '',
+
+    exteriorColor:
+      listing.exteriorColor ??
+      '',
+
+    interiorColor:
+      listing.interiorColor ??
+      '',
+
+    doorsCount:
+      stringValue(
+        listing.doorsCount,
+      ),
+
+    seatsCount:
+      stringValue(
+        listing.seatsCount,
+      ),
+
+    registrationCity:
+      listing.registrationCity ??
+      '',
+
+    requestedPrice:
+      String(
+        listing.requestedPrice,
+      ),
+
+    durationDays:
+      String(
+        listing.durationDays,
+      ),
+
+    seoTitle:
+      listing.seoTitle ??
+      '',
+
+    seoDescription:
+      listing.seoDescription ??
+      '',
+  };
+}
+
+function listingToPendingMedia(
+  listing:
+    MarketplaceListing,
+): PendingMedia[] {
+  return [
+    ...listing.media,
+  ]
+    .sort(
+      (
+        first,
+        second,
+      ) =>
+        first.displayOrder -
+        second.displayOrder,
+    )
+    .map(
+      (
+        item,
+      ) => ({
+        localId:
+          `existing-${item.id}`,
+
+        mediaAssetId:
+          item.mediaAssetId,
+
+        mediaKind:
+          item.mediaKind,
+
+        url:
+          item.url,
+
+        originalFilename:
+          item.originalFilename,
+
+        mimeType:
+          item.mimeType,
+
+        sizeBytes:
+          null,
+
+        altText:
+          item.altText ??
+          '',
+
+        caption:
+          item.caption ??
+          '',
+      }),
+    );
+}  
 
 const INPUT_CLASS = `
   h-12
@@ -276,8 +491,14 @@ function optionalText(
 
 function formatFileSize(
   bytes:
-    number,
+    number | null,
 ) {
+  if (
+    bytes === null
+  ) {
+    return 'Média existant';
+  }
+
   if (
     bytes <
     1024 *
@@ -337,9 +558,25 @@ function createLocalMedia(
   };
 }
 
-export function MarketplaceListingForm() {
+export function MarketplaceListingForm({
+  mode = 'create',
+  initialListing,
+}: MarketplaceListingFormProps) {
   const router =
     useRouter();
+
+const isEditMode =
+  mode ===
+    'edit';
+
+if (
+  isEditMode &&
+  !initialListing
+) {
+  throw new Error(
+    'Une annonce initiale est obligatoire en mode modification.',
+  );
+}    
 
   const imageInputRef =
     useRef<HTMLInputElement>(
@@ -351,19 +588,31 @@ export function MarketplaceListingForm() {
       null,
     );
 
-  const [
-    form,
-    setForm,
-  ] = useState<FormState>(
-    INITIAL_STATE,
-  );
+const [
+  form,
+  setForm,
+] = useState<FormState>(
+  () =>
+    initialListing
+      ? listingToFormState(
+          initialListing,
+        )
+      : INITIAL_STATE,
+);
 
-  const [
-    media,
-    setMedia,
-  ] = useState<
-    PendingMedia[]
-  >([]);
+const [
+  media,
+  setMedia,
+] = useState<
+  PendingMedia[]
+>(
+  () =>
+    initialListing
+      ? listingToPendingMedia(
+          initialListing,
+        )
+      : [],
+);
 
   const [
     uploadingImages,
@@ -1058,23 +1307,33 @@ export function MarketplaceListingForm() {
       null,
     );
 
-    try {
-      const created =
-        await createMarketplaceListing(
+try {
+  const saved =
+    isEditMode &&
+    initialListing
+      ? await updateMarketplaceListing(
+          initialListing.id,
+          buildPayload(),
+        )
+      : await createMarketplaceListing(
           buildPayload(),
         );
 
-      router.push(
-        `/admin/my-marketplace-listings/${created.id}`,
-      );
-    } catch (
-      caughtError
-    ) {
-      setError(
-        caughtError instanceof Error
-          ? caughtError.message
-          : 'La création du brouillon a échoué.',
-      );
+  router.push(
+    `/admin/my-marketplace-listings/${saved.id}`,
+  );
+
+  router.refresh();
+} catch (
+  caughtError
+) {
+  setError(
+    caughtError instanceof Error
+      ? caughtError.message
+      : isEditMode
+        ? 'La modification de l’annonce a échoué.'
+        : 'La création du brouillon a échoué.',
+  );
 
       window.scrollTo({
         top:
@@ -1114,11 +1373,14 @@ export function MarketplaceListingForm() {
         <div>
           <button
             type="button"
-            onClick={() =>
-              router.push(
-                '/admin/my-marketplace-listings',
-              )
-            }
+onClick={() =>
+  router.push(
+    isEditMode &&
+    initialListing
+      ? `/admin/my-marketplace-listings/${initialListing.id}`
+      : '/admin/my-marketplace-listings',
+  )
+}
             className="
               inline-flex
               items-center
@@ -1160,7 +1422,9 @@ export function MarketplaceListingForm() {
               sm:text-4xl
             "
           >
-            Déposer un véhicule
+{isEditMode
+  ? 'Modifier le véhicule'
+  : 'Déposer un véhicule'}
           </h1>
 
           <p
@@ -1173,9 +1437,21 @@ export function MarketplaceListingForm() {
               sm:text-base
             "
           >
-            Présentez votre véhicule avec des informations claires
-            et des visuels de qualité. Votre identité restera
-            confidentielle pendant toute la phase de négociation.
+{isEditMode
+  ? (
+      <>
+        Corrigez les informations, les caractéristiques et les
+        médias de votre annonce. Les changements resteront en
+        brouillon jusqu’à une nouvelle soumission à la FLASCAM.
+      </>
+    )
+  : (
+      <>
+        Présentez votre véhicule avec des informations claires
+        et des visuels de qualité. Votre identité restera
+        confidentielle pendant toute la phase de négociation.
+      </>
+    )}
           </p>
         </div>
 
@@ -1192,11 +1468,13 @@ export function MarketplaceListingForm() {
             text-[var(--flascam-blue)]
           "
         >
-          <strong>
-            Étape actuelle :
-          </strong>
-          {' '}
-          création du brouillon
+<strong>
+  Étape actuelle :
+</strong>
+{' '}
+{isEditMode
+  ? 'modification du brouillon'
+  : 'création du brouillon'}
         </div>
       </header>
 
@@ -3012,23 +3290,27 @@ export function MarketplaceListingForm() {
               </div>
 
               <div>
-                <h2
-                  className="
-                    font-black
-                    text-slate-950
-                  "
-                >
-                  Enregistrer le brouillon
-                </h2>
+<h2
+  className="
+    font-black
+    text-slate-950
+  "
+>
+  {isEditMode
+    ? 'Enregistrer les modifications'
+    : 'Enregistrer le brouillon'}
+</h2>
 
-                <p
-                  className="
-                    text-xs
-                    text-slate-500
-                  "
-                >
-                  Aucune publication immédiate
-                </p>
+<p
+  className="
+    text-xs
+    text-slate-500
+  "
+>
+  {isEditMode
+    ? 'L’annonce restera en brouillon'
+    : 'Aucune publication immédiate'}
+</p>
               </div>
             </div>
 
@@ -3125,9 +3407,11 @@ export function MarketplaceListingForm() {
                 />
               )}
 
-              {submitting
-                ? 'Enregistrement…'
-                : 'Enregistrer le brouillon'}
+{submitting
+  ? 'Enregistrement…'
+  : isEditMode
+    ? 'Enregistrer les modifications'
+    : 'Enregistrer le brouillon'}
             </button>
 
             <button
@@ -3135,11 +3419,14 @@ export function MarketplaceListingForm() {
               disabled={
                 isBusy
               }
-              onClick={() =>
-                router.push(
-                  '/admin/my-marketplace-listings',
-                )
-              }
+onClick={() =>
+  router.push(
+    isEditMode &&
+    initialListing
+      ? `/admin/my-marketplace-listings/${initialListing.id}`
+      : '/admin/my-marketplace-listings',
+  )
+}
               className="
                 mt-3
                 inline-flex

@@ -294,3 +294,215 @@ export const MARKETPLACE_TRANSMISSION_LABELS:
     SEMI_AUTOMATIC:
       'Semi-automatique',
   };
+
+  export type MarketplaceListingOwner = {
+  id: string;
+
+  firstName?: string | null;
+  lastName?: string | null;
+
+  email: string;
+  phone?: string | null;
+
+  isActive?: boolean;
+};
+
+export type MarketplaceListingAssociation = {
+  id: string;
+  name: string;
+  slug: string;
+  status?: string;
+};
+
+export type MarketplaceListingAdherent = {
+  id: string;
+
+  membershipNumber?: string | null;
+  displayName?: string | null;
+  legalName?: string | null;
+
+  status?: string;
+};
+
+export type MarketplaceListingReviewer = {
+  id: string;
+
+  firstName?: string | null;
+  lastName?: string | null;
+
+  email: string;
+};
+
+export type AdminMarketplaceListing =
+  MarketplaceListing & {
+    owner:
+      MarketplaceListingOwner | null;
+
+    association:
+      MarketplaceListingAssociation | null;
+
+    adherent:
+      MarketplaceListingAdherent | null;
+
+    reviewedBy:
+      MarketplaceListingReviewer | null;
+  };
+
+export type AdminMarketplaceListingListResponse = {
+  items:
+    AdminMarketplaceListing[];
+
+  pagination:
+    MarketplacePagination;
+};
+
+export type AdminMarketplaceListingFilters = {
+  page?: number;
+  limit?: number;
+
+  search?: string;
+
+  status?:
+    | MarketplaceListingStatus
+    | '';
+
+  sellerType?:
+    | MarketplaceSellerType
+    | '';
+};
+
+export type PublicMarketplaceMedia = {
+  id: string;
+  mediaAssetId: string;
+
+  mediaKind:
+    MarketplaceMediaKind;
+
+  displayOrder: number;
+
+  altText?: string | null;
+  caption?: string | null;
+
+  url: string;
+  mimeType: string;
+
+  width?: number | null;
+  height?: number | null;
+  durationSeconds?: number | null;
+
+  originalFilename: string;
+};
+
+export type PublicMarketplaceListingCard = {
+  id: string;
+  reference: string;
+  slug: string;
+
+  title: string;
+
+  vehicleType:
+    MarketplaceVehicleType;
+
+  brand: string;
+  model: string;
+  version?: string | null;
+
+  registrationYear: number;
+  mileageKm: number;
+
+  fuelType:
+    MarketplaceFuelType;
+
+  transmission:
+    MarketplaceTransmission;
+
+  bodyType?: string | null;
+
+  requestedPrice: number;
+  currencyCode: 'MAD';
+
+  publishedAt: string;
+  expiresAt: string;
+
+  remainingDays: number;
+
+  coverMedia:
+    PublicMarketplaceMedia | null;
+
+  mediaCount: number;
+};
+
+export type PublicMarketplaceListingDetail =
+  PublicMarketplaceListingCard & {
+    description?: string | null;
+
+    firstRegistrationDate?: string | null;
+
+    fiscalPower?: number | null;
+    enginePowerHp?: number | null;
+    engineCapacityCc?: number | null;
+
+    exteriorColor?: string | null;
+    interiorColor?: string | null;
+
+    doorsCount?: number | null;
+    seatsCount?: number | null;
+
+    registrationCity?: string | null;
+
+    media:
+      PublicMarketplaceMedia[];
+
+    seo: {
+      title: string;
+      description?: string | null;
+    };
+  };
+
+export type PublicMarketplaceListingListResponse = {
+  items:
+    PublicMarketplaceListingCard[];
+
+  pagination:
+    MarketplacePagination;
+};
+
+export type PublicMarketplaceSort =
+  | 'RECENT'
+  | 'PRICE_ASC'
+  | 'PRICE_DESC'
+  | 'YEAR_DESC'
+  | 'MILEAGE_ASC';
+
+export type PublicMarketplaceListingFilters = {
+  page?: number;
+  limit?: number;
+
+  search?: string;
+
+  vehicleType?:
+    | MarketplaceVehicleType
+    | '';
+
+  brand?: string;
+  model?: string;
+
+  fuelType?:
+    | MarketplaceFuelType
+    | '';
+
+  transmission?:
+    | MarketplaceTransmission
+    | '';
+
+  minimumYear?: number;
+  maximumYear?: number;
+
+  minimumPrice?: number;
+  maximumPrice?: number;
+
+  maximumMileageKm?: number;
+
+  sort?:
+    PublicMarketplaceSort;
+};

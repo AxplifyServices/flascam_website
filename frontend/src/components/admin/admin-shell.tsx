@@ -128,6 +128,25 @@ const navItems: AdminNavItem[] = [
   ],
 },
 
+{
+  label:
+    'Validation marketplace',
+
+  href:
+    '/admin/marketplace-listings',
+
+  icon:
+    CarFront,
+
+  permission:
+    'marketplace.listings.review',
+
+  roles: [
+    'SUPER_ADMIN',
+    'FLASCAM_ADMIN',
+  ],
+},
+
   {
     label: 'Ma fiche',
     href: '/admin/my-association',

@@ -3,11 +3,18 @@ import {
 } from '@/lib/api';
 
 import type {
+  AdminMarketplaceListing,
+  AdminMarketplaceListingFilters,
+  AdminMarketplaceListingListResponse,
   MarketplaceListing,
   MarketplaceListingListResponse,
   MarketplaceListingPayload,
   MyMarketplaceListingFilters,
   UploadedMarketplaceMedia,
+  PublicMarketplaceListingDetail,
+PublicMarketplaceListingFilters,
+PublicMarketplaceListingListResponse,
+
 } from '@/types/marketplace';
 
 async function readErrorMessage(
@@ -39,6 +46,33 @@ async function readErrorMessage(
   } catch {
     return fallback;
   }
+}
+
+async function publicMarketplaceFetch<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const response =
+    await apiFetch(
+      path,
+      {
+        cache:
+          'no-store',
+
+        ...init,
+      },
+    );
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(
+        response,
+        'Impossible de charger la marketplace.',
+      ),
+    );
+  }
+
+  return await response.json() as T;
 }
 
 async function authenticatedMarketplaceFetch<T>(
@@ -124,6 +158,26 @@ function addOptionalText(
     params.set(
       name,
       normalized,
+    );
+  }
+}
+
+function addOptionalNumber(
+  params: URLSearchParams,
+  name: string,
+  value?: number,
+) {
+  if (
+    value !== undefined &&
+    Number.isFinite(
+      value,
+    )
+  ) {
+    params.set(
+      name,
+      String(
+        value,
+      ),
     );
   }
 }
@@ -301,5 +355,232 @@ export async function uploadMarketplaceVideo(
   return await uploadMarketplaceMedia(
     '/media/marketplace/videos',
     file,
+  );
+}
+
+export async function getAdminMarketplaceListings(
+  filters:
+    AdminMarketplaceListingFilters = {},
+) {
+  const params =
+    new URLSearchParams();
+
+  params.set(
+    'page',
+    String(
+      filters.page ??
+        1,
+    ),
+  );
+
+  params.set(
+    'limit',
+    String(
+      filters.limit ??
+        20,
+    ),
+  );
+
+  addOptionalText(
+    params,
+    'search',
+    filters.search,
+  );
+
+  if (
+    filters.status
+  ) {
+    params.set(
+      'status',
+      filters.status,
+    );
+  }
+
+  if (
+    filters.sellerType
+  ) {
+    params.set(
+      'sellerType',
+      filters.sellerType,
+    );
+  }
+
+  return await authenticatedMarketplaceFetch<
+    AdminMarketplaceListingListResponse
+  >(
+    `/marketplace/admin/listings?${params.toString()}`,
+  );
+}
+
+export async function getAdminMarketplaceListingById(
+  id: string,
+) {
+  return await authenticatedMarketplaceFetch<
+    AdminMarketplaceListing
+  >(
+    `/marketplace/admin/listings/${encodeURIComponent(
+      id,
+    )}`,
+  );
+}
+
+export async function approveMarketplaceListing(
+  id: string,
+) {
+  return await authenticatedMarketplaceFetch<
+    AdminMarketplaceListing
+  >(
+    `/marketplace/admin/listings/${encodeURIComponent(
+      id,
+    )}/approve`,
+    {
+      method:
+        'PATCH',
+    },
+  );
+}
+
+export async function rejectMarketplaceListing(
+  id: string,
+  reason: string,
+) {
+  return await authenticatedMarketplaceFetch<
+    AdminMarketplaceListing
+  >(
+    `/marketplace/admin/listings/${encodeURIComponent(
+      id,
+    )}/reject`,
+    {
+      method:
+        'PATCH',
+
+      body:
+        JSON.stringify({
+          reason,
+        }),
+    },
+  );
+}
+
+export async function getPublicMarketplaceListings(
+  filters:
+    PublicMarketplaceListingFilters = {},
+) {
+  const params =
+    new URLSearchParams();
+
+  params.set(
+    'page',
+    String(
+      filters.page ??
+        1,
+    ),
+  );
+
+  params.set(
+    'limit',
+    String(
+      filters.limit ??
+        12,
+    ),
+  );
+
+  params.set(
+    'sort',
+    filters.sort ??
+      'RECENT',
+  );
+
+  addOptionalText(
+    params,
+    'search',
+    filters.search,
+  );
+
+  if (
+    filters.vehicleType
+  ) {
+    params.set(
+      'vehicleType',
+      filters.vehicleType,
+    );
+  }
+
+  addOptionalText(
+    params,
+    'brand',
+    filters.brand,
+  );
+
+  addOptionalText(
+    params,
+    'model',
+    filters.model,
+  );
+
+  if (
+    filters.fuelType
+  ) {
+    params.set(
+      'fuelType',
+      filters.fuelType,
+    );
+  }
+
+  if (
+    filters.transmission
+  ) {
+    params.set(
+      'transmission',
+      filters.transmission,
+    );
+  }
+
+  addOptionalNumber(
+    params,
+    'minimumYear',
+    filters.minimumYear,
+  );
+
+  addOptionalNumber(
+    params,
+    'maximumYear',
+    filters.maximumYear,
+  );
+
+  addOptionalNumber(
+    params,
+    'minimumPrice',
+    filters.minimumPrice,
+  );
+
+  addOptionalNumber(
+    params,
+    'maximumPrice',
+    filters.maximumPrice,
+  );
+
+  addOptionalNumber(
+    params,
+    'maximumMileageKm',
+    filters.maximumMileageKm,
+  );
+
+  return await publicMarketplaceFetch<
+    PublicMarketplaceListingListResponse
+  >(
+    `/marketplace/public?${params.toString()}`,
+  );
+}
+
+export async function getPublicMarketplaceListingBySlug(
+  slug: string,
+) {
+  return await publicMarketplaceFetch<
+    PublicMarketplaceListingDetail
+  >(
+    `/marketplace/public/${encodeURIComponent(
+      slug,
+    )}`,
   );
 }
