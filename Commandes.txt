@@ -26,12 +26,12 @@ Mot de passe : flascam_minio_local_password_2026
 
 ** Execution d'un script
 
-psql -U postgres -d flascam_db -f "database\migrations\026_add-association-adherent-suspension.sql
+psql -U postgres -d flascam_db -f "database\migrations\027_create_marketplace.sql
 
 
 cd /opt/apps/flascam/repo
 
-sudo -u postgres psql -d flascam_db  -f database/migrations/026_add-association-adherent-suspension.sql
+sudo -u postgres psql -d flascam_db  -f database/migrations/027_create_marketplace.sql
 
 
 ** Build l'appli

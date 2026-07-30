@@ -75,36 +75,41 @@ model roles {
 }
 
 model users {
-  id                                                     String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  role_id                                                String                 @db.Uuid
-  email                                                  String                 @unique(map: "users_email_unique") @db.VarChar(255)
-  password_hash                                          String
-  first_name                                             String?                @db.VarChar(100)
-  last_name                                              String?                @db.VarChar(100)
-  phone                                                  String?                @db.VarChar(30)
-  is_active                                              Boolean                @default(true)
-  is_email_verified                                      Boolean                @default(false)
-  last_login_at                                          DateTime?              @db.Timestamptz(6)
-  password_changed_at                                    DateTime?              @db.Timestamptz(6)
-  created_at                                             DateTime               @default(now()) @db.Timestamptz(6)
-  updated_at                                             DateTime               @default(now()) @db.Timestamptz(6)
-  deleted_at                                             DateTime?              @db.Timestamptz(6)
-  regional_association_id                                String?                @db.Uuid
-  adherents_adherents_reviewed_by_user_idTousers         adherents[]            @relation("adherents_reviewed_by_user_idTousers")
-  adherents_adherents_submitted_by_user_idTousers        adherents[]            @relation("adherents_submitted_by_user_idTousers")
-  adherents_adherents_user_idTousers                     adherents?             @relation("adherents_user_idTousers")
-  audit_logs                                             audit_logs[]
-  contact_messages                                       contact_messages[]
-  media_assets                                           media_assets[]
-  news_articles_news_articles_created_by_user_idTousers  news_articles[]        @relation("news_articles_created_by_user_idTousers")
-  news_articles_news_articles_reviewed_by_user_idTousers news_articles[]        @relation("news_articles_reviewed_by_user_idTousers")
-  news_articles_news_articles_updated_by_user_idTousers  news_articles[]        @relation("news_articles_updated_by_user_idTousers")
-  refresh_tokens                                         refresh_tokens[]
-  regional_associations                                  regional_associations? @relation(fields: [regional_association_id], references: [id], onUpdate: NoAction)
-  roles                                                  roles                  @relation(fields: [role_id], references: [id], onUpdate: NoAction)
-  videos_videos_created_by_user_idTousers                videos[]               @relation("videos_created_by_user_idTousers")
-  videos_videos_reviewed_by_user_idTousers               videos[]               @relation("videos_reviewed_by_user_idTousers")
-  videos_videos_updated_by_user_idTousers                videos[]               @relation("videos_updated_by_user_idTousers")
+  id                                                                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  role_id                                                              String                 @db.Uuid
+  email                                                                String                 @unique(map: "users_email_unique") @db.VarChar(255)
+  password_hash                                                        String
+  first_name                                                           String?                @db.VarChar(100)
+  last_name                                                            String?                @db.VarChar(100)
+  phone                                                                String?                @db.VarChar(30)
+  is_active                                                            Boolean                @default(true)
+  is_email_verified                                                    Boolean                @default(false)
+  last_login_at                                                        DateTime?              @db.Timestamptz(6)
+  password_changed_at                                                  DateTime?              @db.Timestamptz(6)
+  created_at                                                           DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                                                           DateTime               @default(now()) @db.Timestamptz(6)
+  deleted_at                                                           DateTime?              @db.Timestamptz(6)
+  regional_association_id                                              String?                @db.Uuid
+  adherents_adherents_reviewed_by_user_idTousers                       adherents[]            @relation("adherents_reviewed_by_user_idTousers")
+  adherents_adherents_submitted_by_user_idTousers                      adherents[]            @relation("adherents_submitted_by_user_idTousers")
+  adherents_adherents_user_idTousers                                   adherents?             @relation("adherents_user_idTousers")
+  audit_logs                                                           audit_logs[]
+  contact_messages                                                     contact_messages[]
+  marketplace_deals_marketplace_deals_buyer_user_idTousers             marketplace_deals[]    @relation("marketplace_deals_buyer_user_idTousers")
+  marketplace_deals_marketplace_deals_seller_user_idTousers            marketplace_deals[]    @relation("marketplace_deals_seller_user_idTousers")
+  marketplace_listings_marketplace_listings_owner_user_idTousers       marketplace_listings[] @relation("marketplace_listings_owner_user_idTousers")
+  marketplace_listings_marketplace_listings_reviewed_by_user_idTousers marketplace_listings[] @relation("marketplace_listings_reviewed_by_user_idTousers")
+  marketplace_offers                                                   marketplace_offers[]
+  media_assets                                                         media_assets[]
+  news_articles_news_articles_created_by_user_idTousers                news_articles[]        @relation("news_articles_created_by_user_idTousers")
+  news_articles_news_articles_reviewed_by_user_idTousers               news_articles[]        @relation("news_articles_reviewed_by_user_idTousers")
+  news_articles_news_articles_updated_by_user_idTousers                news_articles[]        @relation("news_articles_updated_by_user_idTousers")
+  refresh_tokens                                                       refresh_tokens[]
+  regional_associations                                                regional_associations? @relation(fields: [regional_association_id], references: [id], onUpdate: NoAction)
+  roles                                                                roles                  @relation(fields: [role_id], references: [id], onUpdate: NoAction)
+  videos_videos_created_by_user_idTousers                              videos[]               @relation("videos_created_by_user_idTousers")
+  videos_videos_reviewed_by_user_idTousers                             videos[]               @relation("videos_reviewed_by_user_idTousers")
+  videos_videos_updated_by_user_idTousers                              videos[]               @relation("videos_updated_by_user_idTousers")
 
   @@index([deleted_at])
   @@index([is_active])
@@ -115,41 +120,42 @@ model users {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model media_assets {
-  id                                                   String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  uploaded_by_user_id                                  String?                   @db.Uuid
-  storage_provider                                     String                    @default("S3") @db.VarChar(30)
-  bucket_name                                          String                    @db.VarChar(100)
+  id                                                   String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  uploaded_by_user_id                                  String?                     @db.Uuid
+  storage_provider                                     String                      @default("S3") @db.VarChar(30)
+  bucket_name                                          String                      @db.VarChar(100)
   object_key                                           String
   original_filename                                    String
   stored_filename                                      String
-  file_extension                                       String?                   @db.VarChar(20)
-  mime_type                                            String                    @db.VarChar(150)
-  media_type                                           String                    @db.VarChar(30)
-  visibility                                           String                    @default("PRIVATE") @db.VarChar(20)
-  status                                               String                    @default("PENDING") @db.VarChar(30)
+  file_extension                                       String?                     @db.VarChar(20)
+  mime_type                                            String                      @db.VarChar(150)
+  media_type                                           String                      @db.VarChar(30)
+  visibility                                           String                      @default("PRIVATE") @db.VarChar(20)
+  status                                               String                      @default("PENDING") @db.VarChar(30)
   size_bytes                                           BigInt
-  checksum_sha256                                      String?                   @db.VarChar(64)
+  checksum_sha256                                      String?                     @db.VarChar(64)
   width                                                Int?
   height                                               Int?
-  duration_seconds                                     Decimal?                  @db.Decimal(12, 3)
-  title                                                String?                   @db.VarChar(255)
-  alt_text                                             String?                   @db.VarChar(255)
+  duration_seconds                                     Decimal?                    @db.Decimal(12, 3)
+  title                                                String?                     @db.VarChar(255)
+  alt_text                                             String?                     @db.VarChar(255)
   caption                                              String?
-  metadata                                             Json                      @default("{}")
-  uploaded_at                                          DateTime                  @default(now()) @db.Timestamptz(6)
-  validated_at                                         DateTime?                 @db.Timestamptz(6)
-  deleted_at                                           DateTime?                 @db.Timestamptz(6)
-  created_at                                           DateTime                  @default(now()) @db.Timestamptz(6)
-  updated_at                                           DateTime                  @default(now()) @db.Timestamptz(6)
+  metadata                                             Json                        @default("{}")
+  uploaded_at                                          DateTime                    @default(now()) @db.Timestamptz(6)
+  validated_at                                         DateTime?                   @db.Timestamptz(6)
+  deleted_at                                           DateTime?                   @db.Timestamptz(6)
+  created_at                                           DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at                                           DateTime                    @default(now()) @db.Timestamptz(6)
   association_leaders                                  association_leaders[]
   association_media_items                              association_media_items[]
   association_posts                                    association_posts[]
   homepage_hero_slides                                 homepage_hero_slides?
-  users                                                users?                    @relation(fields: [uploaded_by_user_id], references: [id], onUpdate: NoAction)
+  marketplace_listing_media                            marketplace_listing_media[]
+  users                                                users?                      @relation(fields: [uploaded_by_user_id], references: [id], onUpdate: NoAction)
   news_article_media                                   news_article_media[]
   regional_associations                                regional_associations[]
-  videos_videos_media_asset_idTomedia_assets           videos[]                  @relation("videos_media_asset_idTomedia_assets")
-  videos_videos_thumbnail_media_asset_idTomedia_assets videos[]                  @relation("videos_thumbnail_media_asset_idTomedia_assets")
+  videos_videos_media_asset_idTomedia_assets           videos[]                    @relation("videos_media_asset_idTomedia_assets")
+  videos_videos_thumbnail_media_asset_idTomedia_assets videos[]                    @relation("videos_thumbnail_media_asset_idTomedia_assets")
 
   @@unique([bucket_name, object_key], map: "media_assets_bucket_object_unique")
   @@index([created_at(sort: Desc)])
@@ -397,6 +403,7 @@ model regional_associations {
   association_media_items association_media_items[]
   association_posts       association_posts[]
   contact_messages        contact_messages[]
+  marketplace_listings    marketplace_listings[]
   news_articles           news_articles[]
   media_assets            media_assets?             @relation(fields: [logo_media_asset_id], references: [id], onUpdate: NoAction)
   users                   users[]
@@ -574,33 +581,34 @@ model videos {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model adherents {
-  id                                          String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  regional_association_id                     String                @db.Uuid
-  user_id                                     String                @unique(map: "adherents_user_unique") @db.Uuid
-  display_name                                String                @db.VarChar(255)
-  legal_name                                  String?               @db.VarChar(255)
-  member_number                               String?               @unique(map: "adherents_member_number_unique", where: raw("((member_number IS NOT NULL) AND (deleted_at IS NULL))")) @db.VarChar(80)
-  identifier_type                             String?               @db.VarChar(40)
-  identifier_value                            String?               @db.VarChar(120)
+  id                                          String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  regional_association_id                     String                 @db.Uuid
+  user_id                                     String                 @unique(map: "adherents_user_unique") @db.Uuid
+  display_name                                String                 @db.VarChar(255)
+  legal_name                                  String?                @db.VarChar(255)
+  member_number                               String?                @unique(map: "adherents_member_number_unique", where: raw("((member_number IS NOT NULL) AND (deleted_at IS NULL))")) @db.VarChar(80)
+  identifier_type                             String?                @db.VarChar(40)
+  identifier_value                            String?                @db.VarChar(120)
   address                                     String?
-  city                                        String?               @db.VarChar(180)
-  postal_code                                 String?               @db.VarChar(30)
+  city                                        String?                @db.VarChar(180)
+  postal_code                                 String?                @db.VarChar(30)
   notes                                       String?
-  status                                      String                @default("PENDING") @db.VarChar(30)
+  status                                      String                 @default("PENDING") @db.VarChar(30)
   rejection_reason                            String?
-  submitted_by_user_id                        String                @db.Uuid
-  reviewed_by_user_id                         String?               @db.Uuid
-  submitted_at                                DateTime              @default(now()) @db.Timestamptz(6)
-  reviewed_at                                 DateTime?             @db.Timestamptz(6)
-  approved_at                                 DateTime?             @db.Timestamptz(6)
-  suspended_at                                DateTime?             @db.Timestamptz(6)
-  created_at                                  DateTime              @default(now()) @db.Timestamptz(6)
-  updated_at                                  DateTime              @default(now()) @db.Timestamptz(6)
-  deleted_at                                  DateTime?             @db.Timestamptz(6)
-  regional_associations                       regional_associations @relation(fields: [regional_association_id], references: [id], onUpdate: NoAction, map: "adherents_association_fk")
-  users_adherents_reviewed_by_user_idTousers  users?                @relation("adherents_reviewed_by_user_idTousers", fields: [reviewed_by_user_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "adherents_reviewed_by_fk")
-  users_adherents_submitted_by_user_idTousers users                 @relation("adherents_submitted_by_user_idTousers", fields: [submitted_by_user_id], references: [id], onUpdate: NoAction, map: "adherents_submitted_by_fk")
-  users_adherents_user_idTousers              users                 @relation("adherents_user_idTousers", fields: [user_id], references: [id], onUpdate: NoAction, map: "adherents_user_fk")
+  submitted_by_user_id                        String                 @db.Uuid
+  reviewed_by_user_id                         String?                @db.Uuid
+  submitted_at                                DateTime               @default(now()) @db.Timestamptz(6)
+  reviewed_at                                 DateTime?              @db.Timestamptz(6)
+  approved_at                                 DateTime?              @db.Timestamptz(6)
+  suspended_at                                DateTime?              @db.Timestamptz(6)
+  created_at                                  DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                                  DateTime               @default(now()) @db.Timestamptz(6)
+  deleted_at                                  DateTime?              @db.Timestamptz(6)
+  regional_associations                       regional_associations  @relation(fields: [regional_association_id], references: [id], onUpdate: NoAction, map: "adherents_association_fk")
+  users_adherents_reviewed_by_user_idTousers  users?                 @relation("adherents_reviewed_by_user_idTousers", fields: [reviewed_by_user_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "adherents_reviewed_by_fk")
+  users_adherents_submitted_by_user_idTousers users                  @relation("adherents_submitted_by_user_idTousers", fields: [submitted_by_user_id], references: [id], onUpdate: NoAction, map: "adherents_submitted_by_fk")
+  users_adherents_user_idTousers              users                  @relation("adherents_user_idTousers", fields: [user_id], references: [id], onUpdate: NoAction, map: "adherents_user_fk")
+  marketplace_listings                        marketplace_listings[]
 
   @@unique([identifier_type, identifier_value], map: "adherents_identifier_unique", where: raw("((identifier_type IS NOT NULL) AND (identifier_value IS NOT NULL) AND (deleted_at IS NULL))"))
   @@index([regional_association_id, status, created_at(sort: Desc)], map: "adherents_association_idx")
@@ -609,4 +617,139 @@ model adherents {
   @@index([status, submitted_at(sort: Desc)], map: "adherents_status_idx")
   @@index([submitted_by_user_id], map: "adherents_submitted_by_idx")
   @@index([user_id], map: "adherents_user_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model marketplace_deals {
+  id                                            String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  marketplace_listing_id                        String               @unique(map: "marketplace_deals_listing_unique") @db.Uuid
+  marketplace_offer_id                          String               @unique(map: "marketplace_deals_offer_unique") @db.Uuid
+  seller_user_id                                String               @db.Uuid
+  buyer_user_id                                 String               @db.Uuid
+  seller_first_name                             String?              @db.VarChar(100)
+  seller_last_name                              String?              @db.VarChar(100)
+  seller_email                                  String               @db.VarChar(255)
+  seller_phone                                  String?              @db.VarChar(30)
+  buyer_first_name                              String?              @db.VarChar(100)
+  buyer_last_name                               String?              @db.VarChar(100)
+  buyer_email                                   String               @db.VarChar(255)
+  buyer_phone                                   String?              @db.VarChar(30)
+  accepted_amount                               Decimal              @db.Decimal(14, 2)
+  currency_code                                 String               @default("MAD") @db.Char(3)
+  created_at                                    DateTime             @default(now()) @db.Timestamptz(6)
+  users_marketplace_deals_buyer_user_idTousers  users                @relation("marketplace_deals_buyer_user_idTousers", fields: [buyer_user_id], references: [id], onUpdate: NoAction, map: "marketplace_deals_buyer_fk")
+  marketplace_listings                          marketplace_listings @relation(fields: [marketplace_listing_id], references: [id], onUpdate: NoAction, map: "marketplace_deals_listing_fk")
+  marketplace_offers                            marketplace_offers   @relation(fields: [marketplace_offer_id], references: [id], onUpdate: NoAction, map: "marketplace_deals_offer_fk")
+  users_marketplace_deals_seller_user_idTousers users                @relation("marketplace_deals_seller_user_idTousers", fields: [seller_user_id], references: [id], onUpdate: NoAction, map: "marketplace_deals_seller_fk")
+
+  @@index([buyer_user_id, created_at(sort: Desc)], map: "marketplace_deals_buyer_idx")
+  @@index([seller_user_id, created_at(sort: Desc)], map: "marketplace_deals_seller_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model marketplace_listing_media {
+  id                     String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  marketplace_listing_id String               @unique(map: "marketplace_listing_media_single_video_idx", where: raw("((media_kind)::text = 'VIDEO'::text)")) @db.Uuid
+  media_asset_id         String               @db.Uuid
+  media_kind             String               @db.VarChar(20)
+  display_order          Int                  @default(0)
+  alt_text               String?              @db.VarChar(255)
+  caption                String?
+  created_at             DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime             @default(now()) @db.Timestamptz(6)
+  media_assets           media_assets         @relation(fields: [media_asset_id], references: [id], onUpdate: NoAction, map: "marketplace_listing_media_asset_fk")
+  marketplace_listings   marketplace_listings @relation(fields: [marketplace_listing_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "marketplace_listing_media_listing_fk")
+
+  @@unique([marketplace_listing_id, media_asset_id], map: "marketplace_listing_media_unique")
+  @@index([marketplace_listing_id, display_order, created_at], map: "marketplace_listing_media_order_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model marketplace_listings {
+  id                                                    String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference                                             String                     @unique(map: "marketplace_listings_reference_unique") @db.VarChar(30)
+  slug                                                  String                     @unique(map: "marketplace_listings_slug_unique") @db.VarChar(180)
+  owner_user_id                                         String                     @db.Uuid
+  seller_type                                           String                     @db.VarChar(30)
+  regional_association_id                               String?                    @db.Uuid
+  adherent_id                                           String?                    @db.Uuid
+  status                                                String                     @default("DRAFT") @db.VarChar(30)
+  title                                                 String                     @db.VarChar(255)
+  description                                           String?
+  vehicle_type                                          String                     @default("CAR") @db.VarChar(50)
+  brand                                                 String                     @db.VarChar(120)
+  model                                                 String                     @db.VarChar(160)
+  version                                               String?                    @db.VarChar(160)
+  registration_year                                     Int                        @db.SmallInt
+  first_registration_date                               DateTime?                  @db.Date
+  mileage_km                                            Int
+  fuel_type                                             String                     @db.VarChar(40)
+  transmission                                          String                     @db.VarChar(40)
+  fiscal_power                                          Int?                       @db.SmallInt
+  engine_power_hp                                       Int?                       @db.SmallInt
+  engine_capacity_cc                                    Int?
+  body_type                                             String?                    @db.VarChar(60)
+  exterior_color                                        String?                    @db.VarChar(80)
+  interior_color                                        String?                    @db.VarChar(80)
+  doors_count                                           Int?                       @db.SmallInt
+  seats_count                                           Int?                       @db.SmallInt
+  registration_city                                     String?                    @db.VarChar(180)
+  requested_price                                       Decimal                    @db.Decimal(14, 2)
+  currency_code                                         String                     @default("MAD") @db.Char(3)
+  duration_days                                         Int                        @db.SmallInt
+  submitted_at                                          DateTime?                  @db.Timestamptz(6)
+  reviewed_at                                           DateTime?                  @db.Timestamptz(6)
+  reviewed_by_user_id                                   String?                    @db.Uuid
+  rejection_reason                                      String?
+  published_at                                          DateTime?                  @db.Timestamptz(6)
+  expires_at                                            DateTime?                  @db.Timestamptz(6)
+  sold_at                                               DateTime?                  @db.Timestamptz(6)
+  withdrawn_at                                          DateTime?                  @db.Timestamptz(6)
+  seo_title                                             String?                    @db.VarChar(255)
+  seo_description                                       String?                    @db.VarChar(320)
+  created_at                                            DateTime                   @default(now()) @db.Timestamptz(6)
+  updated_at                                            DateTime                   @default(now()) @db.Timestamptz(6)
+  deleted_at                                            DateTime?                  @db.Timestamptz(6)
+  marketplace_deals                                     marketplace_deals?
+  marketplace_listing_media                             marketplace_listing_media?
+  adherents                                             adherents?                 @relation(fields: [adherent_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "marketplace_listings_adherent_fk")
+  regional_associations                                 regional_associations?     @relation(fields: [regional_association_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "marketplace_listings_association_fk")
+  users_marketplace_listings_owner_user_idTousers       users                      @relation("marketplace_listings_owner_user_idTousers", fields: [owner_user_id], references: [id], onUpdate: NoAction, map: "marketplace_listings_owner_fk")
+  users_marketplace_listings_reviewed_by_user_idTousers users?                     @relation("marketplace_listings_reviewed_by_user_idTousers", fields: [reviewed_by_user_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "marketplace_listings_reviewed_by_fk")
+  marketplace_offers                                    marketplace_offers?
+
+  @@index([adherent_id, updated_at(sort: Desc)], map: "marketplace_listings_adherent_idx", where: raw("((deleted_at IS NULL) AND (adherent_id IS NOT NULL))"))
+  @@index([regional_association_id, updated_at(sort: Desc)], map: "marketplace_listings_association_idx", where: raw("((deleted_at IS NULL) AND (regional_association_id IS NOT NULL))"))
+  @@index([expires_at], map: "marketplace_listings_expiration_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'PUBLISHED'::text))"))
+  @@index([owner_user_id, updated_at(sort: Desc)], map: "marketplace_listings_owner_idx", where: raw("(deleted_at IS NULL)"))
+  @@index([published_at(sort: Desc), created_at(sort: Desc)], map: "marketplace_listings_public_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'PUBLISHED'::text))"))
+  @@index([submitted_at, created_at], map: "marketplace_listings_review_queue_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'PENDING_REVIEW'::text))"))
+  @@index([brand, model, registration_year, requested_price], map: "marketplace_listings_vehicle_search_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'PUBLISHED'::text))"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model marketplace_offers {
+  id                     String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  marketplace_listing_id String               @unique(map: "marketplace_offers_one_accepted_per_listing_idx", where: raw("((status)::text = 'ACCEPTED'::text)")) @db.Uuid
+  buyer_user_id          String               @db.Uuid
+  amount                 Decimal              @db.Decimal(14, 2)
+  currency_code          String               @default("MAD") @db.Char(3)
+  message                String?
+  status                 String               @default("PENDING") @db.VarChar(30)
+  submitted_at           DateTime             @default(now()) @db.Timestamptz(6)
+  responded_at           DateTime?            @db.Timestamptz(6)
+  cancelled_at           DateTime?            @db.Timestamptz(6)
+  created_at             DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime             @default(now()) @db.Timestamptz(6)
+  marketplace_deals      marketplace_deals?
+  users                  users                @relation(fields: [buyer_user_id], references: [id], onUpdate: NoAction, map: "marketplace_offers_buyer_fk")
+  marketplace_listings   marketplace_listings @relation(fields: [marketplace_listing_id], references: [id], onUpdate: NoAction, map: "marketplace_offers_listing_fk")
+
+  @@unique([marketplace_listing_id, buyer_user_id], map: "marketplace_offers_one_pending_per_buyer_idx", where: raw("((status)::text = 'PENDING'::text)"))
+  @@index([buyer_user_id, submitted_at(sort: Desc)], map: "marketplace_offers_buyer_idx")
+  @@index([marketplace_listing_id, submitted_at(sort: Desc)], map: "marketplace_offers_listing_idx")
+  @@index([marketplace_listing_id, submitted_at], map: "marketplace_offers_pending_idx", where: raw("((status)::text = 'PENDING'::text)"))
 }
