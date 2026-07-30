@@ -90,6 +90,9 @@ model users {
   updated_at                                             DateTime               @default(now()) @db.Timestamptz(6)
   deleted_at                                             DateTime?              @db.Timestamptz(6)
   regional_association_id                                String?                @db.Uuid
+  adherents_adherents_reviewed_by_user_idTousers         adherents[]            @relation("adherents_reviewed_by_user_idTousers")
+  adherents_adherents_submitted_by_user_idTousers        adherents[]            @relation("adherents_submitted_by_user_idTousers")
+  adherents_adherents_user_idTousers                     adherents?             @relation("adherents_user_idTousers")
   audit_logs                                             audit_logs[]
   contact_messages                                       contact_messages[]
   media_assets                                           media_assets[]
@@ -389,6 +392,7 @@ model regional_associations {
   map_is_visible          Boolean                   @default(true)
   latitude                Decimal?                  @db.Decimal(9, 6)
   longitude               Decimal?                  @db.Decimal(9, 6)
+  adherents               adherents[]
   association_leaders     association_leaders[]
   association_media_items association_media_items[]
   association_posts       association_posts[]
@@ -565,4 +569,44 @@ model videos {
   @@index([published_at(sort: Desc), created_at(sort: Desc)], map: "videos_public_visible_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'PUBLISHED'::text) AND (published_at IS NOT NULL))"))
   @@index([status, published_at(sort: Desc)], map: "videos_publication_idx", where: raw("(deleted_at IS NULL)"))
   @@index([scheduled_at], map: "videos_scheduled_publication_idx", where: raw("((deleted_at IS NULL) AND ((status)::text = 'DRAFT'::text) AND (scheduled_at IS NOT NULL))"))
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model adherents {
+  id                                          String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  regional_association_id                     String                @db.Uuid
+  user_id                                     String                @unique(map: "adherents_user_unique") @db.Uuid
+  display_name                                String                @db.VarChar(255)
+  legal_name                                  String?               @db.VarChar(255)
+  member_number                               String?               @unique(map: "adherents_member_number_unique", where: raw("((member_number IS NOT NULL) AND (deleted_at IS NULL))")) @db.VarChar(80)
+  identifier_type                             String?               @db.VarChar(40)
+  identifier_value                            String?               @db.VarChar(120)
+  address                                     String?
+  city                                        String?               @db.VarChar(180)
+  postal_code                                 String?               @db.VarChar(30)
+  notes                                       String?
+  status                                      String                @default("PENDING") @db.VarChar(30)
+  rejection_reason                            String?
+  submitted_by_user_id                        String                @db.Uuid
+  reviewed_by_user_id                         String?               @db.Uuid
+  submitted_at                                DateTime              @default(now()) @db.Timestamptz(6)
+  reviewed_at                                 DateTime?             @db.Timestamptz(6)
+  approved_at                                 DateTime?             @db.Timestamptz(6)
+  suspended_at                                DateTime?             @db.Timestamptz(6)
+  created_at                                  DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at                                  DateTime              @default(now()) @db.Timestamptz(6)
+  deleted_at                                  DateTime?             @db.Timestamptz(6)
+  regional_associations                       regional_associations @relation(fields: [regional_association_id], references: [id], onUpdate: NoAction, map: "adherents_association_fk")
+  users_adherents_reviewed_by_user_idTousers  users?                @relation("adherents_reviewed_by_user_idTousers", fields: [reviewed_by_user_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "adherents_reviewed_by_fk")
+  users_adherents_submitted_by_user_idTousers users                 @relation("adherents_submitted_by_user_idTousers", fields: [submitted_by_user_id], references: [id], onUpdate: NoAction, map: "adherents_submitted_by_fk")
+  users_adherents_user_idTousers              users                 @relation("adherents_user_idTousers", fields: [user_id], references: [id], onUpdate: NoAction, map: "adherents_user_fk")
+
+  @@unique([identifier_type, identifier_value], map: "adherents_identifier_unique", where: raw("((identifier_type IS NOT NULL) AND (identifier_value IS NOT NULL) AND (deleted_at IS NULL))"))
+  @@index([regional_association_id, status, created_at(sort: Desc)], map: "adherents_association_idx")
+  @@index([deleted_at])
+  @@index([reviewed_by_user_id], map: "adherents_reviewed_by_idx")
+  @@index([status, submitted_at(sort: Desc)], map: "adherents_status_idx")
+  @@index([submitted_by_user_id], map: "adherents_submitted_by_idx")
+  @@index([user_id], map: "adherents_user_idx")
 }

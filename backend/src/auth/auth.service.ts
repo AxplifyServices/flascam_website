@@ -448,13 +448,15 @@ export class AuthService {
             id,
           },
           select: {
-            id: true,
-            email: true,
-            first_name: true,
-            last_name: true,
-            is_active: true,
-            last_login_at: true,
-            roles: {
+id: true,
+email: true,
+first_name: true,
+last_name: true,
+is_active: true,
+last_login_at: true,
+regional_association_id: true,
+
+roles: {
               select: {
                 code: true,
                 name: true,
@@ -479,11 +481,16 @@ export class AuthService {
         user.first_name,
       lastName:
         user.last_name,
-      isActive:
-        user.is_active,
-      lastLoginAt:
-        user.last_login_at,
-      role: {
+isActive:
+  user.is_active,
+
+lastLoginAt:
+  user.last_login_at,
+
+regionalAssociationId:
+  user.regional_association_id,
+
+role: {
         code:
           user.roles.code,
         name:

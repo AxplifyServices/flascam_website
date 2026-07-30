@@ -26,6 +26,8 @@ import {
   ShieldCheck,
   X,
   UserRound,
+  UserRoundPlus,
+  UsersRound,
 } from 'lucide-react';
 
 import type {
@@ -43,15 +45,23 @@ import {
 
 type SessionUser = {
   email: string;
-  firstName: string | null;
-  lastName: string | null;
+
+  firstName:
+    string | null;
+
+  lastName:
+    string | null;
+
+  regionalAssociationId:
+    string | null;
 
   role: {
     code: string;
     name: string;
   };
 
-  permissions: string[];
+  permissions:
+    string[];
 };
 
 type AdminNavItem = {
@@ -64,11 +74,37 @@ type AdminNavItem = {
 };
 
 const navItems: AdminNavItem[] = [
-  {
-    label: 'Tableau de bord',
-    href: '/admin',
-    icon: LayoutDashboard,
-  },
+{
+  label:
+    'Tableau de bord',
+
+  href:
+    '/admin',
+
+  icon:
+    LayoutDashboard,
+
+  roles: [
+    'SUPER_ADMIN',
+    'FLASCAM_ADMIN',
+    'ASSOCIATION_ADMIN',
+  ],
+},
+
+{
+  label:
+    'Mon espace pro',
+
+  href:
+    '/admin/member-area',
+
+  icon:
+    UserRound,
+
+  roles: [
+    'ADHERENT',
+  ],
+},
 
   {
     label: 'Ma fiche',
@@ -80,6 +116,24 @@ const navItems: AdminNavItem[] = [
       'ASSOCIATION_ADMIN',
     ],
   },
+
+{
+  label:
+    'Mes adhérents',
+
+  href:
+    '/admin/my-adherents',
+
+  icon:
+    UserRoundPlus,
+
+  permission:
+    'association.adherents.read',
+
+  roles: [
+    'ASSOCIATION_ADMIN',
+  ],
+},  
 
   {
     label: 'Page d’accueil',
@@ -161,6 +215,24 @@ const navItems: AdminNavItem[] = [
     permission:
       'associations.read',
   },
+{
+  label:
+    'Adhérents',
+
+  href:
+    '/admin/adherents',
+
+  icon:
+    UsersRound,
+
+  permission:
+    'adherents.read',
+
+  roles: [
+    'SUPER_ADMIN',
+    'FLASCAM_ADMIN',
+  ],
+},  
 {
   label: 'Demandes reçues',
   href: '/admin/contact-messages',
@@ -350,6 +422,41 @@ export function AdminShell({
     router,
   ]);
 
+useEffect(() => {
+  if (
+    loading ||
+    !user ||
+    isLoginPage
+  ) {
+    return;
+  }
+
+  /*
+   * L’adhérent ne possède pour le moment
+   * aucun module fonctionnel.
+   *
+   * Même s’il saisit manuellement une autre
+   * URL du back-office, il est renvoyé vers
+   * son espace professionnel.
+   */
+  if (
+    user.role.code ===
+      'ADHERENT' &&
+    pathname !==
+      '/admin/member-area'
+  ) {
+    router.replace(
+      '/admin/member-area',
+    );
+  }
+}, [
+  isLoginPage,
+  loading,
+  pathname,
+  router,
+  user,
+]);  
+
   async function logout() {
     await apiFetch(
       '/auth/logout',
@@ -383,17 +490,20 @@ export function AdminShell({
 
   if (loading) {
 return (
-  <main
-    className="
-      fixed
-      inset-0
-      h-auto
-      w-full
-      overflow-hidden
-      bg-[#f3f9ff]
-      text-[var(--flascam-black)]
-    "
-  >
+<main
+  className="
+    fixed
+    inset-0
+    grid
+    min-h-dvh
+    w-full
+    place-items-center
+    overflow-hidden
+    bg-[#f3f9ff]
+    p-4
+    text-[var(--flascam-black)]
+  "
+>
         <div
           className="
             rounded-3xl

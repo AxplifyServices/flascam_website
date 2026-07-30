@@ -85,6 +85,10 @@ import {
   ScheduleModule,
 } from '@nestjs/schedule';
 
+import {
+  AdherentsModule,
+} from './adherents/adherents.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -112,6 +116,7 @@ import {
     HomepageHeroModule,
     NewsModule,
     VideosModule,
+    AdherentsModule,
   ],
   controllers: [
     AppController,
