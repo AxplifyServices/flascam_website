@@ -46,6 +46,10 @@ import {
   UpdateAdherentDto,
 } from './dto/update-adherent.dto';
 
+import {
+  SuspendAdherentDto,
+} from './dto/suspend-adherent.dto';
+
 @Controller('adherents')
 export class AdherentsController {
   constructor(
@@ -249,6 +253,40 @@ resubmit(
     request,
   );
 }  
+
+/*
+ * Une association peut suspendre uniquement
+ * un adhérent validé de son propre périmètre.
+ *
+ * La réactivation reste réservée à FLASCAM.
+ */
+@Patch(':id/association-suspend')
+@Roles(
+  'ASSOCIATION_ADMIN',
+)
+@Permissions(
+  'association.adherents.suspend',
+)
+suspendByAssociation(
+  @Param('id')
+  id: string,
+
+  @Body()
+  dto: SuspendAdherentDto,
+
+  @CurrentUser()
+  user: AuthUser,
+
+  @Req()
+  request: Request,
+) {
+  return this.adherentsService.suspendByAssociation(
+    id,
+    dto.reason,
+    user,
+    request,
+  );
+}
 
   /*
    * Validation, refus, suspension et réactivation :

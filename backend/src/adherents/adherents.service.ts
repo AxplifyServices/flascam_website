@@ -801,6 +801,184 @@ async resubmit(
   );
 }  
 
+async suspendByAssociation(
+  id: string,
+  reason: string,
+  user: AuthUser,
+  request: Request,
+) {
+  if (
+    user.role !==
+    'ASSOCIATION_ADMIN'
+  ) {
+    throw new ForbiddenException(
+      'Seule une association peut utiliser cette action.',
+    );
+  }
+
+  const cleanReason =
+    this.cleanOptionalText(
+      reason,
+    );
+
+  if (!cleanReason) {
+    throw new BadRequestException(
+      'Le motif de la suspension est obligatoire.',
+    );
+  }
+
+  /*
+   * getAccessibleAdherent applique déjà le périmètre :
+   * regional_association_id = user.regionalAssociationId.
+   *
+   * Une association ne peut donc jamais charger ou suspendre
+   * l’adhérent d’une autre association.
+   */
+  const adherent =
+    await this.getAccessibleAdherent(
+      id,
+      user,
+    );
+
+  if (
+    adherent.status !==
+    'APPROVED'
+  ) {
+    throw new BadRequestException(
+      'Seul un adhérent validé et actif peut être suspendu par son association.',
+    );
+  }
+
+  const now =
+    new Date();
+
+  const updated =
+    await this.prisma.$transaction(
+      async (
+        transaction,
+      ) => {
+        /*
+         * Le compte est désactivé immédiatement.
+         */
+        await transaction.users.update({
+          where: {
+            id:
+              adherent.user_id,
+          },
+
+          data: {
+            is_active:
+              false,
+          },
+        });
+
+        /*
+         * Toutes les sessions existantes sont révoquées.
+         */
+        await transaction.refresh_tokens.updateMany({
+          where: {
+            user_id:
+              adherent.user_id,
+
+            revoked_at:
+              null,
+          },
+
+          data: {
+            revoked_at:
+              now,
+          },
+        });
+
+        return transaction.adherents.update({
+          where: {
+            id,
+          },
+
+          data: {
+            status:
+              'SUSPENDED',
+
+            suspended_at:
+              now,
+
+            updated_at:
+              now,
+
+            /*
+             * On ne modifie volontairement pas :
+             * - approved_at
+             * - reviewed_at
+             * - reviewed_by_user_id
+             *
+             * Ces champs conservent la validation FLASCAM initiale.
+             */
+          },
+
+          include: {
+            regional_associations:
+              true,
+
+            users_adherents_user_idTousers: {
+              select: {
+                id: true,
+                email: true,
+                first_name: true,
+                last_name: true,
+                phone: true,
+                is_active: true,
+                last_login_at: true,
+                created_at: true,
+              },
+            },
+          },
+        });
+      },
+    );
+
+  await this.auditLogs.log({
+    userId:
+      user.id,
+
+    action:
+      'ADHERENT_SUSPENDED_BY_ASSOCIATION',
+
+    entityType:
+      'ADHERENT',
+
+    entityId:
+      id,
+
+    description:
+      'Un adhérent a été suspendu par son association.',
+
+    metadata: {
+      associationId:
+        updated.regional_association_id,
+
+      adherentUserId:
+        updated.user_id,
+
+      reason:
+        cleanReason,
+    },
+
+    ipAddress:
+      this.getIp(
+        request,
+      ),
+
+    userAgent:
+      request.get(
+        'user-agent',
+      ),
+  });
+
+  return this.formatAdherent(
+    updated,
+  );
+}
+
   async updateStatus(
     id: string,
     dto: UpdateAdherentStatusDto,

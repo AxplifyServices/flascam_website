@@ -331,3 +331,24 @@ export async function resubmitAdherent(
     },
   );
 }
+
+export async function suspendAssociationAdherent(
+  id: string,
+  reason: string,
+) {
+  return await authenticatedFetch<
+    Adherent
+  >(
+    `/adherents/${id}/association-suspend`,
+    {
+      method:
+        'PATCH',
+
+      body:
+        JSON.stringify({
+          reason:
+            reason.trim(),
+        }),
+    },
+  );
+}

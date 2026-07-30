@@ -29,12 +29,14 @@ import {
   UsersRound,
   X,
   XCircle,
+  PauseCircle,
 } from 'lucide-react';
 
 import {
   createAdherentPayload,
   createAssociationAdherent,
   getAssociationAdherents,
+  suspendAssociationAdherent,
 } from '@/lib/adherents-api';
 
 import type {
@@ -362,9 +364,15 @@ children:
 
 function AdherentCard({
   adherent,
+  onSuspend,
 }: {
   adherent:
     Adherent;
+
+  onSuspend:
+    (
+      adherent: Adherent,
+    ) => void;
 }) {
   const classes =
     getStatusClasses(
@@ -570,44 +578,95 @@ function AdherentCard({
           </div>
         </div>
 
-        <div
-          className="
-            shrink-0
-            rounded-2xl
-            bg-[#f8fbff]
-            px-4
-            py-3
-            text-left
-            lg:text-right
-          "
-        >
-          <p
-            className="
-              text-[0.7rem]
-              font-extrabold
-              uppercase
-              tracking-[0.14em]
-              text-slate-500
-            "
-          >
-            Demande envoyée
-          </p>
+<div
+  className="
+    flex
+    shrink-0
+    flex-col
+    gap-3
+    lg:items-end
+  "
+>
+  <div
+    className="
+      rounded-2xl
+      bg-[#f8fbff]
+      px-4
+      py-3
+      text-left
+      lg:text-right
+    "
+  >
+    <p
+      className="
+        text-[0.7rem]
+        font-extrabold
+        uppercase
+        tracking-[0.14em]
+        text-slate-500
+      "
+    >
+      Demande envoyée
+    </p>
 
-          <p
-            className="
-              mt-1
-              text-sm
-              font-bold
-              text-slate-800
-            "
-          >
-            {
-              formatDate(
-                adherent.submittedAt,
-              )
-            }
-          </p>
-        </div>
+    <p
+      className="
+        mt-1
+        text-sm
+        font-bold
+        text-slate-800
+      "
+    >
+      {
+        formatDate(
+          adherent.submittedAt,
+        )
+      }
+    </p>
+  </div>
+
+  {adherent.status ===
+    'APPROVED' && (
+    <button
+      type="button"
+      onClick={() =>
+        onSuspend(
+          adherent,
+        )
+      }
+      className="
+        inline-flex
+        min-h-10
+        w-full
+        items-center
+        justify-center
+        gap-2
+        rounded-xl
+        border
+        border-slate-300
+        bg-white
+        px-4
+        text-sm
+        font-extrabold
+        text-slate-700
+        transition
+        hover:border-red-300
+        hover:bg-red-50
+        hover:text-red-700
+        focus-visible:outline-none
+        focus-visible:ring-4
+        focus-visible:ring-red-100
+        lg:w-auto
+      "
+    >
+      <PauseCircle
+        size={17}
+      />
+
+      Suspendre
+    </button>
+  )}
+</div>
       </div>
 
       <div
@@ -905,10 +964,11 @@ function AdherentCard({
                 text-slate-800
               "
             >
-              Ce compte a été suspendu
-              par FLASCAM et ne peut
-              actuellement plus se
-              connecter.
+Ce compte est suspendu et
+ne peut actuellement plus
+se connecter. La
+réactivation doit être
+effectuée par FLASCAM.
             </p>
           </div>
         </div>
@@ -1003,6 +1063,22 @@ export default function MyAdherentsPage() {
     null,
   );
 
+const [
+  suspensionTarget,
+  setSuspensionTarget,
+] = useState<
+  Adherent | null
+>(
+  null,
+);
+
+const [
+  suspensionReason,
+  setSuspensionReason,
+] = useState(
+  '',
+);  
+
   const loadAdherents =
     useCallback(
       async () => {
@@ -1045,53 +1121,77 @@ export default function MyAdherentsPage() {
     loadAdherents,
   ]);
 
-  useEffect(() => {
+useEffect(() => {
+  if (
+    !formOpen &&
+    !suspensionTarget
+  ) {
+    return;
+  }
+
+  const previousOverflow =
+    document.body.style
+      .overflow;
+
+  document.body.style.overflow =
+    'hidden';
+
+  function handleKeyDown(
+    event:
+      KeyboardEvent,
+  ) {
     if (
-      !formOpen
+      event.key !==
+        'Escape' ||
+      submitting
     ) {
       return;
     }
 
-    const previousOverflow =
-      document.body.style
-        .overflow;
-
-    document.body.style.overflow =
-      'hidden';
-
-    function handleKeyDown(
-      event:
-        KeyboardEvent,
+    if (
+      suspensionTarget
     ) {
-      if (
-        event.key ===
-        'Escape' &&
-        !submitting
-      ) {
-        setFormOpen(
-          false,
-        );
-      }
+      setSuspensionTarget(
+        null,
+      );
+
+      setSuspensionReason(
+        '',
+      );
+
+      setError(
+        null,
+      );
+
+      return;
     }
 
-    window.addEventListener(
+    setFormOpen(
+      false,
+    );
+  }
+
+  window.addEventListener(
+    'keydown',
+    handleKeyDown,
+  );
+
+  return () => {
+    document.body.style.overflow =
+      previousOverflow;
+
+    window.removeEventListener(
       'keydown',
       handleKeyDown,
     );
+  };
+}, [
+  formOpen,
+  submitting,
+  suspensionTarget,
+]);
 
-    return () => {
-      document.body.style.overflow =
-        previousOverflow;
 
-      window.removeEventListener(
-        'keydown',
-        handleKeyDown,
-      );
-    };
-  }, [
-    formOpen,
-    submitting,
-  ]);
 
   const statistics =
     useMemo(
@@ -1267,6 +1367,121 @@ export default function MyAdherentsPage() {
       false,
     );
   }
+
+function openSuspensionDialog(
+  adherent: Adherent,
+) {
+  setError(
+    null,
+  );
+
+  setSuccess(
+    null,
+  );
+
+  setSuspensionReason(
+    '',
+  );
+
+  setSuspensionTarget(
+    adherent,
+  );
+}
+
+function closeSuspensionDialog() {
+  if (
+    submitting
+  ) {
+    return;
+  }
+
+  setSuspensionTarget(
+    null,
+  );
+
+  setSuspensionReason(
+    '',
+  );
+
+  setError(
+    null,
+  );
+}
+
+async function handleSuspendAdherent() {
+  if (
+    !suspensionTarget
+  ) {
+    return;
+  }
+
+  const cleanReason =
+    suspensionReason.trim();
+
+  if (!cleanReason) {
+    setError(
+      'Le motif de la suspension est obligatoire.',
+    );
+
+    return;
+  }
+
+  setSubmitting(
+    true,
+  );
+
+  setError(
+    null,
+  );
+
+  try {
+    const updated =
+      await suspendAssociationAdherent(
+        suspensionTarget.id,
+        cleanReason,
+      );
+
+    setAdherents(
+      (
+        current,
+      ) =>
+        current.map(
+          (
+            adherent,
+          ) =>
+            adherent.id ===
+            updated.id
+              ? updated
+              : adherent,
+        ),
+    );
+
+    setSuspensionTarget(
+      null,
+    );
+
+    setSuspensionReason(
+      '',
+    );
+
+    setSuccess(
+      'L’adhérent a été suspendu. Son compte et ses sessions ont été désactivés.',
+    );
+  } catch (
+    caughtError
+  ) {
+    setError(
+      caughtError instanceof
+      Error
+        ? caughtError.message
+        : 'Impossible de suspendre cet adhérent.',
+    );
+  } finally {
+    setSubmitting(
+      false,
+    );
+  }
+}  
 
   function validateForm() {
     if (
@@ -2263,19 +2478,332 @@ className="
               (
                 adherent,
               ) => (
-                <AdherentCard
-                  key={
-                    adherent.id
-                  }
-                  adherent={
-                    adherent
-                  }
-                />
+<AdherentCard
+  key={
+    adherent.id
+  }
+  adherent={
+    adherent
+  }
+  onSuspend={
+    openSuspensionDialog
+  }
+/>
               ),
             )}
           </div>
         )}
       </section>
+
+{suspensionTarget && (
+  <div
+    className="
+      fixed
+      inset-0
+      z-[110]
+      grid
+      place-items-center
+      bg-slate-950/55
+      p-4
+      backdrop-blur-sm
+    "
+    role="presentation"
+    onMouseDown={(event) => {
+      if (
+        event.target ===
+          event.currentTarget &&
+        !submitting
+      ) {
+        closeSuspensionDialog();
+      }
+    }}
+  >
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="suspend-adherent-title"
+      className="
+        w-full
+        max-w-lg
+        rounded-[2rem]
+        bg-white
+        p-6
+        shadow-2xl
+        sm:p-7
+      "
+    >
+      <div
+        className="
+          flex
+          items-start
+          justify-between
+          gap-4
+        "
+      >
+        <div>
+          <p
+            className="
+              text-xs
+              font-extrabold
+              uppercase
+              tracking-[0.16em]
+              text-red-700
+            "
+          >
+            Suspension du compte
+          </p>
+
+          <h2
+            id="suspend-adherent-title"
+            className="
+              mt-1
+              text-2xl
+              font-extrabold
+              tracking-[-0.03em]
+              text-slate-950
+            "
+          >
+            Suspendre cet adhérent ?
+          </h2>
+        </div>
+
+        <button
+          type="button"
+          onClick={
+            closeSuspensionDialog
+          }
+          disabled={
+            submitting
+          }
+          className="
+            grid
+            size-10
+            shrink-0
+            place-items-center
+            rounded-full
+            border
+            border-[var(--flascam-border)]
+            text-slate-600
+            hover:border-slate-400
+            hover:text-slate-950
+            disabled:opacity-50
+          "
+          aria-label="Fermer"
+        >
+          <X size={19} />
+        </button>
+      </div>
+
+      <div
+        className="
+          mt-5
+          rounded-2xl
+          border
+          border-red-200
+          bg-red-50
+          p-4
+        "
+      >
+        <p
+          className="
+            text-sm
+            font-extrabold
+            text-red-950
+          "
+        >
+          {
+            suspensionTarget.displayName
+          }
+        </p>
+
+        <p
+          className="
+            mt-2
+            text-sm
+            leading-6
+            text-red-900
+          "
+        >
+          Son compte sera désactivé
+          immédiatement et toutes ses
+          sessions ouvertes seront
+          fermées. La réactivation
+          devra être effectuée par
+          FLASCAM.
+        </p>
+      </div>
+
+      {error && (
+        <div
+          className="
+            mt-4
+            flex
+            items-start
+            gap-3
+            rounded-2xl
+            border
+            border-red-200
+            bg-red-50
+            p-4
+            text-sm
+            text-red-900
+          "
+        >
+          <AlertCircle
+            size={19}
+            className="
+              mt-0.5
+              shrink-0
+            "
+          />
+
+          <p>{error}</p>
+        </div>
+      )}
+
+      <label
+        htmlFor="suspension-reason"
+        className="
+          mt-5
+          block
+          text-sm
+          font-extrabold
+          text-slate-800
+        "
+      >
+        Motif de la suspension
+        <span
+          className="
+            ml-1
+            text-red-600
+          "
+        >
+          *
+        </span>
+      </label>
+
+      <textarea
+        id="suspension-reason"
+        value={
+          suspensionReason
+        }
+        onChange={(event) =>
+          setSuspensionReason(
+            event.target.value,
+          )
+        }
+        rows={4}
+        maxLength={2000}
+        placeholder="Ex. cotisation échue, cessation temporaire d’activité…"
+        className="
+          mt-2
+          min-h-28
+          w-full
+          resize-y
+          rounded-2xl
+          border
+          border-[var(--flascam-border)]
+          bg-white
+          px-4
+          py-3
+          text-sm
+          font-semibold
+          leading-6
+          text-slate-900
+          outline-none
+          transition
+          placeholder:text-slate-400
+          focus:border-red-500
+          focus:ring-4
+          focus:ring-red-100
+        "
+      />
+
+      <div
+        className="
+          mt-6
+          flex
+          flex-col-reverse
+          gap-3
+          sm:flex-row
+          sm:justify-end
+        "
+      >
+        <button
+          type="button"
+          onClick={
+            closeSuspensionDialog
+          }
+          disabled={
+            submitting
+          }
+          className="
+            min-h-11
+            rounded-xl
+            border
+            border-[var(--flascam-border)]
+            bg-white
+            px-5
+            text-sm
+            font-extrabold
+            text-slate-700
+            disabled:opacity-50
+          "
+        >
+          Annuler
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            void handleSuspendAdherent()
+          }
+          disabled={
+            submitting
+          }
+          className="
+            inline-flex
+            min-h-11
+            items-center
+            justify-center
+            gap-2
+            rounded-xl
+            bg-red-700
+            px-5
+            text-sm
+            font-extrabold
+            text-white
+            transition
+            hover:bg-red-800
+            disabled:cursor-not-allowed
+            disabled:opacity-60
+          "
+        >
+          {submitting ? (
+            <>
+              <Loader2
+                size={18}
+                className="
+                  animate-spin
+                "
+              />
+
+              Suspension…
+            </>
+          ) : (
+            <>
+              <PauseCircle
+                size={18}
+              />
+
+              Confirmer la suspension
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  </div>
+)}      
 
       {formOpen && (
         <div
