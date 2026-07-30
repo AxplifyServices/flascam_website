@@ -650,7 +650,7 @@ model marketplace_deals {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model marketplace_listing_media {
   id                     String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  marketplace_listing_id String               @unique(map: "marketplace_listing_media_single_video_idx", where: raw("((media_kind)::text = 'VIDEO'::text)")) @db.Uuid
+  marketplace_listing_id String               @db.Uuid
   media_asset_id         String               @db.Uuid
   media_kind             String               @db.VarChar(20)
   display_order          Int                  @default(0)
@@ -663,62 +663,63 @@ model marketplace_listing_media {
 
   @@unique([marketplace_listing_id, media_asset_id], map: "marketplace_listing_media_unique")
   @@index([marketplace_listing_id, display_order, created_at], map: "marketplace_listing_media_order_idx")
+  @@index([marketplace_listing_id, media_kind], map: "marketplace_listing_media_video_idx", where: raw("((media_kind)::text = 'VIDEO'::text)"))
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model marketplace_listings {
-  id                                                    String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  reference                                             String                     @unique(map: "marketplace_listings_reference_unique") @db.VarChar(30)
-  slug                                                  String                     @unique(map: "marketplace_listings_slug_unique") @db.VarChar(180)
-  owner_user_id                                         String                     @db.Uuid
-  seller_type                                           String                     @db.VarChar(30)
-  regional_association_id                               String?                    @db.Uuid
-  adherent_id                                           String?                    @db.Uuid
-  status                                                String                     @default("DRAFT") @db.VarChar(30)
-  title                                                 String                     @db.VarChar(255)
+  id                                                    String                      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reference                                             String                      @unique(map: "marketplace_listings_reference_unique") @db.VarChar(30)
+  slug                                                  String                      @unique(map: "marketplace_listings_slug_unique") @db.VarChar(180)
+  owner_user_id                                         String                      @db.Uuid
+  seller_type                                           String                      @db.VarChar(30)
+  regional_association_id                               String?                     @db.Uuid
+  adherent_id                                           String?                     @db.Uuid
+  status                                                String                      @default("DRAFT") @db.VarChar(30)
+  title                                                 String                      @db.VarChar(255)
   description                                           String?
-  vehicle_type                                          String                     @default("CAR") @db.VarChar(50)
-  brand                                                 String                     @db.VarChar(120)
-  model                                                 String                     @db.VarChar(160)
-  version                                               String?                    @db.VarChar(160)
-  registration_year                                     Int                        @db.SmallInt
-  first_registration_date                               DateTime?                  @db.Date
+  vehicle_type                                          String                      @default("CAR") @db.VarChar(50)
+  brand                                                 String                      @db.VarChar(120)
+  model                                                 String                      @db.VarChar(160)
+  version                                               String?                     @db.VarChar(160)
+  registration_year                                     Int                         @db.SmallInt
+  first_registration_date                               DateTime?                   @db.Date
   mileage_km                                            Int
-  fuel_type                                             String                     @db.VarChar(40)
-  transmission                                          String                     @db.VarChar(40)
-  fiscal_power                                          Int?                       @db.SmallInt
-  engine_power_hp                                       Int?                       @db.SmallInt
+  fuel_type                                             String                      @db.VarChar(40)
+  transmission                                          String                      @db.VarChar(40)
+  fiscal_power                                          Int?                        @db.SmallInt
+  engine_power_hp                                       Int?                        @db.SmallInt
   engine_capacity_cc                                    Int?
-  body_type                                             String?                    @db.VarChar(60)
-  exterior_color                                        String?                    @db.VarChar(80)
-  interior_color                                        String?                    @db.VarChar(80)
-  doors_count                                           Int?                       @db.SmallInt
-  seats_count                                           Int?                       @db.SmallInt
-  registration_city                                     String?                    @db.VarChar(180)
-  requested_price                                       Decimal                    @db.Decimal(14, 2)
-  currency_code                                         String                     @default("MAD") @db.Char(3)
-  duration_days                                         Int                        @db.SmallInt
-  submitted_at                                          DateTime?                  @db.Timestamptz(6)
-  reviewed_at                                           DateTime?                  @db.Timestamptz(6)
-  reviewed_by_user_id                                   String?                    @db.Uuid
+  body_type                                             String?                     @db.VarChar(60)
+  exterior_color                                        String?                     @db.VarChar(80)
+  interior_color                                        String?                     @db.VarChar(80)
+  doors_count                                           Int?                        @db.SmallInt
+  seats_count                                           Int?                        @db.SmallInt
+  registration_city                                     String?                     @db.VarChar(180)
+  requested_price                                       Decimal                     @db.Decimal(14, 2)
+  currency_code                                         String                      @default("MAD") @db.Char(3)
+  duration_days                                         Int                         @db.SmallInt
+  submitted_at                                          DateTime?                   @db.Timestamptz(6)
+  reviewed_at                                           DateTime?                   @db.Timestamptz(6)
+  reviewed_by_user_id                                   String?                     @db.Uuid
   rejection_reason                                      String?
-  published_at                                          DateTime?                  @db.Timestamptz(6)
-  expires_at                                            DateTime?                  @db.Timestamptz(6)
-  sold_at                                               DateTime?                  @db.Timestamptz(6)
-  withdrawn_at                                          DateTime?                  @db.Timestamptz(6)
-  seo_title                                             String?                    @db.VarChar(255)
-  seo_description                                       String?                    @db.VarChar(320)
-  created_at                                            DateTime                   @default(now()) @db.Timestamptz(6)
-  updated_at                                            DateTime                   @default(now()) @db.Timestamptz(6)
-  deleted_at                                            DateTime?                  @db.Timestamptz(6)
+  published_at                                          DateTime?                   @db.Timestamptz(6)
+  expires_at                                            DateTime?                   @db.Timestamptz(6)
+  sold_at                                               DateTime?                   @db.Timestamptz(6)
+  withdrawn_at                                          DateTime?                   @db.Timestamptz(6)
+  seo_title                                             String?                     @db.VarChar(255)
+  seo_description                                       String?                     @db.VarChar(320)
+  created_at                                            DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at                                            DateTime                    @default(now()) @db.Timestamptz(6)
+  deleted_at                                            DateTime?                   @db.Timestamptz(6)
   marketplace_deals                                     marketplace_deals?
-  marketplace_listing_media                             marketplace_listing_media?
-  adherents                                             adherents?                 @relation(fields: [adherent_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "marketplace_listings_adherent_fk")
-  regional_associations                                 regional_associations?     @relation(fields: [regional_association_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "marketplace_listings_association_fk")
-  users_marketplace_listings_owner_user_idTousers       users                      @relation("marketplace_listings_owner_user_idTousers", fields: [owner_user_id], references: [id], onUpdate: NoAction, map: "marketplace_listings_owner_fk")
-  users_marketplace_listings_reviewed_by_user_idTousers users?                     @relation("marketplace_listings_reviewed_by_user_idTousers", fields: [reviewed_by_user_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "marketplace_listings_reviewed_by_fk")
-  marketplace_offers                                    marketplace_offers?
+  marketplace_listing_media                             marketplace_listing_media[]
+  adherents                                             adherents?                  @relation(fields: [adherent_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "marketplace_listings_adherent_fk")
+  regional_associations                                 regional_associations?      @relation(fields: [regional_association_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "marketplace_listings_association_fk")
+  users_marketplace_listings_owner_user_idTousers       users                       @relation("marketplace_listings_owner_user_idTousers", fields: [owner_user_id], references: [id], onUpdate: NoAction, map: "marketplace_listings_owner_fk")
+  users_marketplace_listings_reviewed_by_user_idTousers users?                      @relation("marketplace_listings_reviewed_by_user_idTousers", fields: [reviewed_by_user_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "marketplace_listings_reviewed_by_fk")
+  marketplace_offers                                    marketplace_offers[]
 
   @@index([adherent_id, updated_at(sort: Desc)], map: "marketplace_listings_adherent_idx", where: raw("((deleted_at IS NULL) AND (adherent_id IS NOT NULL))"))
   @@index([regional_association_id, updated_at(sort: Desc)], map: "marketplace_listings_association_idx", where: raw("((deleted_at IS NULL) AND (regional_association_id IS NOT NULL))"))
@@ -733,7 +734,7 @@ model marketplace_listings {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model marketplace_offers {
   id                     String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  marketplace_listing_id String               @unique(map: "marketplace_offers_one_accepted_per_listing_idx", where: raw("((status)::text = 'ACCEPTED'::text)")) @db.Uuid
+  marketplace_listing_id String               @db.Uuid
   buyer_user_id          String               @db.Uuid
   amount                 Decimal              @db.Decimal(14, 2)
   currency_code          String               @default("MAD") @db.Char(3)
@@ -748,8 +749,9 @@ model marketplace_offers {
   users                  users                @relation(fields: [buyer_user_id], references: [id], onUpdate: NoAction, map: "marketplace_offers_buyer_fk")
   marketplace_listings   marketplace_listings @relation(fields: [marketplace_listing_id], references: [id], onUpdate: NoAction, map: "marketplace_offers_listing_fk")
 
-  @@unique([marketplace_listing_id, buyer_user_id], map: "marketplace_offers_one_pending_per_buyer_idx", where: raw("((status)::text = 'PENDING'::text)"))
   @@index([buyer_user_id, submitted_at(sort: Desc)], map: "marketplace_offers_buyer_idx")
   @@index([marketplace_listing_id, submitted_at(sort: Desc)], map: "marketplace_offers_listing_idx")
   @@index([marketplace_listing_id, submitted_at], map: "marketplace_offers_pending_idx", where: raw("((status)::text = 'PENDING'::text)"))
+  @@index([marketplace_listing_id, buyer_user_id, status], map: "marketplace_offers_buyer_listing_status_idx")
+  @@index([marketplace_listing_id, status], map: "marketplace_offers_listing_status_idx")
 }
