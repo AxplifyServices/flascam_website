@@ -3374,27 +3374,27 @@ onClick={() =>
               disabled={
                 isBusy
               }
-              className="
-                mt-5
-                inline-flex
-                min-h-12
-                w-full
-                items-center
-                justify-center
-                gap-2
-                rounded-2xl
-                bg-[var(--flascam-terracotta)]
-                px-5
-                text-sm
-                font-black
-                text-white
-                shadow-[0_14px_35px_rgba(184,91,63,0.22)]
-                transition
-                hover:-translate-y-0.5
-                hover:brightness-95
-                disabled:cursor-not-allowed
-                disabled:opacity-50
-              "
+className="
+  mt-5
+  inline-flex
+  min-h-12
+  w-full
+  items-center
+  justify-center
+  gap-2
+  rounded-2xl
+  bg-[var(--flascam-blue)]
+  px-5
+  text-sm
+  font-black
+  !text-white
+  shadow-[0_14px_35px_rgba(7,53,93,0.22)]
+  transition
+  hover:-translate-y-0.5
+  hover:bg-[#0a487b]
+  disabled:cursor-not-allowed
+  disabled:opacity-50
+"
             >
               {submitting ? (
                 <LoaderCircle

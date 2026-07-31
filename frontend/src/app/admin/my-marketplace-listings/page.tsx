@@ -531,24 +531,24 @@ export default function MyMarketplaceListingsPage() {
 
         <Link
           href="/admin/my-marketplace-listings/new"
-          className="
-            inline-flex
-            min-h-12
-            items-center
-            justify-center
-            gap-2
-            rounded-2xl
-            bg-[var(--flascam-terracotta)]
-            px-5
-            py-3
-            text-sm
-            font-bold
-            text-white
-            shadow-[0_14px_35px_rgba(184,91,63,0.22)]
-            transition
-            hover:-translate-y-0.5
-            hover:brightness-95
-          "
+className="
+  inline-flex
+  min-h-12
+  items-center
+  justify-center
+  gap-2
+  rounded-2xl
+  bg-[var(--flascam-blue)]
+  px-5
+  py-3
+  text-sm
+  font-bold
+  !text-white
+  shadow-[0_14px_35px_rgba(7,53,93,0.22)]
+  transition
+  hover:-translate-y-0.5
+  hover:bg-[#0a487b]
+"
         >
           <Plus
             size={19}

@@ -25,6 +25,7 @@ import {
   Settings,
   ShieldCheck,
   X,
+  Mail,
   UserRound,
   UserRoundPlus,
   UsersRound,
@@ -152,7 +153,7 @@ const navItems: AdminNavItem[] = [
 
 {
   label:
-    'Mes offres envoyées',
+    'Offres émises',
 
   href:
     '/admin/marketplace-offers/sent',
@@ -319,45 +320,21 @@ const navItems: AdminNavItem[] = [
   ],
 },  
 {
-  label: 'Demandes reçues',
-  href: '/admin/contact-messages',
-  icon: Inbox,
+  label:
+    'Demandes de contact',
+
+  href:
+    '/admin/contact-messages',
+
+  icon:
+    Mail,
+
   roles: [
     'SUPER_ADMIN',
     'FLASCAM_ADMIN',
     'ASSOCIATION_ADMIN',
   ],
 },
-  {
-    label: 'Utilisateurs & rôles',
-    href: '/admin/users',
-    icon: ShieldCheck,
-    roles: [
-      'SUPER_ADMIN',
-      'FLASCAM_ADMIN',
-    ],
-    disabled: true,
-  },
-  {
-    label: 'Statistiques',
-    href: '/admin/statistics',
-    icon: BarChart3,
-    roles: [
-      'SUPER_ADMIN',
-      'FLASCAM_ADMIN',
-    ],
-    disabled: true,
-  },
-  {
-    label: 'Paramètres',
-    href: '/admin/settings',
-    icon: Settings,
-    roles: [
-      'SUPER_ADMIN',
-      'FLASCAM_ADMIN',
-    ],
-    disabled: true,
-  },
 ];
 
 export function AdminShell({

@@ -9,6 +9,15 @@
   --flascam-accent-dark: #a95235;
   --flascam-accent-light: #f8ede8;
 
+  /*
+   * Alias explicites utilisés dans les composants marketplace.
+   * Cela évite qu’une classe comme
+   * bg-[var(--flascam-terracotta)] soit ignorée par le navigateur.
+   */
+  --flascam-terracotta: var(--flascam-accent);
+  --flascam-terracotta-dark: var(--flascam-accent-dark);
+  --flascam-terracotta-light: var(--flascam-accent-light);
+
   --flascam-black: #101820;
   --flascam-slate: #536273;
   --flascam-border: #dbe5ef;

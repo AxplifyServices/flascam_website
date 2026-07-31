@@ -860,34 +860,6 @@ export default async function MarketplaceListingPage({
                       sont révélées qu’après acceptation.
                     </p>
                   </div>
-
-                  <div
-                    className="
-                      flex
-                      items-start
-                      gap-3
-                    "
-                  >
-                    <CheckCircle2
-                      size={20}
-                      className="
-                        mt-0.5
-                        shrink-0
-                        text-[var(--flascam-terracotta)]
-                      "
-                    />
-
-                    <p
-                      className="
-                        text-sm
-                        leading-6
-                        text-slate-600
-                      "
-                    >
-                      Une seule offre peut être acceptée pour ce
-                      véhicule.
-                    </p>
-                  </div>
                 </div>
               </section>
 

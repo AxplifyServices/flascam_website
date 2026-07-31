@@ -410,10 +410,11 @@ export function MarketplaceOfferPanel({
       ) : !user ? (
         <>
           <Link
-            href={
-              loginHref
-            }
+            href={loginHref}
             className="
+              group
+              relative
+              isolate
               mt-6
               inline-flex
               min-h-12
@@ -421,21 +422,54 @@ export function MarketplaceOfferPanel({
               items-center
               justify-center
               gap-2
+              overflow-hidden
               rounded-2xl
               bg-[var(--flascam-terracotta)]
               px-5
+              text-center
               text-sm
               font-black
-              text-white
-              transition
-              hover:brightness-95
+              !text-white
+              shadow-[0_14px_32px_rgba(201,111,74,0.32)]
+              transition-all
+              duration-300
+              after:pointer-events-none
+              after:absolute
+              after:inset-y-0
+              after:-left-1/3
+              after:w-1/4
+              after:-skew-x-12
+              after:bg-white/30
+              after:blur-sm
+              after:transition-transform
+              after:duration-700
+              hover:-translate-y-0.5
+              hover:bg-[var(--flascam-terracotta-dark)]
+              hover:shadow-[0_18px_38px_rgba(201,111,74,0.4)]
+              hover:after:translate-x-[650%]
+              active:translate-y-0
+              active:scale-[0.98]
+              focus-visible:outline-none
+              focus-visible:ring-4
+              focus-visible:ring-white/30
             "
           >
             <LockKeyhole
               size={18}
+              aria-hidden="true"
+              className="
+                relative
+                z-10
+                shrink-0
+                transition-transform
+                duration-300
+                group-hover:scale-110
+              "
             />
 
-            Se connecter pour faire une offre
+            <span className="relative z-10">
+              Se connecter pour faire une offre
+            </span>
           </Link>
 
           <p
@@ -452,8 +486,7 @@ export function MarketplaceOfferPanel({
           </p>
         </>
       ) : (
-        <form
-          onSubmit={
+        <form          onSubmit={
             handleSubmit
           }
           className="
@@ -691,42 +724,81 @@ export function MarketplaceOfferPanel({
 
           <button
             type="submit"
-            disabled={
-              submitting
-            }
+            disabled={submitting}
             className="
+              group
+              relative
+              isolate
               inline-flex
               min-h-12
               w-full
               items-center
               justify-center
               gap-2
+              overflow-hidden
               rounded-2xl
               bg-[var(--flascam-terracotta)]
               px-5
               text-sm
               font-black
-              text-white
-              transition
-              hover:brightness-95
+              !text-white
+              shadow-[0_14px_32px_rgba(201,111,74,0.32)]
+              transition-all
+              duration-300
+              after:pointer-events-none
+              after:absolute
+              after:inset-y-0
+              after:-left-1/3
+              after:w-1/4
+              after:-skew-x-12
+              after:bg-white/30
+              after:blur-sm
+              after:transition-transform
+              after:duration-700
+              hover:-translate-y-0.5
+              hover:bg-[var(--flascam-terracotta-dark)]
+              hover:shadow-[0_18px_38px_rgba(201,111,74,0.4)]
+              hover:after:translate-x-[650%]
+              active:translate-y-0
+              active:scale-[0.98]
               disabled:cursor-not-allowed
+              disabled:translate-y-0
               disabled:opacity-60
+              disabled:shadow-none
             "
           >
             {submitting ? (
               <LoaderCircle
                 size={18}
-                className="animate-spin"
+                aria-hidden="true"
+                className="
+                  relative
+                  z-10
+                  shrink-0
+                  animate-spin
+                "
               />
             ) : (
               <Send
                 size={18}
+                aria-hidden="true"
+                className="
+                  relative
+                  z-10
+                  shrink-0
+                  transition-transform
+                  duration-300
+                  group-hover:translate-x-0.5
+                  group-hover:-translate-y-0.5
+                "
               />
             )}
 
-            {submitting
-              ? 'Envoi de l’offre…'
-              : 'Envoyer mon offre'}
+            <span className="relative z-10">
+              {submitting
+                ? 'Envoi de l’offre…'
+                : 'Envoyer mon offre'}
+            </span>
           </button>
 
           <p

@@ -137,25 +137,6 @@ export function MarketplaceListingCard({
         <span
           className="
             absolute
-            left-4
-            top-4
-            rounded-full
-            bg-white/95
-            px-3
-            py-1.5
-            text-xs
-            font-black
-            text-[var(--flascam-blue)]
-            shadow-sm
-            backdrop-blur
-          "
-        >
-          Vente anonyme
-        </span>
-
-        <span
-          className="
-            absolute
             bottom-4
             right-4
             inline-flex
@@ -167,7 +148,7 @@ export function MarketplaceListingCard({
             py-1.5
             text-xs
             font-bold
-            text-white
+            !text-white
             backdrop-blur
           "
         >
@@ -418,7 +399,7 @@ export function MarketplaceListingCard({
             px-5
             text-sm
             font-black
-            text-white
+            !text-white
             transition
             hover:brightness-95
           "

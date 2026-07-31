@@ -1329,7 +1329,7 @@ export default function AdminMarketplaceListingsPage() {
                           px-4
                           text-sm
                           font-bold
-                          text-white
+                          !text-white
                           transition
                           hover:brightness-95
                         "
