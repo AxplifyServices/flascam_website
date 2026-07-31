@@ -45,6 +45,10 @@ import {
 } from './dto/non-voting-adherents-query.dto';
 
 import {
+  RegisterNonVotingAdherentDto,
+} from './dto/register-non-voting-adherent.dto';
+
+import {
   RejectWafacashDto,
 } from './dto/reject-wafacash.dto';
 
@@ -137,6 +141,39 @@ export class NonVotingAdherentsService {
   /**
    * Liste paginée réservée à FLASCAM.
    */
+getRegistrationConfig() {
+  return {
+    depositAmount:
+      this.getDepositAmount(),
+
+    currency:
+      'MAD',
+
+    paymentMethods: [
+      {
+        code:
+          'CARD',
+
+        label:
+          'Carte bancaire',
+
+        requiresManualValidation:
+          false,
+      },
+      {
+        code:
+          'WAFACASH',
+
+        label:
+          'Wafacash',
+
+        requiresManualValidation:
+          true,
+      },
+    ],
+  };
+}
+
   async findAll(
     query:
       NonVotingAdherentsQueryDto,
@@ -345,6 +382,336 @@ export class NonVotingAdherentsService {
     );
   }
 
+async register(
+  dto:
+    RegisterNonVotingAdherentDto,
+
+  request:
+    Request,
+) {
+  const email =
+    this.normalizeEmail(
+      dto.email,
+    );
+
+  const firstName =
+    this.cleanRequiredText(
+      dto.firstName,
+      'Le prénom',
+    );
+
+  const lastName =
+    this.cleanRequiredText(
+      dto.lastName,
+      'Le nom',
+    );
+
+  const phone =
+    this.cleanRequiredText(
+      dto.phone,
+      'Le numéro de téléphone',
+    );
+
+  const city =
+    this.cleanRequiredText(
+      dto.city,
+      'La ville',
+    );
+
+  const password =
+    this.cleanRequiredText(
+      dto.password,
+      'Le mot de passe',
+    );
+
+  const paymentMethod =
+    this.normalizePaymentMethod(
+      dto.depositPaymentMethod,
+    );
+
+  const wafacashReference =
+    this.cleanOptionalText(
+      dto.wafacashReference,
+    );
+
+  this.validateInitialPaymentData(
+    paymentMethod,
+    wafacashReference,
+  );
+
+  await this.ensureEmailAvailable(
+    email,
+  );
+
+  if (
+    wafacashReference
+  ) {
+    await this.ensureWafacashReferenceAvailable(
+      wafacashReference,
+    );
+  }
+
+  const role =
+    await this.prisma.roles.findUnique({
+      where: {
+        code:
+          'MARKETPLACE_USER',
+      },
+
+      select: {
+        id:
+          true,
+      },
+    });
+
+  if (!role) {
+    throw new BadRequestException(
+      'Le rôle MARKETPLACE_USER est introuvable.',
+    );
+  }
+
+  const passwordHash =
+    await bcrypt.hash(
+      password,
+      12,
+    );
+
+  const depositAmount =
+    this.getDepositAmount();
+
+  const now =
+    new Date();
+
+  const isCard =
+    paymentMethod ===
+    'CARD';
+
+  const simulatedTransactionId =
+    isCard
+      ? `SIM-CARD-${randomBytes(
+          16,
+        )
+          .toString(
+            'hex',
+          )
+          .toUpperCase()}`
+      : null;
+
+  let created:
+    NonVotingAdherentRecord;
+
+  try {
+    created =
+      await this.prisma.$transaction(
+        async (
+          transaction,
+        ) => {
+          const account =
+            await transaction.users.create({
+              data: {
+                role_id:
+                  role.id,
+
+                regional_association_id:
+                  null,
+
+                email,
+
+                password_hash:
+                  passwordHash,
+
+                first_name:
+                  firstName,
+
+                last_name:
+                  lastName,
+
+                phone,
+
+                /*
+                 * Le compte technique reste actif.
+                 * AuthService bloquera la connexion
+                 * tant que le dossier Wafacash
+                 * n’est pas validé.
+                 */
+                is_active:
+                  true,
+
+                is_email_verified:
+                  false,
+
+                password_changed_at:
+                  now,
+              },
+            });
+
+          const adherent =
+            await transaction.non_voting_adherents.create({
+              data: {
+                user_id:
+                  account.id,
+
+                city,
+
+                membership_status:
+                  isCard
+                    ? 'ACTIVE'
+                    : 'PENDING_REVIEW',
+
+                deposit_payment_method:
+                  paymentMethod,
+
+                deposit_status:
+                  isCard
+                    ? 'PAID'
+                    : 'SUBMITTED',
+
+                deposit_amount:
+                  new Prisma.Decimal(
+                    depositAmount,
+                  ),
+
+                currency_code:
+                  'MAD',
+
+                wafacash_reference:
+                  wafacashReference,
+
+                payment_provider:
+                  isCard
+                    ? 'SIMULATED_CARD'
+                    : null,
+
+                payment_session_id:
+                  null,
+
+                payment_transaction_id:
+                  simulatedTransactionId,
+
+                payment_requested_at:
+                  now,
+
+                payment_submitted_at:
+                  now,
+
+                payment_confirmed_at:
+                  isCard
+                    ? now
+                    : null,
+
+                payment_rejected_at:
+                  null,
+
+                payment_refunded_at:
+                  null,
+
+                rejection_reason:
+                  null,
+
+                suspension_reason:
+                  null,
+
+                /*
+                 * Pour une auto-inscription,
+                 * l’utilisateur est le créateur
+                 * de son propre dossier.
+                 */
+                created_by_user_id:
+                  account.id,
+
+                reviewed_by_user_id:
+                  null,
+
+                reviewed_at:
+                  null,
+
+                activated_at:
+                  isCard
+                    ? now
+                    : null,
+
+                suspended_at:
+                  null,
+              },
+            });
+
+          return adherent as
+            NonVotingAdherentRecord;
+        },
+      );
+  } catch (error) {
+    this.handlePrismaConflict(
+      error,
+    );
+
+    throw error;
+  }
+
+  await this.auditLogs.log({
+    userId:
+      created.user_id,
+
+    action:
+      'NON_VOTING_ADHERENT_SELF_REGISTERED',
+
+    entityType:
+      'NON_VOTING_ADHERENT',
+
+    entityId:
+      created.id,
+
+    description:
+      'Auto-inscription d’un adhérent non votant.',
+
+    metadata: {
+      email,
+
+      city,
+
+      paymentMethod,
+
+      depositAmount,
+
+      membershipStatus:
+        created.membership_status,
+
+      depositStatus:
+        created.deposit_status,
+
+      simulatedCardPayment:
+        isCard,
+    },
+
+    ipAddress:
+      this.getIp(
+        request,
+      ),
+
+    userAgent:
+      request.get(
+        'user-agent',
+      ),
+  });
+
+  return {
+    adherent:
+      await this.formatOne(
+        created,
+      ),
+
+    loginAllowed:
+      isCard,
+
+    requiresManualValidation:
+      !isCard,
+
+    message:
+      isCard
+        ? 'Votre compte est actif. Vous pouvez maintenant vous connecter.'
+        : 'Votre inscription a été enregistrée. Vous pourrez vous connecter après validation de votre paiement Wafacash par FLASCAM.',
+  };
+}  
+
   /**
    * Création manuelle par FLASCAM.
    */
@@ -391,30 +758,23 @@ export class NonVotingAdherentsService {
         'La ville',
       );
 
-    const paymentMethod =
-      this.normalizePaymentMethod(
-        dto.depositPaymentMethod,
-      );
+/*
+ * Un compte créé manuellement par FLASCAM
+ * ne passe pas par le parcours de paiement.
+ *
+ * Il est immédiatement actif et autorisé
+ * à envoyer des offres.
+ */
+const paymentMethod:
+  DepositPaymentMethod =
+    'CARD';
 
-    const wafacashReference =
-      this.cleanOptionalText(
-        dto.wafacashReference,
-      );
+const wafacashReference =
+  null;
 
-    this.validateInitialPaymentData(
-      paymentMethod,
-      wafacashReference,
-    );
-
-    await this.ensureEmailAvailable(
-      email,
-    );
-
-    if (wafacashReference) {
-      await this.ensureWafacashReferenceAvailable(
-        wafacashReference,
-      );
-    }
+await this.ensureEmailAvailable(
+  email,
+);
 
     const role =
       await this.prisma.roles.findUnique({
@@ -454,10 +814,6 @@ export class NonVotingAdherentsService {
 
     const now =
       new Date();
-
-    const isWafacash =
-      paymentMethod ===
-      'WAFACASH';
 
     let created:
       NonVotingAdherentRecord;
@@ -517,76 +873,75 @@ export class NonVotingAdherentsService {
 
                   city,
 
-                  membership_status:
-                    isWafacash
-                      ? 'PENDING_REVIEW'
-                      : 'PENDING_PAYMENT',
+membership_status:
+  'ACTIVE',
 
-                  deposit_payment_method:
-                    paymentMethod,
+deposit_payment_method:
+  paymentMethod,
 
-                  deposit_status:
-                    isWafacash
-                      ? 'SUBMITTED'
-                      : 'PENDING',
+deposit_status:
+  'PAID',
 
-                  deposit_amount:
-                    new Prisma.Decimal(
-                      depositAmount,
-                    ),
+deposit_amount:
+  new Prisma.Decimal(
+    depositAmount,
+  ),
 
-                  currency_code:
-                    'MAD',
+currency_code:
+  'MAD',
 
-                  wafacash_reference:
-                    wafacashReference,
+wafacash_reference:
+  null,
 
-                  payment_provider:
-                    null,
+/*
+ * Permet de différencier les comptes
+ * activés manuellement par FLASCAM
+ * des futurs paiements CB réels.
+ */
+payment_provider:
+  'ADMIN_BYPASS',
 
-                  payment_session_id:
-                    null,
+payment_session_id:
+  null,
 
-                  payment_transaction_id:
-                    null,
+payment_transaction_id:
+  null,
 
-                  payment_requested_at:
-                    now,
+payment_requested_at:
+  now,
 
-                  payment_submitted_at:
-                    isWafacash
-                      ? now
-                      : null,
+payment_submitted_at:
+  now,
 
-                  payment_confirmed_at:
-                    null,
+payment_confirmed_at:
+  now,
 
-                  payment_rejected_at:
-                    null,
+payment_rejected_at:
+  null,
 
-                  payment_refunded_at:
-                    null,
+payment_refunded_at:
+  null,
 
-                  rejection_reason:
-                    null,
+rejection_reason:
+  null,
 
-                  suspension_reason:
-                    null,
+suspension_reason:
+  null,
 
-                  created_by_user_id:
-                    user.id,
+created_by_user_id:
+  user.id,
 
-                  reviewed_by_user_id:
-                    null,
+reviewed_by_user_id:
+  user.id,
 
-                  reviewed_at:
-                    null,
+reviewed_at:
+  now,
 
-                  activated_at:
-                    null,
+activated_at:
+  now,
 
-                  suspended_at:
-                    null,
+suspended_at:
+  null,
                 },
               });
 
@@ -618,22 +973,26 @@ export class NonVotingAdherentsService {
       description:
         'Un compte d’adhérent non votant a été créé.',
 
-      metadata: {
-        accountId:
-          created.user_id,
+metadata: {
+  accountId:
+    created.user_id,
 
-        email,
+  email,
 
-        city,
+  city,
 
-        paymentMethod,
+  creationMode:
+    'ADMIN',
 
-        membershipStatus:
-          created.membership_status,
+  paymentProvider:
+    'ADMIN_BYPASS',
 
-        depositStatus:
-          created.deposit_status,
-      },
+  membershipStatus:
+    created.membership_status,
+
+  depositStatus:
+    created.deposit_status,
+},
 
       ipAddress:
         this.getIp(

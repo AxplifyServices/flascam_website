@@ -9,8 +9,52 @@ import type {
   NonVotingAdherentFormState,
   NonVotingAdherentsFilters,
   NonVotingAdherentsListResponse,
+  NonVotingRegistrationConfig,
+  RegisterNonVotingAdherentPayload,
+  RegisterNonVotingAdherentResponse,
   UpdateNonVotingAdherentPayload,
 } from '@/types/non-voting-adherents';
+
+async function publicFetch<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const response =
+    await apiFetch(
+      path,
+      {
+        cache:
+          'no-store',
+
+        ...init,
+      },
+    );
+
+  if (!response.ok) {
+    const body =
+      await response
+        .json()
+        .catch(
+          () => null,
+        );
+
+    const message =
+      Array.isArray(
+        body?.message,
+      )
+        ? body.message.join(
+            ' ',
+          )
+        : body?.message;
+
+    throw new Error(
+      message ||
+        'L’action demandée n’a pas pu être réalisée.',
+    );
+  }
+
+  return await response.json() as T;
+}
 
 async function authenticatedFetch<T>(
   path: string,
@@ -368,6 +412,34 @@ export async function reactivateNonVotingAdherent(
     {
       method:
         'PATCH',
+    },
+  );
+}
+
+export async function getNonVotingRegistrationConfig() {
+  return await publicFetch<
+    NonVotingRegistrationConfig
+  >(
+    '/non-voting-adherents/registration-config',
+  );
+}
+
+export async function registerNonVotingAdherent(
+  payload:
+    RegisterNonVotingAdherentPayload,
+) {
+  return await publicFetch<
+    RegisterNonVotingAdherentResponse
+  >(
+    '/non-voting-adherents/register',
+    {
+      method:
+        'POST',
+
+      body:
+        JSON.stringify(
+          payload,
+        ),
     },
   );
 }

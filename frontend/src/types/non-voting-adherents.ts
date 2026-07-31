@@ -236,3 +236,75 @@ export type NonVotingAdherentFormState = {
   generateTemporaryPassword:
     boolean;
 };
+
+export type NonVotingRegistrationConfig = {
+  depositAmount: string;
+
+  currency: string;
+
+  paymentMethods: Array<{
+    code:
+      NonVotingDepositPaymentMethod;
+
+    label: string;
+
+    requiresManualValidation:
+      boolean;
+  }>;
+};
+
+export type RegisterNonVotingAdherentPayload = {
+  firstName: string;
+
+  lastName: string;
+
+  phone: string;
+
+  email: string;
+
+  city: string;
+
+  password: string;
+
+  depositPaymentMethod:
+    NonVotingDepositPaymentMethod;
+
+  wafacashReference?: string;
+};
+
+export type RegisterNonVotingAdherentResponse = {
+  adherent:
+    NonVotingAdherent;
+
+  loginAllowed:
+    boolean;
+
+  requiresManualValidation:
+    boolean;
+
+  message:
+    string;
+};
+
+export type NonVotingRegistrationForm = {
+  firstName: string;
+
+  lastName: string;
+
+  phone: string;
+
+  email: string;
+
+  city: string;
+
+  password: string;
+
+  passwordConfirmation:
+    string;
+
+  depositPaymentMethod:
+    NonVotingDepositPaymentMethod | '';
+
+  wafacashReference:
+    string;
+};

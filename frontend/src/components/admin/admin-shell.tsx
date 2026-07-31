@@ -382,8 +382,9 @@ export function AdminShell({
   const pathname = usePathname();
   const router = useRouter();
 
-  const isLoginPage =
-    pathname === '/admin/login';
+const isPublicAuthPage =
+  pathname === '/admin/login' ||
+  pathname === '/admin/register-non-voting';
 
   const [
     user,
@@ -392,10 +393,12 @@ export function AdminShell({
     SessionUser | null
   >(null);
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(!isLoginPage);
+const [
+  loading,
+  setLoading,
+] = useState(
+  !isPublicAuthPage,
+);
 
   const [
     collapsed,
@@ -454,12 +457,16 @@ export function AdminShell({
       [user],
     );  
 
-  useEffect(() => {
-    if (isLoginPage) {
-      setLoading(false);
-      return;
-    }
+useEffect(() => {
+  if (
+    isPublicAuthPage
+  ) {
+    setLoading(
+      false,
+    );
 
+    return;
+  }
     let active = true;
 
     async function loadSession() {
@@ -516,17 +523,17 @@ export function AdminShell({
     return () => {
       active = false;
     };
-  }, [
-    isLoginPage,
-    router,
-  ]);
+}, [
+  isPublicAuthPage,
+  router,
+]);
 
 useEffect(() => {
-  if (
-    loading ||
-    !user ||
-    isLoginPage
-  ) {
+if (
+  loading ||
+  !user ||
+  isPublicAuthPage
+) {
     return;
   }
 
@@ -560,7 +567,7 @@ useEffect(() => {
     );
   }
 }, [
-  isLoginPage,
+  isPublicAuthPage,
   loading,
   pathname,
   router,
@@ -571,7 +578,7 @@ useEffect(() => {
   if (
     loading ||
     !user ||
-    isLoginPage
+    isPublicAuthPage
   ) {
     return;
   }
@@ -606,7 +613,7 @@ useEffect(() => {
     );
   }
 }, [
-  isLoginPage,
+  isPublicAuthPage,
   loading,
   pathname,
   router,
@@ -640,9 +647,15 @@ useEffect(() => {
     );
   }
 
-  if (isLoginPage) {
-    return <>{children}</>;
-  }
+if (
+  isPublicAuthPage
+) {
+  return (
+    <>
+      {children}
+    </>
+  );
+}
 
   if (loading) {
 return (

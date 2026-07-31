@@ -8,7 +8,12 @@ import {
   Put,
   Query,
   Req,
+  HttpCode,
 } from '@nestjs/common';
+
+import {
+  Throttle,
+} from '@nestjs/throttler';
 
 import type {
   Request,
@@ -17,6 +22,10 @@ import type {
 import {
   CurrentUser,
 } from '../auth/decorators/current-user.decorator';
+
+import {
+  Public,
+} from '../auth/decorators/public.decorator';
 
 import {
   Permissions,
@@ -43,6 +52,10 @@ import {
 } from './dto/reject-wafacash.dto';
 
 import {
+  RegisterNonVotingAdherentDto,
+} from './dto/register-non-voting-adherent.dto';
+
+import {
   SubmitWafacashReferenceDto,
 } from './dto/submit-wafacash-reference.dto';
 
@@ -66,6 +79,43 @@ export class NonVotingAdherentsController {
     private readonly service:
       NonVotingAdherentsService,
   ) {}
+
+@Public()
+@Get(
+  'registration-config',
+)
+getRegistrationConfig() {
+  return this.service.getRegistrationConfig();
+}
+
+@Public()
+@HttpCode(201)
+@Throttle({
+  default: {
+    limit:
+      3,
+
+    ttl:
+      60_000,
+  },
+})
+@Post(
+  'register',
+)
+register(
+  @Body()
+  dto:
+    RegisterNonVotingAdherentDto,
+
+  @Req()
+  request:
+    Request,
+) {
+  return this.service.register(
+    dto,
+    request,
+  );
+}
 
   @Get('admin')
   @Roles(

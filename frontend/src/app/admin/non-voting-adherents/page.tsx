@@ -68,6 +68,10 @@ const emptyForm:
     city:
       '',
 
+    /*
+     * Valeur technique envoyée au backend.
+     * Aucun choix de paiement n’est affiché à l’admin.
+     */
     depositPaymentMethod:
       'CARD',
 
@@ -670,14 +674,6 @@ export default function AdminNonVotingAdherentsPage() {
       !form.city.trim()
     ) {
       return 'La ville est obligatoire.';
-    }
-
-    if (
-      form.depositPaymentMethod ===
-        'WAFACASH' &&
-      !form.wafacashReference.trim()
-    ) {
-      return 'La référence Wafacash est obligatoire.';
     }
 
     if (
@@ -1833,18 +1829,18 @@ export default function AdminNonVotingAdherentsPage() {
                   Créer un adhérent non votant
                 </h2>
 
-                <p
-                  className="
-                    mt-2
-                    text-sm
-                    leading-6
-                    text-slate-600
-                  "
-                >
-                  Ce compte pourra uniquement consulter
-                  la marketplace et envoyer des offres
-                  après validation de sa caution.
-                </p>
+<p
+  className="
+    mt-2
+    text-sm
+    leading-6
+    text-slate-600
+  "
+>
+  Le compte créé manuellement par FLASCAM
+  sera directement autorisé à consulter la
+  marketplace et à envoyer des offres.
+</p>
               </div>
 
               <button
@@ -1985,203 +1981,6 @@ export default function AdminNonVotingAdherentsPage() {
                   />
                 </div>
               </div>
-
-              <section
-                className="
-                  mt-7
-                  rounded-3xl
-                  border
-                  border-slate-200
-                  bg-slate-50
-                  p-5
-                "
-              >
-                <div
-                  className="
-                    flex
-                    items-start
-                    gap-3
-                  "
-                >
-                  <div
-                    className="
-                      grid
-                      size-11
-                      shrink-0
-                      place-items-center
-                      rounded-2xl
-                      bg-[#fff1eb]
-                      text-[#A9472B]
-                    "
-                  >
-                    <CircleDollarSign
-                      size={22}
-                    />
-                  </div>
-
-                  <div>
-                    <h3
-                      className="
-                        font-black
-                        text-slate-950
-                      "
-                    >
-                      Mode de paiement de la caution
-                    </h3>
-
-                    <p
-                      className="
-                        mt-1
-                        text-sm
-                        leading-6
-                        text-slate-600
-                      "
-                    >
-                      Le compte restera limité tant que
-                      le paiement n’aura pas été confirmé.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  className="
-                    mt-5
-                    grid
-                    gap-3
-                    sm:grid-cols-2
-                  "
-                >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updateField(
-                        'depositPaymentMethod',
-                        'CARD',
-                      )
-                    }
-                    className={`
-                      rounded-2xl
-                      border
-                      p-4
-                      text-left
-                      transition
-                      ${
-                        form.depositPaymentMethod ===
-                        'CARD'
-                          ? 'border-[#A9472B] bg-[#fff8f5] ring-2 ring-[#A9472B]/15'
-                          : 'border-slate-200 bg-white hover:border-slate-300'
-                      }
-                    `}
-                  >
-                    <CreditCard
-                      size={22}
-                      className="text-[#A9472B]"
-                    />
-
-                    <strong
-                      className="
-                        mt-3
-                        block
-                        text-sm
-                        text-slate-950
-                      "
-                    >
-                      Carte bancaire
-                    </strong>
-
-                    <span
-                      className="
-                        mt-1
-                        block
-                        text-sm
-                        leading-6
-                        text-slate-600
-                      "
-                    >
-                      L’adhérent paiera depuis son espace
-                      personnel.
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updateField(
-                        'depositPaymentMethod',
-                        'WAFACASH',
-                      )
-                    }
-                    className={`
-                      rounded-2xl
-                      border
-                      p-4
-                      text-left
-                      transition
-                      ${
-                        form.depositPaymentMethod ===
-                        'WAFACASH'
-                          ? 'border-[#A9472B] bg-[#fff8f5] ring-2 ring-[#A9472B]/15'
-                          : 'border-slate-200 bg-white hover:border-slate-300'
-                      }
-                    `}
-                  >
-                    <Banknote
-                      size={22}
-                      className="text-[#A9472B]"
-                    />
-
-                    <strong
-                      className="
-                        mt-3
-                        block
-                        text-sm
-                        text-slate-950
-                      "
-                    >
-                      Wafacash
-                    </strong>
-
-                    <span
-                      className="
-                        mt-1
-                        block
-                        text-sm
-                        leading-6
-                        text-slate-600
-                      "
-                    >
-                      FLASCAM vérifiera manuellement la
-                      référence fournie.
-                    </span>
-                  </button>
-                </div>
-
-                {form.depositPaymentMethod ===
-                  'WAFACASH' && (
-                  <div
-                    className="
-                      mt-5
-                    "
-                  >
-                    <FormInput
-                      label="Référence Wafacash"
-                      value={
-                        form.wafacashReference
-                      }
-                      onChange={(
-                        value,
-                      ) =>
-                        updateField(
-                          'wafacashReference',
-                          value,
-                        )
-                      }
-                      placeholder="Ex. WFC-2026-000123"
-                      required
-                    />
-                  </div>
-                )}
-              </section>
 
               <section
                 className="

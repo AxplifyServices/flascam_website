@@ -84,34 +84,397 @@ export class AuthService {
           )
         : false;
 
-    if (
-      !user ||
-      !passwordIsValid ||
-      !user.is_active
-    ) {
-      await this.audit.log({
-        userId: user?.id,
-        action:
-          'AUTH_LOGIN_FAILED',
-        entityType: 'USER',
-        entityId: user?.id,
-        description:
-          'Échec de connexion.',
-        metadata: {
-          email: dto.email,
-        },
-        ipAddress:
-          this.getIp(request),
-        userAgent:
-          request.get(
-            'user-agent',
-          ),
-      });
+if (
+  !user ||
+  !passwordIsValid
+) {
+  await this.audit.log({
+    userId:
+      user?.id,
 
-      throw new UnauthorizedException(
-        'Identifiants invalides.',
-      );
-    }
+    action:
+      'AUTH_LOGIN_FAILED',
+
+    entityType:
+      'USER',
+
+    entityId:
+      user?.id,
+
+    description:
+      'Échec de connexion : identifiants invalides.',
+
+    metadata: {
+      email:
+        dto.email,
+
+      reason:
+        'INVALID_CREDENTIALS',
+    },
+
+    ipAddress:
+      this.getIp(
+        request,
+      ),
+
+    userAgent:
+      request.get(
+        'user-agent',
+      ),
+  });
+
+  throw new UnauthorizedException(
+    'Identifiants invalides.',
+  );
+}
+
+if (
+  !user.is_active
+) {
+  await this.audit.log({
+    userId:
+      user.id,
+
+    action:
+      'AUTH_LOGIN_BLOCKED',
+
+    entityType:
+      'USER',
+
+    entityId:
+      user.id,
+
+    description:
+      'Connexion refusée : compte désactivé.',
+
+    metadata: {
+      email:
+        dto.email,
+
+      reason:
+        'ACCOUNT_DISABLED',
+    },
+
+    ipAddress:
+      this.getIp(
+        request,
+      ),
+
+    userAgent:
+      request.get(
+        'user-agent',
+      ),
+  });
+
+  throw new UnauthorizedException(
+    'Votre compte est suspendu ou désactivé. Contactez FLASCAM.',
+  );
+}
+
+if (
+  user.roles.code ===
+  'MARKETPLACE_USER'
+) {
+  const nonVotingAdherent =
+    await this.prisma.non_voting_adherents.findFirst({
+      where: {
+        user_id:
+          user.id,
+
+        deleted_at:
+          null,
+      },
+
+      select: {
+        membership_status:
+          true,
+
+        deposit_payment_method:
+          true,
+
+        deposit_status:
+          true,
+
+        rejection_reason:
+          true,
+
+        suspension_reason:
+          true,
+      },
+    });
+
+  if (
+    !nonVotingAdherent
+  ) {
+    await this.audit.log({
+      userId:
+        user.id,
+
+      action:
+        'AUTH_LOGIN_BLOCKED',
+
+      entityType:
+        'USER',
+
+      entityId:
+        user.id,
+
+      description:
+        'Connexion refusée : dossier non votant introuvable.',
+
+      metadata: {
+        email:
+          dto.email,
+
+        reason:
+          'NON_VOTING_PROFILE_NOT_FOUND',
+      },
+
+      ipAddress:
+        this.getIp(
+          request,
+        ),
+
+      userAgent:
+        request.get(
+          'user-agent',
+        ),
+    });
+
+    throw new UnauthorizedException(
+      'Votre dossier d’adhérent non votant est introuvable. Contactez FLASCAM.',
+    );
+  }
+
+  if (
+    nonVotingAdherent.membership_status ===
+      'PENDING_REVIEW' ||
+    nonVotingAdherent.deposit_status ===
+      'SUBMITTED'
+  ) {
+    await this.audit.log({
+      userId:
+        user.id,
+
+      action:
+        'AUTH_LOGIN_BLOCKED',
+
+      entityType:
+        'USER',
+
+      entityId:
+        user.id,
+
+      description:
+        'Connexion refusée : paiement Wafacash en attente de validation.',
+
+      metadata: {
+        email:
+          dto.email,
+
+        reason:
+          'WAFACASH_PENDING_REVIEW',
+      },
+
+      ipAddress:
+        this.getIp(
+          request,
+        ),
+
+      userAgent:
+        request.get(
+          'user-agent',
+        ),
+    });
+
+    throw new UnauthorizedException(
+      'Votre paiement Wafacash est en cours de vérification. Veuillez attendre sa validation par FLASCAM avant de vous connecter.',
+    );
+  }
+
+  if (
+    nonVotingAdherent.membership_status ===
+      'REJECTED' ||
+    nonVotingAdherent.deposit_status ===
+      'REJECTED'
+  ) {
+    throw new UnauthorizedException(
+      nonVotingAdherent.rejection_reason
+        ? `Votre paiement Wafacash a été refusé : ${nonVotingAdherent.rejection_reason}`
+        : 'Votre paiement Wafacash n’a pas été validé. Contactez FLASCAM.',
+    );
+  }
+
+  if (
+    nonVotingAdherent.membership_status ===
+    'SUSPENDED'
+  ) {
+    throw new UnauthorizedException(
+      nonVotingAdherent.suspension_reason
+        ? `Votre compte est suspendu : ${nonVotingAdherent.suspension_reason}`
+        : 'Votre compte est suspendu. Contactez FLASCAM.',
+    );
+  }
+
+  if (
+    nonVotingAdherent.membership_status !==
+      'ACTIVE' ||
+    nonVotingAdherent.deposit_status !==
+      'PAID'
+  ) {
+    throw new UnauthorizedException(
+      'Votre compte n’est pas encore validé. Veuillez attendre la validation de FLASCAM.',
+    );
+  }
+}
+if (
+  !user.is_active
+) {
+  await this.audit.log({
+    userId:
+      user.id,
+
+    action:
+      'AUTH_LOGIN_BLOCKED',
+
+    entityType:
+      'USER',
+
+    entityId:
+      user.id,
+
+    description:
+      'Connexion refusée : compte désactivé.',
+
+    metadata: {
+      email:
+        dto.email,
+
+      reason:
+        'ACCOUNT_DISABLED',
+    },
+
+    ipAddress:
+      this.getIp(
+        request,
+      ),
+
+    userAgent:
+      request.get(
+        'user-agent',
+      ),
+  });
+
+  throw new UnauthorizedException(
+    'Votre compte est suspendu ou désactivé. Contactez FLASCAM.',
+  );
+}
+
+if (
+  user.roles.code ===
+  'MARKETPLACE_USER'
+) {
+  const nonVotingAdherent =
+    await this.prisma.non_voting_adherents.findFirst({
+      where: {
+        user_id:
+          user.id,
+
+        deleted_at:
+          null,
+      },
+
+      select: {
+        membership_status:
+          true,
+
+        deposit_payment_method:
+          true,
+
+        deposit_status:
+          true,
+
+        rejection_reason:
+          true,
+      },
+    });
+
+  if (!nonVotingAdherent) {
+    throw new UnauthorizedException(
+      'Votre dossier d’adhérent non votant est introuvable. Contactez FLASCAM.',
+    );
+  }
+
+  if (
+    nonVotingAdherent.membership_status ===
+      'PENDING_REVIEW' ||
+    nonVotingAdherent.deposit_status ===
+      'SUBMITTED'
+  ) {
+    await this.audit.log({
+      userId:
+        user.id,
+
+      action:
+        'AUTH_LOGIN_BLOCKED',
+
+      entityType:
+        'USER',
+
+      entityId:
+        user.id,
+
+      description:
+        'Connexion refusée : paiement Wafacash en attente de validation.',
+
+      metadata: {
+        email:
+          dto.email,
+
+        reason:
+          'WAFACASH_PENDING_REVIEW',
+      },
+
+      ipAddress:
+        this.getIp(
+          request,
+        ),
+
+      userAgent:
+        request.get(
+          'user-agent',
+        ),
+    });
+
+    throw new UnauthorizedException(
+      'Votre paiement Wafacash est en cours de vérification. Veuillez attendre sa validation par FLASCAM avant de vous connecter.',
+    );
+  }
+
+  if (
+    nonVotingAdherent.membership_status ===
+      'REJECTED' ||
+    nonVotingAdherent.deposit_status ===
+      'REJECTED'
+  ) {
+    throw new UnauthorizedException(
+      nonVotingAdherent.rejection_reason
+        ? `Votre paiement Wafacash a été refusé : ${nonVotingAdherent.rejection_reason}`
+        : 'Votre paiement Wafacash n’a pas été validé. Contactez FLASCAM.',
+    );
+  }
+
+  if (
+    nonVotingAdherent.membership_status !==
+      'ACTIVE' ||
+    nonVotingAdherent.deposit_status !==
+      'PAID'
+  ) {
+    throw new UnauthorizedException(
+      'Votre compte n’est pas encore validé. Veuillez attendre la validation de FLASCAM.',
+    );
+  }
+}
 
     await this.prisma
       .refresh_tokens

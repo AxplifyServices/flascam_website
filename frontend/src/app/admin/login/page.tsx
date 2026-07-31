@@ -11,6 +11,8 @@ import {
   useSearchParams,
 } from 'next/navigation';
 
+import Link from 'next/link';
+
 import {
   apiFetch,
 } from '@/lib/api';
@@ -215,18 +217,18 @@ router.refresh();
             Administration
           </h1>
 
-          <p
-            className="
-              mt-2
-              text-sm
-              leading-6
-              text-slate-600
-            "
-          >
-            Connectez-vous avec
-            un compte autorisé pour
-            accéder au back-office.
-          </p>
+<p
+  className="
+    mt-2
+    text-sm
+    leading-6
+    text-slate-600
+  "
+>
+  Connectez-vous à votre espace FLASCAM
+  pour gérer votre activité ou suivre les
+  offres envoyées sur la marketplace.
+</p>
 
           <form
             className="
@@ -349,6 +351,81 @@ router.refresh();
                 : 'Se connecter'}
             </button>
           </form>
+
+          <div
+            className="
+              my-6
+              flex
+              items-center
+              gap-3
+            "
+          >
+            <span
+              className="
+                h-px
+                flex-1
+                bg-slate-200
+              "
+            />
+
+            <span
+              className="
+                text-xs
+                font-bold
+                uppercase
+                tracking-[0.12em]
+                text-slate-400
+              "
+            >
+              Nouveau sur la marketplace
+            </span>
+
+            <span
+              className="
+                h-px
+                flex-1
+                bg-slate-200
+              "
+            />
+          </div>
+
+          <Link
+            href="/admin/register-non-voting"
+            className="
+              inline-flex
+              min-h-12
+              w-full
+              items-center
+              justify-center
+              rounded-xl
+              border
+              border-[#A9472B]
+              bg-[#fff8f5]
+              px-4
+              text-center
+              text-sm
+              font-extrabold
+              text-[#A9472B]
+              transition
+              hover:bg-[#A9472B]
+              hover:text-white
+            "
+          >
+            Créer un compte acheteur
+          </Link>
+
+          <p
+            className="
+              mt-3
+              text-center
+              text-xs
+              leading-5
+              text-slate-500
+            "
+          >
+            Ce compte permet uniquement d’acheter des
+            véhicules en envoyant des offres.
+          </p>
         </section>
       </div>
     </main>
