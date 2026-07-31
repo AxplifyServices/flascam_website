@@ -114,9 +114,44 @@ if (!response.ok) {
   return;
 }
 
-router.replace(
-  safeNext,
-);
+const data =
+  await response.json() as {
+    user: {
+      role: {
+        code: string;
+      };
+    };
+  };
+
+const roleCode =
+  data.user.role.code;
+
+if (
+  requestedNext &&
+  safeNext !== '/admin'
+) {
+  router.replace(
+    safeNext,
+  );
+} else if (
+  roleCode ===
+  'ADHERENT'
+) {
+  router.replace(
+    '/admin/member-area',
+  );
+} else if (
+  roleCode ===
+  'MARKETPLACE_USER'
+) {
+  router.replace(
+    '/admin/non-voting-member-area',
+  );
+} else {
+  router.replace(
+    '/admin',
+  );
+}
 
 router.refresh();
     } catch {

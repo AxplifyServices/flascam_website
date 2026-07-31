@@ -3,23 +3,33 @@
 import {
   type FormEvent,
   useEffect,
+  useMemo,
   useState,
-} from 'react';
+} from 'react';;
 
 import Link from 'next/link';
 
 import {
   AlertCircle,
+  BadgeCheck,
+  Banknote,
   CheckCircle2,
   CircleDollarSign,
+  Clock3,
+  CreditCard,
   LoaderCircle,
   LockKeyhole,
   Send,
+  XCircle,
 } from 'lucide-react';
 
 import {
   createMarketplaceOffer,
 } from '@/lib/marketplace-api';
+
+import {
+  getMyNonVotingAdherentProfile,
+} from '@/lib/non-voting-adherents-api';
 
 import {
   apiFetch,
@@ -28,6 +38,10 @@ import {
 import type {
   MarketplaceListingStatus,
 } from '@/types/marketplace';
+
+import type {
+  NonVotingAdherent,
+} from '@/types/non-voting-adherents';
 
 type MarketplaceOfferPanelProps = {
   listingId: string;
@@ -93,6 +107,20 @@ export function MarketplaceOfferPanel({
     SessionUser | null
   >(null);
 
+const [
+  nonVotingProfile,
+  setNonVotingProfile,
+] = useState<
+  NonVotingAdherent | null
+>(null);
+
+const [
+  checkingNonVotingProfile,
+  setCheckingNonVotingProfile,
+] = useState(
+  false,
+);  
+
   const [
     amount,
     setAmount,
@@ -129,6 +157,125 @@ export function MarketplaceOfferPanel({
   ] = useState<
     string | null
   >(null);
+
+const isNonVotingAdherent =
+  user?.role.code ===
+  'MARKETPLACE_USER';
+
+const canDisplayOfferForm =
+  !isNonVotingAdherent ||
+  nonVotingProfile?.canSubmitOffer ===
+    true;
+
+const nonVotingRestriction =
+  useMemo(
+    () => {
+      if (
+        !isNonVotingAdherent ||
+        !nonVotingProfile
+      ) {
+        return null;
+      }
+
+      if (
+        nonVotingProfile.membershipStatus ===
+        'PENDING_PAYMENT'
+      ) {
+        return {
+          icon:
+            CreditCard,
+
+          title:
+            'Votre caution doit être payée',
+
+          description:
+            'Finalisez le paiement de votre caution depuis votre espace acheteur avant de pouvoir envoyer une offre.',
+
+          linkLabel:
+            'Accéder au paiement',
+
+          className:
+            'border-amber-300/40 bg-amber-950/25 text-amber-100',
+        };
+      }
+
+      if (
+        nonVotingProfile.membershipStatus ===
+        'PENDING_REVIEW'
+      ) {
+        return {
+          icon:
+            Clock3,
+
+          title:
+            'Votre paiement est en cours de vérification',
+
+          description:
+            'FLASCAM vérifie votre référence Wafacash. L’envoi d’offres sera activé automatiquement après validation.',
+
+          linkLabel:
+            'Voir le suivi de ma caution',
+
+          className:
+            'border-blue-300/40 bg-blue-950/25 text-blue-100',
+        };
+      }
+
+      if (
+        nonVotingProfile.membershipStatus ===
+        'REJECTED'
+      ) {
+        return {
+          icon:
+            XCircle,
+
+          title:
+            'Votre paiement n’a pas été validé',
+
+          description:
+            nonVotingProfile.deposit
+              .rejectionReason ||
+            'La référence Wafacash fournie n’a pas pu être confirmée. Vous pouvez en transmettre une nouvelle.',
+
+          linkLabel:
+            'Corriger ma référence',
+
+          className:
+            'border-red-300/40 bg-red-950/25 text-red-100',
+        };
+      }
+
+      if (
+        nonVotingProfile.membershipStatus ===
+        'SUSPENDED'
+      ) {
+        return {
+          icon:
+            LockKeyhole,
+
+          title:
+            'Votre compte est suspendu',
+
+          description:
+            nonVotingProfile.suspension
+              .reason ||
+            'Votre compte ne peut actuellement pas envoyer d’offres. Contactez FLASCAM pour davantage d’informations.',
+
+          linkLabel:
+            'Voir mon espace',
+
+          className:
+            'border-slate-300/40 bg-slate-950/30 text-slate-100',
+        };
+      }
+
+      return null;
+    },
+    [
+      isNonVotingAdherent,
+      nonVotingProfile,
+    ],
+  );  
 
   useEffect(() => {
     let active =
@@ -185,11 +332,45 @@ export function MarketplaceOfferPanel({
               SessionUser;
           };
 
-        if (active) {
-          setUser(
-            body.user,
-          );
-        }
+if (active) {
+  setUser(
+    body.user,
+  );
+}
+
+if (
+  body.user.role.code ===
+    'MARKETPLACE_USER'
+) {
+  if (active) {
+    setCheckingNonVotingProfile(
+      true,
+    );
+  }
+
+  try {
+    const profile =
+      await getMyNonVotingAdherentProfile();
+
+    if (active) {
+      setNonVotingProfile(
+        profile,
+      );
+    }
+  } catch {
+    if (active) {
+      setNonVotingProfile(
+        null,
+      );
+    }
+  } finally {
+    if (active) {
+      setCheckingNonVotingProfile(
+        false,
+      );
+    }
+  }
+}
       } catch {
         if (active) {
           setUser(
@@ -217,9 +398,20 @@ export function MarketplaceOfferPanel({
     event:
       FormEvent<HTMLFormElement>,
   ) {
-    event.preventDefault();
+event.preventDefault();
 
-    const normalizedAmount =
+if (
+  isNonVotingAdherent &&
+  !nonVotingProfile?.canSubmitOffer
+) {
+  setError(
+    'Votre caution doit être validée avant de pouvoir envoyer une offre.',
+  );
+
+  return;
+}
+
+const normalizedAmount =
       Number(
         amount,
       );
@@ -594,8 +786,132 @@ if (
             véhicule.
           </p>
         </>
+      ) : checkingNonVotingProfile ? (
+        <div
+          className="
+            mt-6
+            flex
+            min-h-36
+            items-center
+            justify-center
+            rounded-2xl
+            border
+            border-white/15
+            bg-white/10
+          "
+        >
+          <div
+            className="
+              text-center
+            "
+          >
+            <LoaderCircle
+              size={25}
+              className="
+                mx-auto
+                animate-spin
+                text-white
+              "
+            />
+
+            <p
+              className="
+                mt-3
+                text-sm
+                font-bold
+                text-white/75
+              "
+            >
+              Vérification de votre caution…
+            </p>
+          </div>
+        </div>
+      ) : isNonVotingAdherent &&
+        !nonVotingProfile ? (
+        <div
+          className="
+            mt-6
+            rounded-2xl
+            border
+            border-red-300/40
+            bg-red-950/25
+            p-5
+          "
+        >
+          <div
+            className="
+              flex
+              items-start
+              gap-3
+            "
+          >
+            <AlertCircle
+              size={22}
+              className="
+                mt-0.5
+                shrink-0
+                text-red-100
+              "
+            />
+
+            <div>
+              <p
+                className="
+                  font-black
+                  text-red-100
+                "
+              >
+                Votre dossier est introuvable
+              </p>
+
+              <p
+                className="
+                  mt-2
+                  text-sm
+                  leading-6
+                  text-red-100/75
+                "
+              >
+                Aucun dossier d’adhérent non votant
+                n’est associé à votre compte. Contactez
+                FLASCAM avant de tenter d’envoyer une
+                offre.
+              </p>
+            </div>
+          </div>
+
+          <Link
+            href="/admin/non-voting-member-area"
+            className="
+              mt-5
+              inline-flex
+              min-h-11
+              w-full
+              items-center
+              justify-center
+              rounded-xl
+              bg-white
+              px-4
+              text-sm
+              font-black
+              !text-[var(--flascam-blue)]
+              transition
+              hover:bg-white/90
+            "
+          >
+            Consulter mon espace
+          </Link>
+        </div>
+      ) : nonVotingRestriction &&
+        !canDisplayOfferForm ? (
+        <NonVotingOfferRestriction
+          restriction={
+            nonVotingRestriction
+          }
+        />
       ) : (
-        <form          onSubmit={
+        <form
+          onSubmit={
             handleSubmit
           }
           className="
@@ -924,5 +1240,126 @@ if (
         </form>
       )}
     </section>
+  );
+}
+
+type NonVotingOfferRestrictionProps = {
+  restriction: {
+    icon:
+      typeof CreditCard;
+
+    title:
+      string;
+
+    description:
+      string;
+
+    linkLabel:
+      string;
+
+    className:
+      string;
+  };
+};
+
+function NonVotingOfferRestriction({
+  restriction,
+}: NonVotingOfferRestrictionProps) {
+  const RestrictionIcon =
+    restriction.icon;
+
+  return (
+    <div
+      className={`
+        mt-6
+        rounded-2xl
+        border
+        p-5
+        ${restriction.className}
+      `}
+    >
+      <div
+        className="
+          flex
+          items-start
+          gap-3
+        "
+      >
+        <div
+          className="
+            grid
+            size-11
+            shrink-0
+            place-items-center
+            rounded-xl
+            bg-white/10
+          "
+        >
+          <RestrictionIcon
+            size={22}
+          />
+        </div>
+
+        <div
+          className="
+            min-w-0
+            flex-1
+          "
+        >
+          <p
+            className="
+              font-black
+            "
+          >
+            {restriction.title}
+          </p>
+
+          <p
+            className="
+              mt-2
+              text-sm
+              leading-6
+              opacity-80
+            "
+          >
+            {restriction.description}
+          </p>
+        </div>
+      </div>
+
+      <Link
+        href="/admin/non-voting-member-area"
+        className="
+          mt-5
+          inline-flex
+          min-h-11
+          w-full
+          items-center
+          justify-center
+          gap-2
+          rounded-xl
+          bg-[var(--flascam-terracotta)]
+          px-4
+          text-sm
+          font-black
+          !text-white
+          transition
+          hover:bg-[var(--flascam-terracotta-dark)]
+        "
+      >
+        <WalletStatusIcon />
+
+        {restriction.linkLabel}
+      </Link>
+    </div>
+  );
+}
+
+function WalletStatusIcon() {
+  return (
+    <BadgeCheck
+      size={18}
+      aria-hidden="true"
+    />
   );
 }

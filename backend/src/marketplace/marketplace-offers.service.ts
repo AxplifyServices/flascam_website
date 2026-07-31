@@ -18,6 +18,10 @@ import {
 } from '../generated/prisma/client';
 
 import {
+  NonVotingAdherentsService,
+} from '../non-voting-adherents/non-voting-adherents.service';
+
+import {
   AuditLogsService,
 } from '../audit-logs/audit-logs.service';
 
@@ -49,8 +53,11 @@ constructor(
   private readonly auditLogs:
     AuditLogsService,
 
-  private readonly config:
-    ConfigService,
+private readonly config:
+  ConfigService,
+
+private readonly nonVotingAdherents:
+  NonVotingAdherentsService,
 ) {}
 
   async createOffer(
@@ -61,9 +68,13 @@ constructor(
       AuthUser,
     request:
       Request,
-  ) {
-    const listing =
-      await this.prisma.marketplace_listings.findFirst({
+) {
+  await this.nonVotingAdherents.assertCanSubmitOffer(
+    user,
+  );
+
+  const listing =
+    await this.prisma.marketplace_listings.findFirst({
         where: {
           id:
             listingId,

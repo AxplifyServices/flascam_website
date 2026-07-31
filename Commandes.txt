@@ -31,7 +31,7 @@ psql -U postgres -d flascam_db -f "database\migrations\030_create_non_voting_adh
 
 cd /opt/apps/flascam/repo
 
-sudo -u postgres psql -d flascam_db  -f database/migrations/029_fix_marketplace_offer_permissions.sql
+sudo -u postgres psql -d flascam_db  -f database/migrations/030_create_non_voting_adherents.sql
 
 
 ** Build l'appli

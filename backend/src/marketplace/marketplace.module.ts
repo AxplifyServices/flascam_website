@@ -11,6 +11,10 @@ import {
 } from '../prisma/prisma.module';
 
 import {
+  NonVotingAdherentsModule,
+} from '../non-voting-adherents/non-voting-adherents.module';
+
+import {
   MarketplaceController,
 } from './marketplace.controller';
 
@@ -23,10 +27,11 @@ import {
 } from './marketplace-offers.service';
 
 @Module({
-  imports: [
-    PrismaModule,
-    AuditLogsModule,
-  ],
+imports: [
+  PrismaModule,
+  AuditLogsModule,
+  NonVotingAdherentsModule,
+],
 
   controllers: [
     MarketplaceController,

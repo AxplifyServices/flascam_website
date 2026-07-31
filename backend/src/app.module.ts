@@ -93,6 +93,9 @@ import {
   MarketplaceModule,
 } from './marketplace/marketplace.module';
 
+import {
+  NonVotingAdherentsModule,
+} from './non-voting-adherents/non-voting-adherents.module';
 
 @Module({
   imports: [
@@ -121,8 +124,9 @@ import {
     HomepageHeroModule,
     NewsModule,
     VideosModule,
-    AdherentsModule,
-    MarketplaceModule,
+AdherentsModule,
+NonVotingAdherentsModule,
+MarketplaceModule,
   ],
   controllers: [
     AppController,

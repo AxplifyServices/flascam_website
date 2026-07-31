@@ -13,24 +13,26 @@ import Link from 'next/link';
 import {
   BarChart3,
   Building2,
+  CarFront,
   Clapperboard,
   ChevronLeft,
   ChevronRight,
+  CreditCard,
   Home,
   Inbox,
   LayoutDashboard,
   LogOut,
+  Mail,
   Menu,
   Newspaper,
+  SendHorizontal,
   Settings,
   ShieldCheck,
-  X,
-  Mail,
   UserRound,
   UserRoundPlus,
   UsersRound,
-  CarFront,
-SendHorizontal,
+  WalletCards,
+  X,
 } from 'lucide-react';
 
 import type {
@@ -106,6 +108,21 @@ const navItems: AdminNavItem[] = [
 
   roles: [
     'ADHERENT',
+  ],
+},
+
+{
+  label:
+    'Mon espace achats',
+
+  href:
+    '/admin/non-voting-member-area',
+
+  icon:
+    WalletCards,
+
+  roles: [
+    'MARKETPLACE_USER',
   ],
 },
 
@@ -319,6 +336,26 @@ const navItems: AdminNavItem[] = [
     'FLASCAM_ADMIN',
   ],
 },  
+
+{
+  label:
+    'Adhérents non votants',
+
+  href:
+    '/admin/non-voting-adherents',
+
+  icon:
+    CreditCard,
+
+  permission:
+    'non_voting_adherents.read',
+
+  roles: [
+    'SUPER_ADMIN',
+    'FLASCAM_ADMIN',
+  ],
+},
+
 {
   label:
     'Demandes de contact',
@@ -520,6 +557,52 @@ useEffect(() => {
   if (!isAllowedPath) {
     router.replace(
       '/admin/member-area',
+    );
+  }
+}, [
+  isLoginPage,
+  loading,
+  pathname,
+  router,
+  user,
+]);
+
+useEffect(() => {
+  if (
+    loading ||
+    !user ||
+    isLoginPage
+  ) {
+    return;
+  }
+
+  if (
+    user.role.code !==
+    'MARKETPLACE_USER'
+  ) {
+    return;
+  }
+
+  const allowedMarketplaceUserPaths = [
+    '/admin/non-voting-member-area',
+    '/admin/marketplace-offers/sent',
+  ];
+
+  const isAllowedPath =
+    allowedMarketplaceUserPaths.some(
+      (
+        allowedPath,
+      ) =>
+        pathname ===
+          allowedPath ||
+        pathname.startsWith(
+          `${allowedPath}/`,
+        ),
+    );
+
+  if (!isAllowedPath) {
+    router.replace(
+      '/admin/non-voting-member-area',
     );
   }
 }, [
