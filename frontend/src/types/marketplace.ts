@@ -506,3 +506,131 @@ export type PublicMarketplaceListingFilters = {
   sort?:
     PublicMarketplaceSort;
 };
+
+export type MarketplaceOfferStatus =
+  | 'PENDING'
+  | 'ACCEPTED'
+  | 'REJECTED'
+  | 'CANCELLED';
+
+export const MARKETPLACE_OFFER_STATUS_LABELS:
+  Record<
+    MarketplaceOfferStatus,
+    string
+  > = {
+  PENDING:
+    'En attente',
+
+  ACCEPTED:
+    'Acceptée',
+
+  REJECTED:
+    'Refusée',
+
+  CANCELLED:
+    'Annulée',
+};
+
+export type MarketplaceOfferListing = {
+  id: string;
+  reference: string;
+  slug: string;
+
+  title: string;
+
+  brand: string;
+  model: string;
+
+  registrationYear: number;
+
+  requestedPrice: number;
+
+  status:
+    MarketplaceListingStatus;
+
+  coverUrl:
+    string | null;
+};
+
+export type MarketplaceOfferContact = {
+  firstName?: string | null;
+  lastName?: string | null;
+
+  email: string;
+  phone?: string | null;
+};
+
+export type SentMarketplaceOffer = {
+  id: string;
+
+  amount: number;
+  currencyCode: string;
+
+  message?: string | null;
+
+  status:
+    MarketplaceOfferStatus;
+
+  submittedAt: string;
+  respondedAt?: string | null;
+  cancelledAt?: string | null;
+
+  listing:
+    MarketplaceOfferListing;
+
+  sellerContact:
+    MarketplaceOfferContact | null;
+};
+
+export type ReceivedMarketplaceOfferBuyer =
+  | {
+      label:
+        'Acheteur anonyme';
+    }
+  | MarketplaceOfferContact;
+
+export type ReceivedMarketplaceOffer = {
+  id: string;
+
+  amount: number;
+  currencyCode: string;
+
+  message?: string | null;
+
+  status:
+    MarketplaceOfferStatus;
+
+  submittedAt: string;
+  respondedAt?: string | null;
+  cancelledAt?: string | null;
+
+  listing:
+    MarketplaceOfferListing;
+
+  buyer:
+    ReceivedMarketplaceOfferBuyer;
+};
+
+export type MarketplaceOfferListResponse<
+  Item,
+> = {
+  items:
+    Item[];
+
+  pagination:
+    MarketplacePagination;
+};
+
+export type MarketplaceOfferFilters = {
+  page?: number;
+  limit?: number;
+
+  status?:
+    | MarketplaceOfferStatus
+    | '';
+};
+
+export type CreateMarketplaceOfferPayload = {
+  amount: number;
+  message?: string;
+};

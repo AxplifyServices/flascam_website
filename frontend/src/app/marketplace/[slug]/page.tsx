@@ -45,6 +45,10 @@ import {
   MARKETPLACE_VEHICLE_TYPE_LABELS,
 } from '@/types/marketplace';
 
+import {
+  MarketplaceOfferPanel,
+} from '@/components/site/marketplace-offer-panel';
+
 type PageProps = {
   params: Promise<{
     slug: string;
@@ -759,131 +763,23 @@ export default async function MarketplaceListingPage({
                 xl:self-start
               "
             >
-              <section
-                className="
-                  rounded-[30px]
-                  bg-[var(--flascam-blue)]
-                  p-6
-                  text-white
-                  shadow-[0_24px_65px_rgba(7,53,93,0.2)]
-                "
-              >
-                <p
-                  className="
-                    text-xs
-                    font-black
-                    uppercase
-                    tracking-[0.14em]
-                    text-white/65
-                  "
-                >
-                  Prix demandé
-                </p>
-
-                <p
-                  className="
-                    mt-2
-                    text-3xl
-                    font-black
-                  "
-                >
-                  {formatPrice(
-                    listing.requestedPrice,
-                  )}
-                </p>
-
-                <div
-                  className="
-                    mt-5
-                    flex
-                    items-start
-                    gap-3
-                    rounded-2xl
-                    bg-white/10
-                    p-4
-                  "
-                >
-                  <Clock3
-                    size={20}
-                    className="
-                      mt-0.5
-                      shrink-0
-                    "
-                  />
-
-                  <div>
-                    <p className="font-black">
-                      {
-                        listing.remainingDays
-                      }
-                      {' '}
-                      jour
-                      {listing.remainingDays >
-                      1
-                        ? 's'
-                        : ''}
-                      {' '}
-                      restant
-                      {listing.remainingDays >
-                      1
-                        ? 's'
-                        : ''}
-                    </p>
-
-                    <p
-                      className="
-                        mt-1
-                        text-xs
-                        leading-5
-                        text-white/70
-                      "
-                    >
-                      L’annonce sera automatiquement retirée à son
-                      expiration.
-                    </p>
-                  </div>
-                </div>
-
-                <Link
-                  href="/admin/login"
-                  className="
-                    mt-6
-                    inline-flex
-                    min-h-12
-                    w-full
-                    items-center
-                    justify-center
-                    gap-2
-                    rounded-2xl
-                    bg-[var(--flascam-terracotta)]
-                    px-5
-                    text-sm
-                    font-black
-                    text-white
-                    transition
-                    hover:brightness-95
-                  "
-                >
-                  <LockKeyhole
-                    size={18}
-                  />
-
-                  Se connecter pour faire une offre
-                </Link>
-
-                <p
-                  className="
-                    mt-3
-                    text-center
-                    text-xs
-                    leading-5
-                    text-white/65
-                  "
-                >
-                  Le montant et votre identité resteront confidentiels
-                  jusqu’à l’acceptation de l’offre.
-                </p>
-              </section>
+<MarketplaceOfferPanel
+  listingId={
+    listing.id
+  }
+  listingSlug={
+    listing.slug
+  }
+  listingTitle={
+    listing.title
+  }
+  requestedPrice={
+    listing.requestedPrice
+  }
+  remainingDays={
+    listing.remainingDays
+  }
+/>
 
               <section
                 className="

@@ -58,12 +58,27 @@ import {
   MarketplaceService,
 } from './marketplace.service';
 
+import {
+  CreateMarketplaceOfferDto,
+} from './dto/create-marketplace-offer.dto';
+
+import {
+  MarketplaceOffersQueryDto,
+} from './dto/marketplace-offers-query.dto';
+
+import {
+  MarketplaceOffersService,
+} from './marketplace-offers.service';
+
 @Controller('marketplace')
 export class MarketplaceController {
-  constructor(
-    private readonly service:
-      MarketplaceService,
-  ) {}
+constructor(
+  private readonly service:
+    MarketplaceService,
+
+  private readonly offersService:
+    MarketplaceOffersService,
+) {}
 
   /*
    * ==========================================================
@@ -287,6 +302,208 @@ export class MarketplaceController {
         request,
       );
   }
+
+/*
+ * ==========================================================
+ * OFFRES MARKETPLACE
+ * ==========================================================
+ */
+
+@Post(
+  'listings/:listingId/offers',
+)
+@Roles(
+  'SUPER_ADMIN',
+  'FLASCAM_ADMIN',
+  'ASSOCIATION_ADMIN',
+  'ADHERENT',
+  'MARKETPLACE_USER',
+)
+@Permissions(
+  'marketplace.offers.create',
+)
+createOffer(
+  @Param('listingId')
+  listingId:
+    string,
+
+  @Body()
+  dto:
+    CreateMarketplaceOfferDto,
+
+  @CurrentUser()
+  user:
+    AuthUser,
+
+  @Req()
+  request:
+    Request,
+) {
+  return this.offersService
+    .createOffer(
+      listingId,
+      dto,
+      user,
+      request,
+    );
+}
+
+@Get(
+  'my-offers/sent',
+)
+@Roles(
+  'SUPER_ADMIN',
+  'FLASCAM_ADMIN',
+  'ASSOCIATION_ADMIN',
+  'ADHERENT',
+  'MARKETPLACE_USER',
+)
+@Permissions(
+  'marketplace.offers.manage',
+)
+getSentOffers(
+  @Query()
+  query:
+    MarketplaceOffersQueryDto,
+
+  @CurrentUser()
+  user:
+    AuthUser,
+) {
+  return this.offersService
+    .getSentOffers(
+      query,
+      user,
+    );
+}
+
+@Get(
+  'my-offers/received',
+)
+@Roles(
+  'SUPER_ADMIN',
+  'FLASCAM_ADMIN',
+  'ASSOCIATION_ADMIN',
+  'ADHERENT',
+)
+@Permissions(
+  'marketplace.offers.manage',
+)
+getReceivedOffers(
+  @Query()
+  query:
+    MarketplaceOffersQueryDto,
+
+  @CurrentUser()
+  user:
+    AuthUser,
+) {
+  return this.offersService
+    .getReceivedOffers(
+      query,
+      user,
+    );
+}
+
+@Patch(
+  'my-offers/:id/cancel',
+)
+@Roles(
+  'SUPER_ADMIN',
+  'FLASCAM_ADMIN',
+  'ASSOCIATION_ADMIN',
+  'ADHERENT',
+  'MARKETPLACE_USER',
+)
+@Permissions(
+  'marketplace.offers.manage',
+)
+cancelOffer(
+  @Param('id')
+  id:
+    string,
+
+  @CurrentUser()
+  user:
+    AuthUser,
+
+  @Req()
+  request:
+    Request,
+) {
+  return this.offersService
+    .cancelOffer(
+      id,
+      user,
+      request,
+    );
+}
+
+@Patch(
+  'my-offers/:id/reject',
+)
+@Roles(
+  'SUPER_ADMIN',
+  'FLASCAM_ADMIN',
+  'ASSOCIATION_ADMIN',
+  'ADHERENT',
+)
+@Permissions(
+  'marketplace.offers.manage',
+)
+rejectOffer(
+  @Param('id')
+  id:
+    string,
+
+  @CurrentUser()
+  user:
+    AuthUser,
+
+  @Req()
+  request:
+    Request,
+) {
+  return this.offersService
+    .rejectOffer(
+      id,
+      user,
+      request,
+    );
+}
+
+@Patch(
+  'my-offers/:id/accept',
+)
+@Roles(
+  'SUPER_ADMIN',
+  'FLASCAM_ADMIN',
+  'ASSOCIATION_ADMIN',
+  'ADHERENT',
+)
+@Permissions(
+  'marketplace.offers.manage',
+)
+acceptOffer(
+  @Param('id')
+  id:
+    string,
+
+  @CurrentUser()
+  user:
+    AuthUser,
+
+  @Req()
+  request:
+    Request,
+) {
+  return this.offersService
+    .acceptOffer(
+      id,
+      user,
+      request,
+    );
+}  
 
   /*
    * ==========================================================

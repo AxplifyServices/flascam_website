@@ -70,3 +70,13 @@ export const MARKETPLACE_MAX_DURATION_DAYS = 30;
 export const MARKETPLACE_MAX_IMAGES = 12;
 
 export const MARKETPLACE_MAX_VIDEOS = 1;
+
+export const MARKETPLACE_OFFER_STATUSES = [
+  'PENDING',
+  'ACCEPTED',
+  'REJECTED',
+  'CANCELLED',
+] as const;
+
+export type MarketplaceOfferStatus =
+  (typeof MARKETPLACE_OFFER_STATUSES)[number];

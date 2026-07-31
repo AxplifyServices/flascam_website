@@ -29,6 +29,7 @@ import {
   UserRoundPlus,
   UsersRound,
   CarFront,
+SendHorizontal,
 } from 'lucide-react';
 
 import type {
@@ -125,6 +126,49 @@ const navItems: AdminNavItem[] = [
     'FLASCAM_ADMIN',
     'ASSOCIATION_ADMIN',
     'ADHERENT',
+  ],
+},
+
+{
+  label:
+    'Offres reçues',
+
+  href:
+    '/admin/marketplace-offers/received',
+
+  icon:
+    Inbox,
+
+  permission:
+    'marketplace.offers.manage',
+
+  roles: [
+    'SUPER_ADMIN',
+    'FLASCAM_ADMIN',
+    'ASSOCIATION_ADMIN',
+    'ADHERENT',
+  ],
+},
+
+{
+  label:
+    'Mes offres envoyées',
+
+  href:
+    '/admin/marketplace-offers/sent',
+
+  icon:
+    SendHorizontal,
+
+  permission:
+    'marketplace.offers.manage',
+
+  roles: [
+    'SUPER_ADMIN',
+    'FLASCAM_ADMIN',
+    'ASSOCIATION_ADMIN',
+    'ADHERENT',
+    'MARKETPLACE_USER',
   ],
 },
 
@@ -480,8 +524,10 @@ useEffect(() => {
   }
 
   const allowedAdherentPaths = [
-    '/admin/member-area',
-    '/admin/my-marketplace-listings',
+  '/admin/member-area',
+  '/admin/my-marketplace-listings',
+  '/admin/marketplace-offers/received',
+  '/admin/marketplace-offers/sent',
   ];
 
   const isAllowedPath =

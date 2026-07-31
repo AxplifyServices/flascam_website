@@ -18,6 +18,10 @@ import {
   MarketplaceService,
 } from './marketplace.service';
 
+import {
+  MarketplaceOffersService,
+} from './marketplace-offers.service';
+
 @Module({
   imports: [
     PrismaModule,
@@ -28,12 +32,14 @@ import {
     MarketplaceController,
   ],
 
-  providers: [
-    MarketplaceService,
-  ],
+providers: [
+  MarketplaceService,
+  MarketplaceOffersService,
+],
 
-  exports: [
-    MarketplaceService,
-  ],
+exports: [
+  MarketplaceService,
+  MarketplaceOffersService,
+],
 })
 export class MarketplaceModule {}

@@ -14,7 +14,11 @@ import type {
   PublicMarketplaceListingDetail,
 PublicMarketplaceListingFilters,
 PublicMarketplaceListingListResponse,
-
+CreateMarketplaceOfferPayload,
+MarketplaceOfferFilters,
+ReceivedMarketplaceOffer,
+SentMarketplaceOffer,
+MarketplaceOfferListResponse,
 } from '@/types/marketplace';
 
 async function readErrorMessage(
@@ -582,5 +586,158 @@ export async function getPublicMarketplaceListingBySlug(
     `/marketplace/public/${encodeURIComponent(
       slug,
     )}`,
+  );
+}
+
+export async function createMarketplaceOffer(
+  listingId: string,
+  payload:
+    CreateMarketplaceOfferPayload,
+) {
+  return await authenticatedMarketplaceFetch<
+    SentMarketplaceOffer
+  >(
+    `/marketplace/listings/${encodeURIComponent(
+      listingId,
+    )}/offers`,
+    {
+      method:
+        'POST',
+
+      body:
+        JSON.stringify(
+          payload,
+        ),
+    },
+  );
+}
+
+export async function getSentMarketplaceOffers(
+  filters:
+    MarketplaceOfferFilters = {},
+) {
+  const params =
+    new URLSearchParams();
+
+  params.set(
+    'page',
+    String(
+      filters.page ??
+        1,
+    ),
+  );
+
+  params.set(
+    'limit',
+    String(
+      filters.limit ??
+        20,
+    ),
+  );
+
+  if (
+    filters.status
+  ) {
+    params.set(
+      'status',
+      filters.status,
+    );
+  }
+
+  return await authenticatedMarketplaceFetch<
+    MarketplaceOfferListResponse<
+      SentMarketplaceOffer
+    >
+  >(
+    `/marketplace/my-offers/sent?${params.toString()}`,
+  );
+}
+
+export async function getReceivedMarketplaceOffers(
+  filters:
+    MarketplaceOfferFilters = {},
+) {
+  const params =
+    new URLSearchParams();
+
+  params.set(
+    'page',
+    String(
+      filters.page ??
+        1,
+    ),
+  );
+
+  params.set(
+    'limit',
+    String(
+      filters.limit ??
+        20,
+    ),
+  );
+
+  if (
+    filters.status
+  ) {
+    params.set(
+      'status',
+      filters.status,
+    );
+  }
+
+  return await authenticatedMarketplaceFetch<
+    MarketplaceOfferListResponse<
+      ReceivedMarketplaceOffer
+    >
+  >(
+    `/marketplace/my-offers/received?${params.toString()}`,
+  );
+}
+
+export async function cancelMarketplaceOffer(
+  offerId: string,
+) {
+  return await authenticatedMarketplaceFetch<
+    SentMarketplaceOffer
+  >(
+    `/marketplace/my-offers/${encodeURIComponent(
+      offerId,
+    )}/cancel`,
+    {
+      method:
+        'PATCH',
+    },
+  );
+}
+
+export async function rejectMarketplaceOffer(
+  offerId: string,
+) {
+  return await authenticatedMarketplaceFetch<
+    ReceivedMarketplaceOffer
+  >(
+    `/marketplace/my-offers/${encodeURIComponent(
+      offerId,
+    )}/reject`,
+    {
+      method:
+        'PATCH',
+    },
+  );
+}
+
+export async function acceptMarketplaceOffer(
+  offerId: string,
+) {
+  return await authenticatedMarketplaceFetch<
+    ReceivedMarketplaceOffer
+  >(
+    `/marketplace/my-offers/${encodeURIComponent(
+      offerId,
+    )}/accept`,
+    {
+      method:
+        'PATCH',
+    },
   );
 }

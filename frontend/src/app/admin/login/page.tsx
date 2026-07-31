@@ -2,19 +2,40 @@
 
 import {
   FormEvent,
+  Suspense,
   useState,
 } from 'react';
 
 import {
   useRouter,
+  useSearchParams,
 } from 'next/navigation';
 
 import {
   apiFetch,
 } from '@/lib/api';
 
-export default function AdminLoginPage() {
+function AdminLoginForm() {
   const router = useRouter();
+
+const searchParams =
+  useSearchParams();
+
+const requestedNext =
+  searchParams.get(
+    'next',
+  );
+
+const safeNext =
+  requestedNext &&
+  requestedNext.startsWith(
+    '/',
+  ) &&
+  !requestedNext.startsWith(
+    '//',
+  )
+    ? requestedNext
+    : '/admin';  
 
   const [
     email,
@@ -93,8 +114,11 @@ if (!response.ok) {
   return;
 }
 
-      router.replace('/admin');
-      router.refresh();
+router.replace(
+  safeNext,
+);
+
+router.refresh();
     } catch {
       setError(
         'Le serveur est momentanément indisponible.',
@@ -293,5 +317,114 @@ if (!response.ok) {
         </section>
       </div>
     </main>
+  );
+}
+
+function LoginPageFallback() {
+  return (
+    <main
+      className="
+        min-h-screen
+        bg-slate-950
+        px-4
+        py-10
+        sm:px-6
+      "
+    >
+      <div
+        className="
+          mx-auto
+          flex
+          min-h-[calc(100vh-5rem)]
+          max-w-md
+          items-center
+        "
+      >
+        <section
+          className="
+            w-full
+            rounded-3xl
+            bg-white
+            p-6
+            shadow-2xl
+            sm:p-9
+          "
+        >
+          <div
+            className="
+              animate-pulse
+              space-y-5
+            "
+          >
+            <div
+              className="
+                h-4
+                w-24
+                rounded
+                bg-slate-200
+              "
+            />
+
+            <div
+              className="
+                h-9
+                w-52
+                rounded
+                bg-slate-200
+              "
+            />
+
+            <div
+              className="
+                h-5
+                w-full
+                rounded
+                bg-slate-100
+              "
+            />
+
+            <div
+              className="
+                mt-8
+                h-12
+                w-full
+                rounded-xl
+                bg-slate-100
+              "
+            />
+
+            <div
+              className="
+                h-12
+                w-full
+                rounded-xl
+                bg-slate-100
+              "
+            />
+
+            <div
+              className="
+                h-12
+                w-full
+                rounded-xl
+                bg-slate-200
+              "
+            />
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <LoginPageFallback />
+      }
+    >
+      <AdminLoginForm />
+    </Suspense>
   );
 }
