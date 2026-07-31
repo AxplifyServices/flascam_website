@@ -108,17 +108,17 @@ export function HomepageHeroSlider({
   }
 
   return (
-    <div
-      className="
-        relative
-        h-full
-        min-h-[320px]
-        overflow-hidden
-        bg-[#e9f0f5]
-        sm:min-h-[430px]
-        lg:min-h-[610px]
-      "
-    >
+<div
+  className="
+    relative
+    h-full
+    min-h-[320px]
+    overflow-hidden
+    bg-[#e9f0f5]
+    sm:min-h-[430px]
+    lg:min-h-[520px]
+  "
+>
       {availableSlides.map(
         (
           slide,

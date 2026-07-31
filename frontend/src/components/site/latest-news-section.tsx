@@ -84,14 +84,14 @@ export async function LatestNewsSection() {
   }
 
   return (
-    <section
-      className="
-        overflow-hidden
-        bg-white
-        py-16
-        sm:py-24
-        lg:py-28
-      "
+<section
+  className="
+    overflow-hidden
+    bg-white
+    py-16
+    sm:py-24
+    lg:py-20
+  "
       aria-labelledby="home-news-title"
     >
       <div
@@ -99,17 +99,19 @@ export async function LatestNewsSection() {
           site-container
         "
       >
-        <div
-          className="
-            grid
-            gap-8
-            border-b
-            border-[#dbe5ef]
-            pb-10
-            lg:grid-cols-[1fr_auto]
-            lg:items-end
-          "
-        >
+<div
+  className="
+    grid
+    gap-8
+    border-b
+    border-[#dbe5ef]
+    pb-10
+    lg:grid-cols-[1fr_auto]
+    lg:items-end
+    lg:gap-6
+    lg:pb-7
+  "
+>
           <div
             className="
               max-w-3xl
@@ -138,33 +140,37 @@ export async function LatestNewsSection() {
               Actualités FLASCAM
             </p>
 
-            <h2
-              id="home-news-title"
-              className="
-                mt-5
-                text-3xl
-                font-extrabold
-                leading-[1.1]
-                tracking-[-0.04em]
-                text-[#101820]
-                sm:text-4xl
-                lg:text-[3.25rem]
-              "
-            >
+<h2
+  id="home-news-title"
+  className="
+    mt-5
+    text-3xl
+    font-extrabold
+    leading-[1.1]
+    tracking-[-0.04em]
+    text-[#101820]
+    sm:text-4xl
+    lg:mt-4
+    lg:text-[2.65rem]
+  "
+>
               Les dernières informations
               de la fédération.
             </h2>
 
-            <p
-              className="
-                mt-6
-                max-w-2xl
-                text-base
-                leading-8
-                text-[#536273]
-                sm:text-lg
-              "
-            >
+<p
+  className="
+    mt-6
+    max-w-2xl
+    text-base
+    leading-8
+    text-[#536273]
+    sm:text-lg
+    lg:mt-4
+    lg:text-base
+    lg:leading-7
+  "
+>
               Parcourez les actions,
               événements, communiqués et
               publications officielles de
