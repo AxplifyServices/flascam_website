@@ -104,6 +104,9 @@ model users {
   news_articles_news_articles_created_by_user_idTousers                news_articles[]        @relation("news_articles_created_by_user_idTousers")
   news_articles_news_articles_reviewed_by_user_idTousers               news_articles[]        @relation("news_articles_reviewed_by_user_idTousers")
   news_articles_news_articles_updated_by_user_idTousers                news_articles[]        @relation("news_articles_updated_by_user_idTousers")
+  non_voting_adherents_non_voting_adherents_created_by_user_idTousers  non_voting_adherents[] @relation("non_voting_adherents_created_by_user_idTousers")
+  non_voting_adherents_non_voting_adherents_reviewed_by_user_idTousers non_voting_adherents[] @relation("non_voting_adherents_reviewed_by_user_idTousers")
+  non_voting_adherents_non_voting_adherents_user_idTousers             non_voting_adherents?  @relation("non_voting_adherents_user_idTousers")
   refresh_tokens                                                       refresh_tokens[]
   regional_associations                                                regional_associations? @relation(fields: [regional_association_id], references: [id], onUpdate: NoAction)
   roles                                                                roles                  @relation(fields: [role_id], references: [id], onUpdate: NoAction)
@@ -754,4 +757,45 @@ model marketplace_offers {
   @@index([marketplace_listing_id, submitted_at], map: "marketplace_offers_pending_idx", where: raw("((status)::text = 'PENDING'::text)"))
   @@index([marketplace_listing_id, buyer_user_id, status], map: "marketplace_offers_buyer_listing_status_idx")
   @@index([marketplace_listing_id, status], map: "marketplace_offers_listing_status_idx")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model non_voting_adherents {
+  id                                                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                                               String    @unique(map: "non_voting_adherents_user_unique") @db.Uuid
+  city                                                  String    @db.VarChar(180)
+  membership_status                                     String    @default("PENDING_PAYMENT") @db.VarChar(30)
+  deposit_payment_method                                String    @db.VarChar(30)
+  deposit_status                                        String    @default("PENDING") @db.VarChar(30)
+  deposit_amount                                        Decimal   @db.Decimal(14, 2)
+  currency_code                                         String    @default("MAD") @db.Char(3)
+  wafacash_reference                                    String?   @unique(map: "non_voting_adherents_wafacash_reference_unique", where: raw("((wafacash_reference IS NOT NULL) AND (deleted_at IS NULL))")) @db.VarChar(180)
+  payment_provider                                      String?   @db.VarChar(80)
+  payment_session_id                                    String?   @unique(map: "non_voting_adherents_payment_session_unique", where: raw("((payment_session_id IS NOT NULL) AND (deleted_at IS NULL))")) @db.VarChar(255)
+  payment_transaction_id                                String?   @unique(map: "non_voting_adherents_payment_transaction_unique", where: raw("((payment_transaction_id IS NOT NULL) AND (deleted_at IS NULL))")) @db.VarChar(255)
+  payment_requested_at                                  DateTime? @db.Timestamptz(6)
+  payment_submitted_at                                  DateTime? @db.Timestamptz(6)
+  payment_confirmed_at                                  DateTime? @db.Timestamptz(6)
+  payment_rejected_at                                   DateTime? @db.Timestamptz(6)
+  payment_refunded_at                                   DateTime? @db.Timestamptz(6)
+  rejection_reason                                      String?
+  suspension_reason                                     String?
+  created_by_user_id                                    String    @db.Uuid
+  reviewed_by_user_id                                   String?   @db.Uuid
+  reviewed_at                                           DateTime? @db.Timestamptz(6)
+  activated_at                                          DateTime? @db.Timestamptz(6)
+  suspended_at                                          DateTime? @db.Timestamptz(6)
+  created_at                                            DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at                                            DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at                                            DateTime? @db.Timestamptz(6)
+  users_non_voting_adherents_created_by_user_idTousers  users     @relation("non_voting_adherents_created_by_user_idTousers", fields: [created_by_user_id], references: [id], onUpdate: NoAction, map: "non_voting_adherents_created_by_fk")
+  users_non_voting_adherents_reviewed_by_user_idTousers users?    @relation("non_voting_adherents_reviewed_by_user_idTousers", fields: [reviewed_by_user_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "non_voting_adherents_reviewed_by_fk")
+  users_non_voting_adherents_user_idTousers             users     @relation("non_voting_adherents_user_idTousers", fields: [user_id], references: [id], onUpdate: NoAction, map: "non_voting_adherents_user_fk")
+
+  @@index([created_by_user_id, created_at(sort: Desc)], map: "non_voting_adherents_created_by_idx")
+  @@index([deposit_status, created_at(sort: Desc)], map: "non_voting_adherents_deposit_status_idx", where: raw("(deleted_at IS NULL)"))
+  @@index([membership_status, created_at(sort: Desc)], map: "non_voting_adherents_membership_status_idx", where: raw("(deleted_at IS NULL)"))
+  @@index([deposit_payment_method, created_at(sort: Desc)], map: "non_voting_adherents_payment_method_idx", where: raw("(deleted_at IS NULL)"))
+  @@index([reviewed_by_user_id, reviewed_at(sort: Desc)], map: "non_voting_adherents_reviewed_by_idx", where: raw("(reviewed_by_user_id IS NOT NULL)"))
 }

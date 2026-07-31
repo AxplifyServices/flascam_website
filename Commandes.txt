@@ -26,7 +26,7 @@ Mot de passe : flascam_minio_local_password_2026
 
 ** Execution d'un script
 
-psql -U postgres -d flascam_db -f "database\migrations\029_fix_marketplace_offer_permissions.sql
+psql -U postgres -d flascam_db -f "database\migrations\030_create_non_voting_adherents.sql
 
 
 cd /opt/apps/flascam/repo
