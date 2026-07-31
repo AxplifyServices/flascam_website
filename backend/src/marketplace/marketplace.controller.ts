@@ -112,6 +112,33 @@ constructor(
       );
   }
 
+@Get('accessible/:slug')
+@Roles(
+  'SUPER_ADMIN',
+  'FLASCAM_ADMIN',
+  'ASSOCIATION_ADMIN',
+  'ADHERENT',
+  'MARKETPLACE_USER',
+)
+@Permissions(
+  'marketplace.offers.manage',
+)
+getAccessibleListingBySlug(
+  @Param('slug')
+  slug:
+    string,
+
+  @CurrentUser()
+  user:
+    AuthUser,
+) {
+  return this.service
+    .getAccessibleListingBySlug(
+      slug,
+      user,
+    );
+}  
+
   /*
    * ==========================================================
    * ANNONCES DU VENDEUR CONNECTÉ

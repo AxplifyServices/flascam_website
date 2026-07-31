@@ -563,7 +563,7 @@ export default function SentMarketplaceOffersPage() {
               px-5
               text-sm
               font-black
-              text-white
+              !text-white
             "
           >
             Découvrir la marketplace

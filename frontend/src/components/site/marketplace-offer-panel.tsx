@@ -25,11 +25,16 @@ import {
   apiFetch,
 } from '@/lib/api';
 
+import type {
+  MarketplaceListingStatus,
+} from '@/types/marketplace';
+
 type MarketplaceOfferPanelProps = {
   listingId: string;
   listingSlug: string;
   listingTitle: string;
-
+listingStatus:
+  MarketplaceListingStatus;
   requestedPrice: number;
   remainingDays: number;
 };
@@ -70,6 +75,7 @@ export function MarketplaceOfferPanel({
   listingId,
   listingSlug,
   listingTitle,
+  listingStatus,
   requestedPrice,
   remainingDays,
 }: MarketplaceOfferPanelProps) {
@@ -319,6 +325,109 @@ export function MarketplaceOfferPanel({
     `/admin/login?next=${encodeURIComponent(
       returnPath,
     )}`;
+
+if (
+  listingStatus ===
+    'SOLD' ||
+  listingStatus ===
+    'EXPIRED'
+) {
+  const sold =
+    listingStatus ===
+    'SOLD';
+
+  return (
+    <aside
+      className="
+        rounded-[30px]
+        bg-[var(--flascam-blue)]
+        p-6
+        text-white
+        shadow-[0_20px_60px_rgba(7,53,93,0.18)]
+      "
+    >
+      <p
+        className="
+          text-xs
+          font-black
+          uppercase
+          tracking-[0.16em]
+          text-white/65
+        "
+      >
+        Prix demandé
+      </p>
+
+      <p
+        className="
+          mt-2
+          text-3xl
+          font-black
+          text-white
+        "
+      >
+        {formatPrice(
+          requestedPrice,
+        )}
+      </p>
+
+      <div
+        className="
+          mt-6
+          rounded-2xl
+          border
+          border-white/15
+          bg-white/10
+          p-5
+        "
+      >
+        <div
+          className="
+            flex
+            items-start
+            gap-3
+          "
+        >
+          <CheckCircle2
+            size={22}
+            aria-hidden="true"
+            className="
+              mt-0.5
+              shrink-0
+              text-white
+            "
+          />
+
+          <div>
+            <p
+              className="
+                font-black
+                text-white
+              "
+            >
+              {sold
+                ? 'Ce véhicule a été vendu'
+                : 'Cette annonce a expiré'}
+            </p>
+
+            <p
+              className="
+                mt-2
+                text-sm
+                leading-6
+                text-white/70
+              "
+            >
+              {sold
+                ? 'Une offre a été acceptée. Il n’est plus possible d’envoyer une nouvelle proposition.'
+                : 'La période de publication est terminée. Il n’est plus possible d’envoyer une offre.'}
+            </p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
 
   return (
     <section

@@ -5,6 +5,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import {
+  ConfigService,
+} from '@nestjs/config';
+
 import type {
   Request,
 } from 'express';
@@ -38,13 +42,16 @@ type MarketplaceTransaction =
 
 @Injectable()
 export class MarketplaceOffersService {
-  constructor(
-    private readonly prisma:
-      PrismaService,
+constructor(
+  private readonly prisma:
+    PrismaService,
 
-    private readonly auditLogs:
-      AuditLogsService,
-  ) {}
+  private readonly auditLogs:
+    AuditLogsService,
+
+  private readonly config:
+    ConfigService,
+) {}
 
   async createOffer(
     listingId: string,
@@ -1072,12 +1079,32 @@ export class MarketplaceOffersService {
     };
   }
 
-  private buildMediaUrl(
-    objectKey:
-      string,
-  ) {
-    return `/api/media/${objectKey}`;
+private buildMediaUrl(
+  objectKey:
+    string,
+) {
+  const baseUrl =
+    this.config.get<string>(
+      'PUBLIC_MEDIA_BASE_URL',
+      '',
+    );
+
+  if (!baseUrl) {
+    return objectKey;
   }
+
+  return `${
+    baseUrl.replace(
+      /\/+$/,
+      '',
+    )
+  }/${
+    objectKey.replace(
+      /^\/+/,
+      '',
+    )
+  }`;
+}
 
   private async writeAudit(
     request:

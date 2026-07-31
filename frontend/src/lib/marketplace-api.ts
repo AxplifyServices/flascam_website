@@ -19,6 +19,7 @@ MarketplaceOfferFilters,
 ReceivedMarketplaceOffer,
 SentMarketplaceOffer,
 MarketplaceOfferListResponse,
+AccessibleMarketplaceListingDetail,
 } from '@/types/marketplace';
 
 async function readErrorMessage(
@@ -586,6 +587,28 @@ export async function getPublicMarketplaceListingBySlug(
     `/marketplace/public/${encodeURIComponent(
       slug,
     )}`,
+  );
+}
+
+export async function getAccessibleMarketplaceListingBySlug(
+  slug:
+    string,
+
+  cookieHeader:
+    string,
+) {
+  return await authenticatedMarketplaceFetch<
+    AccessibleMarketplaceListingDetail
+  >(
+    `/marketplace/accessible/${encodeURIComponent(
+      slug,
+    )}`,
+    {
+      headers: {
+        Cookie:
+          cookieHeader,
+      },
+    },
   );
 }
 

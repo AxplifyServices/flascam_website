@@ -2,6 +2,10 @@ import type {
   Metadata,
 } from 'next';
 
+import {
+  cookies,
+} from 'next/headers';
+
 import Link from 'next/link';
 
 import {
@@ -36,6 +40,7 @@ import {
 } from '@/components/site/public-header';
 
 import {
+  getAccessibleMarketplaceListingBySlug,
   getPublicMarketplaceListingBySlug,
 } from '@/lib/marketplace-api';
 
@@ -54,6 +59,36 @@ type PageProps = {
     slug: string;
   }>;
 };
+
+async function loadMarketplaceListing(
+  slug:
+    string,
+) {
+  try {
+    return await getPublicMarketplaceListingBySlug(
+      slug,
+    );
+  } catch {
+    const cookieStore =
+      await cookies();
+
+    const cookieHeader =
+      cookieStore.toString();
+
+    if (!cookieHeader) {
+      return null;
+    }
+
+    try {
+      return await getAccessibleMarketplaceListingBySlug(
+        slug,
+        cookieHeader,
+      );
+    } catch {
+      return null;
+    }
+  }
+}
 
 function formatPrice(
   value: number,
@@ -182,10 +217,10 @@ export async function generateMetadata({
   } =
     await params;
 
-  const listing =
-    await getPublicMarketplaceListingBySlug(
-      slug,
-    );
+const listing =
+  await loadMarketplaceListing(
+    slug,
+  );
 
   if (!listing) {
     return {
@@ -212,16 +247,42 @@ export async function generateMetadata({
         'IMAGE',
     );
 
-  return {
-    title,
-    description,
+const isArchivedListing =
+  listing.status ===
+    'SOLD' ||
+  listing.status ===
+    'EXPIRED';    
 
-    alternates: {
-      canonical:
-        `/marketplace/${listing.slug}`,
-    },
+return {
+  title,
+  description,
 
-    openGraph: {
+  robots:
+    isArchivedListing
+      ? {
+          index:
+            false,
+
+          follow:
+            false,
+
+          noarchive:
+            true,
+        }
+      : {
+          index:
+            true,
+
+          follow:
+            true,
+        },
+
+  alternates: {
+    canonical:
+      `/marketplace/${listing.slug}`,
+  },
+
+  openGraph: {
       title,
       description,
 
@@ -276,14 +337,26 @@ export default async function MarketplaceListingPage({
   } =
     await params;
 
-  const listing =
-    await getPublicMarketplaceListingBySlug(
-      slug,
-    );
+const listing =
+  await loadMarketplaceListing(
+    slug,
+  );
 
   if (!listing) {
     notFound();
   }
+
+const isSold =
+  listing.status ===
+  'SOLD';
+
+const isExpired =
+  listing.status ===
+  'EXPIRED';
+
+const isUnavailable =
+  isSold ||
+  isExpired;  
 
   const structuredData = {
     '@context':
@@ -380,6 +453,84 @@ export default async function MarketplaceListingPage({
   return (
     <>
       <PublicHeader />
+
+{isUnavailable && (
+  <div
+    className="
+      border-b
+      border-white/15
+      bg-[var(--flascam-blue-dark)]
+      px-4
+      py-4
+      text-white
+    "
+  >
+    <div
+      className="
+        mx-auto
+        flex
+        max-w-7xl
+        flex-col
+        gap-2
+        sm:flex-row
+        sm:items-center
+        sm:justify-between
+      "
+    >
+      <div>
+        <p
+          className="
+            text-sm
+            font-black
+            uppercase
+            tracking-[0.12em]
+            text-white
+          "
+        >
+          {isSold
+            ? 'Véhicule vendu'
+            : 'Annonce expirée'}
+        </p>
+
+        <p
+          className="
+            mt-1
+            text-sm
+            leading-6
+            text-white/75
+          "
+        >
+          {isSold
+            ? 'Cette annonce n’apparaît plus dans la marketplace, mais elle reste accessible aux personnes concernées par la transaction.'
+            : 'La durée de publication de cette annonce est terminée. Elle reste consultable par son propriétaire et les personnes ayant envoyé une offre.'}
+        </p>
+      </div>
+
+      <span
+        className="
+          inline-flex
+          w-fit
+          shrink-0
+          rounded-full
+          bg-white/10
+          px-4
+          py-2
+          text-sm
+          font-black
+          text-white
+        "
+      >
+        {isSold
+          ? `Vendue le ${formatDate(
+              listing.soldAt,
+            )}`
+          : `Expirée le ${formatDate(
+              listing.expiresAt,
+            )}`}
+      </span>
+    </div>
+  </div>
+)}      
 
       <main
         className="
@@ -773,12 +924,16 @@ export default async function MarketplaceListingPage({
   listingTitle={
     listing.title
   }
+  listingStatus={
+  listing.status
+}
   requestedPrice={
     listing.requestedPrice
   }
   remainingDays={
     listing.remainingDays
   }
+  
 />
 
               <section

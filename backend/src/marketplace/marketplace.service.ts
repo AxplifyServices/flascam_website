@@ -249,6 +249,113 @@ export class MarketplaceService {
     );
   }
 
+async getAccessibleListingBySlug(
+  slug:
+    string,
+
+  user:
+    AuthUser,
+) {
+  await this.expireOutdatedListings();
+
+  const listing =
+    await this.prisma.marketplace_listings.findFirst({
+      where: {
+        slug,
+
+        deleted_at:
+          null,
+
+        status: {
+          in: [
+            'PUBLISHED',
+            'EXPIRED',
+            'SOLD',
+          ],
+        },
+      },
+
+      include: {
+        marketplace_listing_media: {
+          include: {
+            media_assets:
+              true,
+          },
+
+          orderBy: [
+            {
+              display_order:
+                'asc',
+            },
+            {
+              created_at:
+                'asc',
+            },
+          ],
+        },
+      },
+    });
+
+  if (!listing) {
+    throw new NotFoundException(
+      'Cette annonce est introuvable.',
+    );
+  }
+
+  const isOwner =
+    listing.owner_user_id ===
+    user.id;
+
+  const userOffer =
+    await this.prisma.marketplace_offers.findFirst({
+      where: {
+        marketplace_listing_id:
+          listing.id,
+
+        buyer_user_id:
+          user.id,
+      },
+
+      select: {
+        id:
+          true,
+
+        status:
+          true,
+      },
+    });
+
+  const hasSubmittedOffer =
+    Boolean(
+      userOffer,
+    );
+
+  if (
+    !isOwner &&
+    !hasSubmittedOffer
+  ) {
+    throw new ForbiddenException(
+      'Vous n’êtes pas autorisé à consulter cette annonce.',
+    );
+  }
+
+  return {
+    ...this.formatPublicListingDetail(
+      listing,
+    ),
+
+    viewerAccess: {
+      isOwner,
+
+      hasSubmittedOffer,
+
+      offerStatus:
+        userOffer?.status ??
+        null,
+    },
+  };
+}  
+
   /*
    * ==========================================================
    * ANNONCES DU PROPRIÉTAIRE CONNECTÉ
@@ -3211,6 +3318,9 @@ private cleanSingleLineText(
       slug:
         listing.slug,
 
+status:
+  listing.status,        
+
       title:
         listing.title,
 
@@ -3254,6 +3364,9 @@ private cleanSingleLineText(
 
       expiresAt:
         listing.expires_at,
+
+soldAt:
+  listing.sold_at,        
 
       remainingDays:
         this.calculateRemainingDays(

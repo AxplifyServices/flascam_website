@@ -398,6 +398,9 @@ export type PublicMarketplaceListingCard = {
   reference: string;
   slug: string;
 
+  status:
+    MarketplaceListingStatus;
+
   title: string;
 
   vehicleType:
@@ -421,10 +424,12 @@ export type PublicMarketplaceListingCard = {
   requestedPrice: number;
   currencyCode: 'MAD';
 
-  publishedAt: string;
-  expiresAt: string;
+publishedAt: string;
+expiresAt: string;
 
-  remainingDays: number;
+soldAt?: string | null;
+
+remainingDays: number;
 
   coverMedia:
     PublicMarketplaceMedia | null;
@@ -458,6 +463,19 @@ export type PublicMarketplaceListingDetail =
       description?: string | null;
     };
   };
+
+export type AccessibleMarketplaceListingDetail =
+  PublicMarketplaceListingDetail & {
+    viewerAccess: {
+      isOwner: boolean;
+
+      hasSubmittedOffer:
+        boolean;
+
+      offerStatus:
+        MarketplaceOfferStatus | null;
+    };
+  };  
 
 export type PublicMarketplaceListingListResponse = {
   items:
